@@ -176,173 +176,24 @@
   };
 
   /* ==========================================================================
-     3. GERENCIADOR DE BANCO DE DADOS (SQLite Server API com Migração IndexedDB)
+     3. GERENCIADOR DE BANCO DE DADOS LOCAL (100% Client-Side IndexedDB / LocalStorage)
      ========================================================================== */
   const DB = {
-    isServerActive: false,
-
-    async fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const response = await fetch(url, {
-          ...options,
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        return response;
-      } catch (err) {
-        clearTimeout(timeoutId);
-        if (err.name === 'AbortError') {
-          throw new Error('Timeout de conexão com o servidor (' + timeoutMs + 'ms).');
-        }
-        throw err;
-      }
-    },
+    indexedDBInstance: null,
+    LOCAL_STORAGE_KEY: 'storycraft_history_backup',
 
     async init() {
-      // 1. Testa conectividade com a API REST com Timeout de 3000ms (Fail-Fast)
       try {
-        const res = await this.fetchWithTimeout('/api/health', {}, 3000);
-        if (res && res.ok) {
-          this.isServerActive = true;
-          console.log('[StoryCraft] Conectado à API REST do SQLite Backend.');
-        } else {
-          this.isServerActive = false;
-        }
-      } catch (e) {
-        console.warn('[StoryCraft] Servidor SQLite offline ou inacessível. Usando IndexedDB como fallback:', e.message);
-        this.isServerActive = false;
-      }
-
-      // 2. Inicializa o IndexedDB incondicionalmente para que a estrutura local (saved_stories) esteja sempre pronta
-      try {
-        await this.initIndexedDBFallback();
-        if (this.isServerActive) {
-          await this.migrateLegacyIndexedDB();
-        }
-      } catch (storageErr) {
-        console.warn('[StoryCraft] Erro ao inicializar armazenamento local:', storageErr);
-      }
-    },
-
-    async getAllStories() {
-      if (this.isServerActive) {
-        try {
-          const res = await this.fetchWithTimeout('/api/history', {}, 3000);
-          if (!res.ok) throw new Error('Falha HTTP ' + res.status);
-          const json = await res.json();
-          return json.success ? (json.data || []) : [];
-        } catch (err) {
-          console.warn('[API] Falha ao buscar histórico no servidor, alternando para IndexedDB:', err.message);
-          this.isServerActive = false;
-          return this.getAllFromIndexedDB();
-        }
-      } else {
-        return this.getAllFromIndexedDB();
-      }
-    },
-
-    async saveStory(storyData) {
-      if (this.isServerActive) {
-        try {
-          const res = await this.fetchWithTimeout('/api/history', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: storyData.title,
-              thumbnail: storyData.thumbnail,
-              state: storyData.state,
-              dateFormatted: storyData.dateFormatted
-            })
-          }, 5000);
-
-          if (!res.ok) {
-            if (res.status === 413) {
-              throw new Error('Payload muito grande para o servidor (Erro 413).');
-            } else if (res.status >= 500) {
-              throw new Error(`Erro no servidor ao salvar histórico (HTTP ${res.status}).`);
-            } else {
-              throw new Error(`Falha ao salvar arte no servidor (HTTP ${res.status}).`);
-            }
-          }
-          const json = await res.json();
-          return json.data;
-        } catch (err) {
-          console.warn('[API] Erro ao salvar histórico no servidor, gravando localmente:', err.message);
-          // Fallback para gravação no IndexedDB local para não perder o trabalho do usuário
-          return this.saveToIndexedDB(storyData);
-        }
-      } else {
-        return this.saveToIndexedDB(storyData);
-      }
-    },
-
-    async deleteStory(id) {
-      if (this.isServerActive) {
-        try {
-          const res = await this.fetchWithTimeout(`/api/history/${id}`, { method: 'DELETE' }, 4000);
-          if (!res.ok) throw new Error('Falha HTTP ' + res.status);
-          return true;
-        } catch (err) {
-          console.warn('[API] Erro ao excluir no servidor, tentando localmente:', err.message);
-          return this.deleteFromIndexedDB(id);
-        }
-      } else {
-        return this.deleteFromIndexedDB(id);
-      }
-    },
-
-    async clearAll() {
-      if (this.isServerActive) {
-        try {
-          const res = await this.fetchWithTimeout('/api/history', { method: 'DELETE' }, 4000);
-          if (!res.ok) throw new Error('Falha HTTP ' + res.status);
-          return true;
-        } catch (err) {
-          console.warn('[API] Erro ao limpar no servidor, limpando localmente:', err.message);
-          return this.clearIndexedDB();
-        }
-      } else {
-        return this.clearIndexedDB();
-      }
-    },
-
-    // --- MIGRAÇÃO AUTOMÁTICA DE DADOS DO INDEXEDDB PARA O SQLITE ---
-    async migrateLegacyIndexedDB() {
-      try {
-        const legacyItems = await this.getAllFromIndexedDB();
-        if (legacyItems && legacyItems.length > 0) {
-          console.log(`[Migração] Migrando ${legacyItems.length} artes do IndexedDB para o SQLite...`);
-          for (const item of legacyItems) {
-            try {
-              await fetch('/api/history', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  title: item.title,
-                  thumbnail: item.thumbnail,
-                  state: item.state,
-                  dateFormatted: item.dateFormatted
-                })
-              });
-            } catch (postErr) {
-              console.warn('[Migração] Falha ao migrar item:', item.title, postErr);
-            }
-          }
-          await this.clearIndexedDB();
-          console.log('[Migração] Migração concluída com sucesso!');
-          showToast('Histórico anterior migrado para o servidor!');
-        }
+        await this.initIndexedDB();
+        console.log('[StoryCraft] Banco de dados IndexedDB local inicializado.');
       } catch (err) {
-        console.warn('[Migração] Erro durante verificação de migração:', err);
+        console.warn('[StoryCraft] IndexedDB indisponível, usando LocalStorage:', err);
       }
     },
 
-    // --- MÉTODOS DE FALLBACK INDEXEDDB ---
-    indexedDBInstance: null,
-    initIndexedDBFallback() {
+    initIndexedDB() {
       return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
         try {
           const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
           request.onupgradeneeded = (event) => {
@@ -362,6 +213,65 @@
       });
     },
 
+    async getAllStories() {
+      if (this.indexedDBInstance || window.indexedDB) {
+        try {
+          const items = await this.getAllFromIndexedDB();
+          if (items && items.length > 0) {
+            return items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          }
+        } catch (e) {
+          console.warn('[DB] Falha no IndexedDB, buscando LocalStorage:', e);
+        }
+      }
+      return this.getAllFromLocalStorage();
+    },
+
+    async saveStory(storyData) {
+      if (!storyData.id) {
+        storyData.id = 'story_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      }
+      storyData.timestamp = storyData.timestamp || Date.now();
+
+      let saved = null;
+      if (this.indexedDBInstance || window.indexedDB) {
+        try {
+          saved = await this.saveToIndexedDB(storyData);
+        } catch (e) {
+          console.warn('[DB] Falha ao salvar no IndexedDB, usando LocalStorage:', e);
+        }
+      }
+      if (!saved) {
+        saved = this.saveToLocalStorage(storyData);
+      }
+      return saved;
+    },
+
+    async deleteStory(id) {
+      if (this.indexedDBInstance || window.indexedDB) {
+        try {
+          await this.deleteFromIndexedDB(id);
+        } catch (e) {
+          console.warn('[DB] Falha ao excluir do IndexedDB:', e);
+        }
+      }
+      this.deleteFromLocalStorage(id);
+      return true;
+    },
+
+    async clearAll() {
+      if (this.indexedDBInstance || window.indexedDB) {
+        try {
+          await this.clearIndexedDB();
+        } catch (e) {
+          console.warn('[DB] Falha ao limpar IndexedDB:', e);
+        }
+      }
+      localStorage.removeItem(this.LOCAL_STORAGE_KEY);
+      return true;
+    },
+
+    // --- MÉTODOS DE INDEXEDDB ---
     getAllFromIndexedDB() {
       return new Promise((resolve) => {
         try {
@@ -401,7 +311,7 @@
           request.onsuccess = (event) => {
             const db = event.target.result;
             if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) {
-              return reject(new Error('Tabela não existe'));
+              return reject(new Error('Store não existe'));
             }
             const tx = db.transaction([CONFIG.STORE_NAME], 'readwrite');
             const store = tx.objectStore(CONFIG.STORE_NAME);
@@ -466,6 +376,42 @@
           resolve();
         }
       });
+    },
+
+    // --- MÉTODOS DE FALLBACK LOCALSTORAGE ---
+    getAllFromLocalStorage() {
+      try {
+        const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+
+    saveToLocalStorage(storyData) {
+      try {
+        const stories = this.getAllFromLocalStorage();
+        const existingIdx = stories.findIndex(s => s.id === storyData.id);
+        if (existingIdx >= 0) {
+          stories[existingIdx] = storyData;
+        } else {
+          stories.unshift(storyData);
+        }
+        localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(stories.slice(0, 30)));
+        return storyData;
+      } catch (e) {
+        console.warn('[DB] Erro ao gravar no LocalStorage:', e);
+        return storyData;
+      }
+    },
+
+    deleteFromLocalStorage(id) {
+      try {
+        const stories = this.getAllFromLocalStorage().filter(s => s.id !== id);
+        localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(stories));
+      } catch (e) {
+        console.warn('[DB] Erro ao deletar do LocalStorage:', e);
+      }
     }
   };
 

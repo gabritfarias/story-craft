@@ -1,18 +1,19 @@
 {
-  "name": "story_editor",
+  "name": "story-craft",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
+  "description": "Editor profissional de Stories para Instagram (9:16 / 1080x1920) 100% Client-Side",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npx serve ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "sqlite3": "^6.0.1"
-  }
+  "keywords": [
+    "instagram",
+    "stories",
+    "editor",
+    "pwa",
+    "canvas",
+    "ecommerce"
+  ],
+  "author": "João Gabriel Farias",
+  "license": "MIT"
 }

@@ -28,35 +28,34 @@
   - Renderização acelerada por hardware via CSS (`transform: translateZ(0)` e `will-change: transform`).
   - Suavização anti-serrilhado (*subpixel antialiasing*) para 60 FPS fluidos no mobile.
 
-- **💾 Histórico Persistente com SQLite**:
-  - Backend Node.js / Express integrado com banco de dados SQLite local em disco.
-  - Fallback incondicional via IndexedDB para uso offline ou em ambientes restritos.
+- **💾 Armazenamento 100% Client-Side (IndexedDB & LocalStorage)**:
+  - Sistema de banco de dados no navegador com IndexedDB (e fallback em LocalStorage).
+  - Sem necessidade de backend, sem latência e funcionamento offline garantido.
 
 - **🛡️ Guias de Margem Segura do Instagram (Safe Zones)**:
   - Marcadores de topo (stories/perfil) e rodapé (área de resposta e mensagens) com botão de alternância rápida.
 
 ---
 
-## 🚀 Como Rodar Localmente
+## 🚀 Como Rodar Localmente / Deploy
 
+### Deploy na Vercel (1 Clique):
+A aplicação é 100% estática (SPA). Basta conectar o repositório no dashboard da [Vercel](https://vercel.com) e o deploy será realizado instantaneamente.
+
+### Rodar Localmente:
 1. **Clone o repositório**:
    ```bash
    git clone https://github.com/gabritfarias/story-craft.git
    cd story-craft
    ```
 
-2. **Instale as dependências**:
+2. **Inicie qualquer servidor estático** (ou use `npx serve`):
    ```bash
-   npm install
+   npx serve .
    ```
 
-3. **Inicie o servidor**:
-   ```bash
-   npm start
-   ```
-
-4. **Abra no seu navegador**:
-   - Computador: `http://localhost:3000`
+3. **Abra no seu navegador**:
+   - Computador: `http://localhost:3000` (ou a porta indicada pelo serve)
    - Celular (na mesma rede Wi-Fi): `http://SEU_IP_LOCAL:3000`
 
 ---
@@ -64,14 +63,12 @@
 ## 📂 Estrutura do Projeto
 
 ```text
-├── index.html          # Interface principal da aplicação (PWA & Desktop)
+├── index.html          # Ponto de entrada da aplicação (PWA & Desktop)
 ├── style.css           # Estilos Glassmorphism, animações e aceleração gráfica
-├── script.js           # Lógica do Canvas, Camadas, Touch/Pinch, Undo e DB
+├── script.js           # Lógica do Canvas, Camadas, Touch/Pinch, Undo e IndexedDB
 ├── manifest.json       # Manifesto PWA (Tela Cheia, Ícones e Tema)
 ├── icon-192.png        # Ícone PWA 192x192
 ├── icon-512.png        # Ícone PWA 512x512
-├── server/
-│   ├── index.js        # Servidor Express & API REST (/api/history)
-│   └── db.js           # Gerenciador de Banco de Dados SQLite
-└── package.json        # Dependências e scripts do Node.js
+├── vercel.json         # Configuração de rotas estáticas e cache da Vercel
+└── package.json        # Metadados do projeto
 ```
