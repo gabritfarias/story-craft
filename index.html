@@ -27,11 +27,11 @@
 </head>
 <body class="dark-theme">
 
-  <!-- TOP BAR (BARRA SUPERIOR REPAGINADA COM FLEXBOX LIMPO) -->
+  <!-- TOP BAR (BARRA SUPERIOR PREMIUM REORGANIZADA EM 3 GRUPOS LÓGICOS) -->
   <header class="app-header-minimal" role="banner">
     
-    <!-- Lado Esquerdo: Marca, Título do Projeto, Seletor de Proporção e Resolução -->
-    <div class="topbar-left-zone">
+    <!-- 1. GRUPO ESQUERDA: Marca & Seletor de Proporção Customizado -->
+    <div class="topbar-group-left">
       <div class="brand-minimal">
         <div class="brand-glyph" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -43,107 +43,112 @@
         <span class="brand-name">StoryCraft</span>
       </div>
 
-      <div class="project-title-box">
-        <input type="text" id="projectTitleInput" class="project-title-input" value="Meu Story" title="Clique para renomear este Story" aria-label="Título do Story">
-        <span class="edit-hint-icon" aria-hidden="true">✎</span>
-      </div>
-
-      <!-- SELETOR DE PROPORÇÃO DE CANVAS (9:16, 4:3, 16:10, 21:9, 16:9, 1:1) -->
-      <div class="ratio-selector-container">
-        <div class="ratio-selector-pill">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ratio-icon">
+      <!-- SELETOR DE PROPORÇÃO CUSTOMIZADO COM GLASSMORPHISM -->
+      <div class="custom-ratio-dropdown-wrap" id="customRatioDropdownWrap">
+        <button id="ratioSelectorTriggerBtn" class="btn-ratio-trigger" aria-haspopup="true" aria-expanded="false" title="Alterar proporção do Canvas" aria-label="Proporção atual do Canvas">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ratio-trigger-icon">
             <rect x="3" y="3" width="18" height="18" rx="2"></rect>
           </svg>
-          <select id="canvasRatioSelect" class="canvas-ratio-dropdown" aria-label="Proporção do Canvas">
-            <option value="9:16" selected>9:16</option>
-            <option value="4:3">4:3</option>
-            <option value="16:10">16:10</option>
-            <option value="21:9">21:9</option>
-            <option value="16:9">16:9</option>
-            <option value="1:1">1:1</option>
-          </select>
+          <span id="currentRatioText" class="ratio-current-val">9:16</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ratio-chevron">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- MENU POPOVER CUSTOMIZADO DE PROPORÇÕES -->
+        <div id="ratioCustomDropdown" class="ratio-custom-popover" role="menu" aria-label="Opções de formato do Canvas">
+          <button class="ratio-popover-item active" data-ratio="9:16" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">9:16</span>
+              <span class="ratio-item-name">Story • Reels • TikTok</span>
+            </div>
+            <span class="ratio-item-res">1080×1920</span>
+          </button>
+          
+          <button class="ratio-popover-item" data-ratio="4:3" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">4:3</span>
+              <span class="ratio-item-name">Feed Retrato</span>
+            </div>
+            <span class="ratio-item-res">1440×1080</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="16:10" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">16:10</span>
+              <span class="ratio-item-name">Display / Banner</span>
+            </div>
+            <span class="ratio-item-res">1920×1200</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="21:9" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">21:9</span>
+              <span class="ratio-item-name">Ultrawide Cinema</span>
+            </div>
+            <span class="ratio-item-res">2560×1080</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="16:9" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">16:9</span>
+              <span class="ratio-item-name">Vídeo / Post Wide</span>
+            </div>
+            <span class="ratio-item-res">1920×1080</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="1:1" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">1:1</span>
+              <span class="ratio-item-name">Feed Quadrado</span>
+            </div>
+            <span class="ratio-item-res">1080×1080</span>
+          </button>
         </div>
-        <span id="topBarResolutionBadge" class="resolution-badge" title="Resolução nativa de exportação">1080×1920</span>
       </div>
     </div>
 
-    <!-- Lado Direito: Camadas, Zoom, Safe Zone, Desfazer, Limpar, Preview e Baixar -->
-    <div class="topbar-right-zone">
-      
-      <!-- Contagem de Camadas Ativas -->
-      <div class="layers-count-pill" title="Camadas ativas no Canvas">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-          <polyline points="2 17 12 22 22 17"></polyline>
-          <polyline points="2 12 12 17 22 12"></polyline>
+    <!-- 2. GRUPO CENTRO: Ferramentas (Grade Safe-Zone, Desfazer, Limpar, Preview) - Botões 44px Confortáveis -->
+    <div class="topbar-group-center">
+      <button id="toggleSafeZoneBtn" class="topbar-tool-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
+          <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
         </svg>
-        <span id="activeLayersCount">0 camadas</span>
-      </div>
+      </button>
 
-      <!-- Controles de Zoom Integrados -->
-      <div class="zoom-top-group">
-        <button id="zoomOutWorkspaceBtn" class="btn-top-icon" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
-        <span id="workspaceZoomPercent" class="zoom-top-text">100%</span>
-        <button id="zoomInWorkspaceBtn" class="btn-top-icon" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
-        <button id="fitScreenBtn" class="btn-top-icon" title="Ajustar à tela" aria-label="Ajustar à tela">⛶</button>
-      </div>
+      <button id="btnUndo" class="topbar-tool-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7v6h6"></path>
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+        </svg>
+      </button>
 
-      <!-- Ações Rápidas -->
-      <div class="topbar-actions-group">
-        <button id="toggleSafeZoneBtn" class="pill-action-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-            <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
-            <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
-          </svg>
-          <span class="btn-text-responsive">Safe Zone</span>
-        </button>
+      <button id="resetCanvasBtn" class="topbar-tool-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
 
-        <button id="btnUndo" class="pill-action-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 7v6h6"></path>
-            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-          </svg>
-          <span class="btn-text-responsive">Desfazer</span>
-        </button>
+      <button id="openPreviewModalBtn" class="topbar-tool-btn" title="Visualizar simulação do Story" aria-label="Pré-visualizar">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+    </div>
 
-        <button id="resetCanvasBtn" class="pill-action-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-          <span class="btn-text-responsive">Limpar</span>
-        </button>
-      </div>
-
-      <!-- Botões de Ação Principal -->
-      <div class="topbar-export-group">
-        <button id="saveProfileHeaderBtn" class="btn-ghost-glass" title="Salvar disposição de textos atual como um Perfil" aria-label="Salvar perfil">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          <span class="btn-text-hide-mobile">Salvar Perfil</span>
-        </button>
-
-        <button id="openPreviewModalBtn" class="btn-ghost-glass" title="Visualizar simulação no Instagram Story" aria-label="Pré-visualizar">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <span class="btn-text-hide-mobile">Preview</span>
-        </button>
-
-        <button id="exportStoryBtn" class="btn-primary-glow" title="Baixar arte em alta definição" aria-label="Baixar Arte">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span>Baixar Arte</span>
-        </button>
-      </div>
-
+    <!-- 3. GRUPO DIREITA: Ação Principal de Exportação (Baixar Arte) -->
+    <div class="topbar-group-right">
+      <button id="exportStoryBtn" class="btn-primary-glow btn-export-top" title="Baixar arte em alta definição" aria-label="Baixar Arte">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="btn-export-label">Baixar Arte</span>
+      </button>
     </div>
   </header>
 
@@ -265,7 +270,7 @@
         <div class="dock-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </div>
         <span class="dock-label">Editar</span>

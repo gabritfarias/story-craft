@@ -1377,9 +1377,11 @@
     workspaceZoomPercent: document.getElementById('workspaceZoomPercent'),
     fitScreenBtn: document.getElementById('fitScreenBtn'),
 
-    // Proporção de Canvas & Resolução
-    canvasRatioSelect: document.getElementById('canvasRatioSelect'),
-    topBarResolutionBadge: document.getElementById('topBarResolutionBadge'),
+    // Seletor de Proporção Customizado & Formato
+    ratioSelectorTriggerBtn: document.getElementById('ratioSelectorTriggerBtn'),
+    ratioCustomDropdown: document.getElementById('ratioCustomDropdown'),
+    currentRatioText: document.getElementById('currentRatioText'),
+    ratioPopoverItems: document.querySelectorAll('.ratio-popover-item'),
     ratioChips: document.querySelectorAll('.ratio-chip-btn'),
 
     // Floating Dock & Bottom Sheets
@@ -4176,26 +4178,67 @@
 
   const CanvasRatioManager = {
     init() {
-      // 1. Dropdown na Top Bar
-      if (DOM.canvasRatioSelect) {
-        DOM.canvasRatioSelect.addEventListener('change', (e) => {
-          this.setRatio(e.target.value);
+      // 1. Botão Disparador do Popover Customizado
+      const trigger = document.getElementById('ratioSelectorTriggerBtn');
+      const popover = document.getElementById('ratioCustomDropdown');
+      const wrap = document.getElementById('customRatioDropdownWrap');
+
+      if (trigger && popover) {
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = popover.classList.toggle('open');
+          trigger.classList.toggle('open', isOpen);
+          trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        // Fechar ao clicar fora
+        document.addEventListener('click', (e) => {
+          if (wrap && !wrap.contains(e.target)) {
+            popover.classList.remove('open');
+            trigger.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Fechar com tecla Escape
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            popover.classList.remove('open');
+            trigger.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
         });
       }
 
-      // 2. Chips na aba de Fundo / Formato
-      if (DOM.ratioChips) {
-        DOM.ratioChips.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const ratio = btn.getAttribute('data-ratio');
-            if (ratio) {
-              this.setRatio(ratio);
-            }
-          });
+      // 2. Itens do Popover Customizado
+      const popoverItems = document.querySelectorAll('.ratio-popover-item');
+      popoverItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const ratio = item.getAttribute('data-ratio');
+          if (ratio) {
+            this.setRatio(ratio);
+          }
+          if (popover) popover.classList.remove('open');
+          if (trigger) {
+            trigger.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
         });
-      }
+      });
 
-      // Inicializa proporção
+      // 3. Chips na aba de Fundo / Formato
+      const ratioChips = document.querySelectorAll('.ratio-chip-btn');
+      ratioChips.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ratio = btn.getAttribute('data-ratio');
+          if (ratio) {
+            this.setRatio(ratio);
+          }
+        });
+      });
+
+      // Inicializa proporção atual
       this.setRatio(AppState.canvasRatio || '9:16', false);
     },
 
@@ -4211,18 +4254,22 @@
       CONFIG.CANVAS_HEIGHT = config.height;
       CONFIG.ASPECT_RATIO = config.width / config.height;
 
-      // 1. Atualiza Select e Chips
-      if (DOM.canvasRatioSelect) {
-        DOM.canvasRatioSelect.value = ratioId;
+      // 1. Atualiza Texto do Botão Disparador
+      const currentRatioText = document.getElementById('currentRatioText');
+      if (currentRatioText) {
+        currentRatioText.textContent = ratioId;
       }
-      if (DOM.topBarResolutionBadge) {
-        DOM.topBarResolutionBadge.textContent = config.label;
-      }
-      if (DOM.ratioChips) {
-        DOM.ratioChips.forEach(btn => {
-          btn.classList.toggle('active', btn.getAttribute('data-ratio') === ratioId);
-        });
-      }
+
+      // 2. Atualiza itens ativos do Popover e Chips
+      const popoverItems = document.querySelectorAll('.ratio-popover-item');
+      popoverItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('data-ratio') === ratioId);
+      });
+
+      const ratioChips = document.querySelectorAll('.ratio-chip-btn');
+      ratioChips.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-ratio') === ratioId);
+      });
 
       // 2. Atualiza variável CSS no Workspace e Containers
       document.documentElement.style.setProperty('--canvas-aspect-ratio', config.cssRatio);

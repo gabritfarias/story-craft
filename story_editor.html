@@ -117,7 +117,7 @@ input, select, textarea {
   color: inherit;
 }
 
-/* --- 3. TOP BAR REPAGINADA (FLEXBOX LIMPO COM SAFE AREA PARA iOS) --- */
+/* --- 3. TOP BAR PREMIUM (ORGANIZADA EM 3 GRUPOS LÓGICOS COM SAFE AREA PARA iOS) --- */
 .app-header-minimal {
   box-sizing: border-box;
   width: 100%;
@@ -139,11 +139,12 @@ input, select, textarea {
   flex-shrink: 0;
 }
 
-.topbar-left-zone {
+/* 1. GRUPO ESQUERDA: Marca & Seletor de Proporção */
+.topbar-group-left {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .brand-minimal {
@@ -151,13 +152,12 @@ input, select, textarea {
   align-items: center;
   gap: 8px;
   user-select: none;
-  flex-shrink: 0;
 }
 
 .brand-glyph {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: var(--accent-gradient);
   display: flex;
   align-items: center;
@@ -175,194 +175,237 @@ input, select, textarea {
   -webkit-text-fill-color: transparent;
 }
 
-.project-title-box {
+/* Seletor de Proporção Customizado (PopOver em Glassmorphism) */
+.custom-ratio-dropdown-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: inline-block;
 }
 
-.project-title-input {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-xs);
-  padding: 3px 20px 3px 6px;
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  width: 110px;
-  transition: all 0.2s ease;
-}
-
-.project-title-input:hover {
-  border-color: var(--border-subtle);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-main);
-}
-
-.project-title-input:focus {
-  border-color: var(--border-focus);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-main);
-  outline: none;
-  width: 150px;
-}
-
-.edit-hint-icon {
-  position: absolute;
-  right: 5px;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-/* Seletor de Proporção de Canvas */
-.ratio-selector-container {
-  display: flex;
+.btn-ratio-trigger {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-.ratio-selector-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-medium);
+  padding: 6px 12px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
   color: #a5b4fc;
-}
-
-.ratio-icon {
-  opacity: 0.8;
-}
-
-.canvas-ratio-dropdown {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.canvas-ratio-dropdown option {
-  background: #0f131f;
+.btn-ratio-trigger:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-ratio-trigger:active {
+  transform: scale(0.96);
+}
+
+.ratio-trigger-icon {
+  opacity: 0.85;
+}
+
+.ratio-current-val {
+  letter-spacing: 0.2px;
+}
+
+.ratio-chevron {
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.btn-ratio-trigger.open .ratio-chevron {
+  transform: rotate(180deg);
+}
+
+/* Menu Popover Customizado em Glassmorphism */
+.ratio-custom-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 250px;
+  background: rgba(20, 20, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+  padding: 6px;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  animation: popoverSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ratio-custom-popover.open {
+  display: flex;
+}
+
+@keyframes popoverSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ratio-popover-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.ratio-popover-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.ratio-popover-item.active {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.ratio-item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ratio-badge-val {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+}
+
+.ratio-popover-item.active .ratio-badge-val {
+  background: var(--accent-gradient);
   color: #ffffff;
 }
 
-.resolution-badge {
+.ratio-item-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.ratio-item-res {
   font-size: 0.72rem;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 3px 8px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
-  white-space: nowrap;
 }
 
-/* Lado Direito da Top Bar */
-.topbar-right-zone {
+/* 2. GRUPO CENTRO: Ferramentas de Ação Rápida (44px) */
+.topbar-group-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-tool-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.topbar-tool-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.topbar-tool-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.topbar-tool-btn.active {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #818cf8;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.topbar-tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 3. GRUPO DIREITA: Ação Principal de Exportação */
+.topbar-group-right {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.layers-count-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.layers-count-pill svg {
-  color: #a5b4fc;
-}
-
-.zoom-top-group {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-}
-
-.btn-top-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-}
-
-.btn-top-icon:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.zoom-top-text {
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 0 4px;
-  color: var(--text-muted);
-  min-width: 34px;
-  text-align: center;
-}
-
-.topbar-actions-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pill-action-btn {
+.btn-export-top {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  transition: all 0.18s ease;
-}
-
-.pill-action-btn:hover:not(:disabled) {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.pill-action-btn.active {
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-  border-color: rgba(99, 102, 241, 0.4);
-}
-
-.pill-action-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.topbar-export-group {
-  display: flex;
-  align-items: center;
   gap: 8px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.btn-export-top:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: 0 6px 22px var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.btn-export-top:active {
+  transform: scale(0.96);
 }
 
 .btn-ghost-glass {
@@ -404,8 +447,7 @@ input, select, textarea {
 
 .btn-primary-glow:hover {
   background: var(--accent-gradient-hover);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 /* --- 4. PALCO CENTRAL FLUTUANTE (CANVAS RESPONSIVO INTELIGENTE) --- */
@@ -2136,74 +2178,59 @@ input, select, textarea {
 }
 
 /* --- 9. RESPONSIVIDADE MOBILE & TABLET (DYNAMIC ISLAND & SAFE AREAS) --- */
-@media (max-width: 900px) {
-  .btn-text-responsive {
-    display: none;
-  }
-}
-
 @media (max-width: 768px) {
   .app-header-minimal {
     padding-top: max(16px, env(safe-area-inset-top));
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
     padding-bottom: 6px;
     gap: 6px;
   }
 
-  .topbar-left-zone {
-    gap: 6px;
-    min-width: 0;
+  .topbar-group-left {
+    gap: 8px;
   }
 
   .brand-name {
     display: none;
   }
 
-  .project-title-box {
-    display: none;
-  }
-
-  .resolution-badge {
-    display: none;
-  }
-
-  .btn-text-hide-mobile {
-    display: none;
-  }
-
-  .btn-text-responsive {
-    display: none;
-  }
-
-  .layers-count-pill {
-    display: none;
-  }
-
-  .zoom-top-group {
-    display: none;
-  }
-
-  .topbar-actions-group {
-    gap: 3px;
-  }
-
-  .pill-action-btn {
-    padding: 5px 7px;
-  }
-
-  .topbar-export-group {
-    gap: 4px;
-  }
-
-  .btn-ghost-glass {
-    padding: 6px 8px;
-  }
-
-  .btn-primary-glow {
-    padding: 6px 12px;
+  .btn-ratio-trigger {
+    padding: 4px 10px;
+    height: 36px;
     font-size: 0.8rem;
-    white-space: nowrap;
+  }
+
+  .ratio-custom-popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 220px;
+    z-index: 150;
+  }
+
+  .topbar-group-center {
+    gap: 6px;
+  }
+
+  .topbar-tool-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  .topbar-group-right {
+    gap: 6px;
+  }
+
+  .btn-export-top {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 0.82rem;
+    border-radius: 10px;
   }
 
   .main-stage-container {
@@ -2247,15 +2274,34 @@ input, select, textarea {
     gap: 4px;
   }
 
-  .topbar-actions-group {
-    gap: 2px;
+  .topbar-group-left {
+    gap: 4px;
   }
 
-  .pill-action-btn {
-    padding: 4px 6px;
+  .btn-ratio-trigger {
+    padding: 4px 8px;
+    height: 36px;
+    font-size: 0.78rem;
+    gap: 4px;
   }
 
-  .btn-primary-glow span {
+  .topbar-group-center {
+    gap: 4px;
+  }
+
+  .topbar-tool-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  .btn-export-top {
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .btn-export-label {
     font-size: 0.78rem;
   }
 }
@@ -2264,11 +2310,11 @@ input, select, textarea {
 </head>
 <body class="dark-theme">
 
-  <!-- TOP BAR (BARRA SUPERIOR REPAGINADA COM FLEXBOX LIMPO) -->
+  <!-- TOP BAR (BARRA SUPERIOR PREMIUM REORGANIZADA EM 3 GRUPOS LÓGICOS) -->
   <header class="app-header-minimal" role="banner">
     
-    <!-- Lado Esquerdo: Marca, Título do Projeto, Seletor de Proporção e Resolução -->
-    <div class="topbar-left-zone">
+    <!-- 1. GRUPO ESQUERDA: Marca & Seletor de Proporção Customizado -->
+    <div class="topbar-group-left">
       <div class="brand-minimal">
         <div class="brand-glyph" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -2280,107 +2326,112 @@ input, select, textarea {
         <span class="brand-name">StoryCraft</span>
       </div>
 
-      <div class="project-title-box">
-        <input type="text" id="projectTitleInput" class="project-title-input" value="Meu Story" title="Clique para renomear este Story" aria-label="Título do Story">
-        <span class="edit-hint-icon" aria-hidden="true">✎</span>
-      </div>
-
-      <!-- SELETOR DE PROPORÇÃO DE CANVAS (9:16, 4:3, 16:10, 21:9, 16:9, 1:1) -->
-      <div class="ratio-selector-container">
-        <div class="ratio-selector-pill">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ratio-icon">
+      <!-- SELETOR DE PROPORÇÃO CUSTOMIZADO COM GLASSMORPHISM -->
+      <div class="custom-ratio-dropdown-wrap" id="customRatioDropdownWrap">
+        <button id="ratioSelectorTriggerBtn" class="btn-ratio-trigger" aria-haspopup="true" aria-expanded="false" title="Alterar proporção do Canvas" aria-label="Proporção atual do Canvas">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ratio-trigger-icon">
             <rect x="3" y="3" width="18" height="18" rx="2"></rect>
           </svg>
-          <select id="canvasRatioSelect" class="canvas-ratio-dropdown" aria-label="Proporção do Canvas">
-            <option value="9:16" selected>9:16</option>
-            <option value="4:3">4:3</option>
-            <option value="16:10">16:10</option>
-            <option value="21:9">21:9</option>
-            <option value="16:9">16:9</option>
-            <option value="1:1">1:1</option>
-          </select>
+          <span id="currentRatioText" class="ratio-current-val">9:16</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ratio-chevron">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- MENU POPOVER CUSTOMIZADO DE PROPORÇÕES -->
+        <div id="ratioCustomDropdown" class="ratio-custom-popover" role="menu" aria-label="Opções de formato do Canvas">
+          <button class="ratio-popover-item active" data-ratio="9:16" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">9:16</span>
+              <span class="ratio-item-name">Story • Reels • TikTok</span>
+            </div>
+            <span class="ratio-item-res">1080×1920</span>
+          </button>
+          
+          <button class="ratio-popover-item" data-ratio="4:3" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">4:3</span>
+              <span class="ratio-item-name">Feed Retrato</span>
+            </div>
+            <span class="ratio-item-res">1440×1080</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="16:10" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">16:10</span>
+              <span class="ratio-item-name">Display / Banner</span>
+            </div>
+            <span class="ratio-item-res">1920×1200</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="21:9" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">21:9</span>
+              <span class="ratio-item-name">Ultrawide Cinema</span>
+            </div>
+            <span class="ratio-item-res">2560×1080</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="16:9" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">16:9</span>
+              <span class="ratio-item-name">Vídeo / Post Wide</span>
+            </div>
+            <span class="ratio-item-res">1920×1080</span>
+          </button>
+
+          <button class="ratio-popover-item" data-ratio="1:1" role="menuitem">
+            <div class="ratio-item-main">
+              <span class="ratio-badge-val">1:1</span>
+              <span class="ratio-item-name">Feed Quadrado</span>
+            </div>
+            <span class="ratio-item-res">1080×1080</span>
+          </button>
         </div>
-        <span id="topBarResolutionBadge" class="resolution-badge" title="Resolução nativa de exportação">1080×1920</span>
       </div>
     </div>
 
-    <!-- Lado Direito: Camadas, Zoom, Safe Zone, Desfazer, Limpar, Preview e Baixar -->
-    <div class="topbar-right-zone">
-      
-      <!-- Contagem de Camadas Ativas -->
-      <div class="layers-count-pill" title="Camadas ativas no Canvas">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-          <polyline points="2 17 12 22 22 17"></polyline>
-          <polyline points="2 12 12 17 22 12"></polyline>
+    <!-- 2. GRUPO CENTRO: Ferramentas (Grade Safe-Zone, Desfazer, Limpar, Preview) - Botões 44px Confortáveis -->
+    <div class="topbar-group-center">
+      <button id="toggleSafeZoneBtn" class="topbar-tool-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
+          <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
         </svg>
-        <span id="activeLayersCount">0 camadas</span>
-      </div>
+      </button>
 
-      <!-- Controles de Zoom Integrados -->
-      <div class="zoom-top-group">
-        <button id="zoomOutWorkspaceBtn" class="btn-top-icon" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
-        <span id="workspaceZoomPercent" class="zoom-top-text">100%</span>
-        <button id="zoomInWorkspaceBtn" class="btn-top-icon" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
-        <button id="fitScreenBtn" class="btn-top-icon" title="Ajustar à tela" aria-label="Ajustar à tela">⛶</button>
-      </div>
+      <button id="btnUndo" class="topbar-tool-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7v6h6"></path>
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+        </svg>
+      </button>
 
-      <!-- Ações Rápidas -->
-      <div class="topbar-actions-group">
-        <button id="toggleSafeZoneBtn" class="pill-action-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-            <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
-            <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
-          </svg>
-          <span class="btn-text-responsive">Safe Zone</span>
-        </button>
+      <button id="resetCanvasBtn" class="topbar-tool-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
 
-        <button id="btnUndo" class="pill-action-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 7v6h6"></path>
-            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-          </svg>
-          <span class="btn-text-responsive">Desfazer</span>
-        </button>
+      <button id="openPreviewModalBtn" class="topbar-tool-btn" title="Visualizar simulação do Story" aria-label="Pré-visualizar">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+    </div>
 
-        <button id="resetCanvasBtn" class="pill-action-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-          <span class="btn-text-responsive">Limpar</span>
-        </button>
-      </div>
-
-      <!-- Botões de Ação Principal -->
-      <div class="topbar-export-group">
-        <button id="saveProfileHeaderBtn" class="btn-ghost-glass" title="Salvar disposição de textos atual como um Perfil" aria-label="Salvar perfil">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          <span class="btn-text-hide-mobile">Salvar Perfil</span>
-        </button>
-
-        <button id="openPreviewModalBtn" class="btn-ghost-glass" title="Visualizar simulação no Instagram Story" aria-label="Pré-visualizar">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <span class="btn-text-hide-mobile">Preview</span>
-        </button>
-
-        <button id="exportStoryBtn" class="btn-primary-glow" title="Baixar arte em alta definição" aria-label="Baixar Arte">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span>Baixar Arte</span>
-        </button>
-      </div>
-
+    <!-- 3. GRUPO DIREITA: Ação Principal de Exportação (Baixar Arte) -->
+    <div class="topbar-group-right">
+      <button id="exportStoryBtn" class="btn-primary-glow btn-export-top" title="Baixar arte em alta definição" aria-label="Baixar Arte">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="btn-export-label">Baixar Arte</span>
+      </button>
     </div>
   </header>
 
@@ -2502,7 +2553,7 @@ input, select, textarea {
         <div class="dock-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </div>
         <span class="dock-label">Editar</span>
@@ -4637,9 +4688,11 @@ input, select, textarea {
     workspaceZoomPercent: document.getElementById('workspaceZoomPercent'),
     fitScreenBtn: document.getElementById('fitScreenBtn'),
 
-    // Proporção de Canvas & Resolução
-    canvasRatioSelect: document.getElementById('canvasRatioSelect'),
-    topBarResolutionBadge: document.getElementById('topBarResolutionBadge'),
+    // Seletor de Proporção Customizado & Formato
+    ratioSelectorTriggerBtn: document.getElementById('ratioSelectorTriggerBtn'),
+    ratioCustomDropdown: document.getElementById('ratioCustomDropdown'),
+    currentRatioText: document.getElementById('currentRatioText'),
+    ratioPopoverItems: document.querySelectorAll('.ratio-popover-item'),
     ratioChips: document.querySelectorAll('.ratio-chip-btn'),
 
     // Floating Dock & Bottom Sheets
@@ -7436,26 +7489,67 @@ input, select, textarea {
 
   const CanvasRatioManager = {
     init() {
-      // 1. Dropdown na Top Bar
-      if (DOM.canvasRatioSelect) {
-        DOM.canvasRatioSelect.addEventListener('change', (e) => {
-          this.setRatio(e.target.value);
+      // 1. Botão Disparador do Popover Customizado
+      const trigger = document.getElementById('ratioSelectorTriggerBtn');
+      const popover = document.getElementById('ratioCustomDropdown');
+      const wrap = document.getElementById('customRatioDropdownWrap');
+
+      if (trigger && popover) {
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = popover.classList.toggle('open');
+          trigger.classList.toggle('open', isOpen);
+          trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        // Fechar ao clicar fora
+        document.addEventListener('click', (e) => {
+          if (wrap && !wrap.contains(e.target)) {
+            popover.classList.remove('open');
+            trigger.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Fechar com tecla Escape
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            popover.classList.remove('open');
+            trigger.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
         });
       }
 
-      // 2. Chips na aba de Fundo / Formato
-      if (DOM.ratioChips) {
-        DOM.ratioChips.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const ratio = btn.getAttribute('data-ratio');
-            if (ratio) {
-              this.setRatio(ratio);
-            }
-          });
+      // 2. Itens do Popover Customizado
+      const popoverItems = document.querySelectorAll('.ratio-popover-item');
+      popoverItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const ratio = item.getAttribute('data-ratio');
+          if (ratio) {
+            this.setRatio(ratio);
+          }
+          if (popover) popover.classList.remove('open');
+          if (trigger) {
+            trigger.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+          }
         });
-      }
+      });
 
-      // Inicializa proporção
+      // 3. Chips na aba de Fundo / Formato
+      const ratioChips = document.querySelectorAll('.ratio-chip-btn');
+      ratioChips.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ratio = btn.getAttribute('data-ratio');
+          if (ratio) {
+            this.setRatio(ratio);
+          }
+        });
+      });
+
+      // Inicializa proporção atual
       this.setRatio(AppState.canvasRatio || '9:16', false);
     },
 
@@ -7471,18 +7565,22 @@ input, select, textarea {
       CONFIG.CANVAS_HEIGHT = config.height;
       CONFIG.ASPECT_RATIO = config.width / config.height;
 
-      // 1. Atualiza Select e Chips
-      if (DOM.canvasRatioSelect) {
-        DOM.canvasRatioSelect.value = ratioId;
+      // 1. Atualiza Texto do Botão Disparador
+      const currentRatioText = document.getElementById('currentRatioText');
+      if (currentRatioText) {
+        currentRatioText.textContent = ratioId;
       }
-      if (DOM.topBarResolutionBadge) {
-        DOM.topBarResolutionBadge.textContent = config.label;
-      }
-      if (DOM.ratioChips) {
-        DOM.ratioChips.forEach(btn => {
-          btn.classList.toggle('active', btn.getAttribute('data-ratio') === ratioId);
-        });
-      }
+
+      // 2. Atualiza itens ativos do Popover e Chips
+      const popoverItems = document.querySelectorAll('.ratio-popover-item');
+      popoverItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('data-ratio') === ratioId);
+      });
+
+      const ratioChips = document.querySelectorAll('.ratio-chip-btn');
+      ratioChips.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-ratio') === ratioId);
+      });
 
       // 2. Atualiza variável CSS no Workspace e Containers
       document.documentElement.style.setProperty('--canvas-aspect-ratio', config.cssRatio);

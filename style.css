@@ -91,7 +91,7 @@ input, select, textarea {
   color: inherit;
 }
 
-/* --- 3. TOP BAR REPAGINADA (FLEXBOX LIMPO COM SAFE AREA PARA iOS) --- */
+/* --- 3. TOP BAR PREMIUM (ORGANIZADA EM 3 GRUPOS LÓGICOS COM SAFE AREA PARA iOS) --- */
 .app-header-minimal {
   box-sizing: border-box;
   width: 100%;
@@ -113,11 +113,12 @@ input, select, textarea {
   flex-shrink: 0;
 }
 
-.topbar-left-zone {
+/* 1. GRUPO ESQUERDA: Marca & Seletor de Proporção */
+.topbar-group-left {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .brand-minimal {
@@ -125,13 +126,12 @@ input, select, textarea {
   align-items: center;
   gap: 8px;
   user-select: none;
-  flex-shrink: 0;
 }
 
 .brand-glyph {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: var(--accent-gradient);
   display: flex;
   align-items: center;
@@ -149,194 +149,237 @@ input, select, textarea {
   -webkit-text-fill-color: transparent;
 }
 
-.project-title-box {
+/* Seletor de Proporção Customizado (PopOver em Glassmorphism) */
+.custom-ratio-dropdown-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: inline-block;
 }
 
-.project-title-input {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-xs);
-  padding: 3px 20px 3px 6px;
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  width: 110px;
-  transition: all 0.2s ease;
-}
-
-.project-title-input:hover {
-  border-color: var(--border-subtle);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-main);
-}
-
-.project-title-input:focus {
-  border-color: var(--border-focus);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-main);
-  outline: none;
-  width: 150px;
-}
-
-.edit-hint-icon {
-  position: absolute;
-  right: 5px;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-/* Seletor de Proporção de Canvas */
-.ratio-selector-container {
-  display: flex;
+.btn-ratio-trigger {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-.ratio-selector-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-medium);
+  padding: 6px 12px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
   color: #a5b4fc;
-}
-
-.ratio-icon {
-  opacity: 0.8;
-}
-
-.canvas-ratio-dropdown {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.canvas-ratio-dropdown option {
-  background: #0f131f;
+.btn-ratio-trigger:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-ratio-trigger:active {
+  transform: scale(0.96);
+}
+
+.ratio-trigger-icon {
+  opacity: 0.85;
+}
+
+.ratio-current-val {
+  letter-spacing: 0.2px;
+}
+
+.ratio-chevron {
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.btn-ratio-trigger.open .ratio-chevron {
+  transform: rotate(180deg);
+}
+
+/* Menu Popover Customizado em Glassmorphism */
+.ratio-custom-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 250px;
+  background: rgba(20, 20, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+  padding: 6px;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  animation: popoverSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ratio-custom-popover.open {
+  display: flex;
+}
+
+@keyframes popoverSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ratio-popover-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.ratio-popover-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.ratio-popover-item.active {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.ratio-item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ratio-badge-val {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+}
+
+.ratio-popover-item.active .ratio-badge-val {
+  background: var(--accent-gradient);
   color: #ffffff;
 }
 
-.resolution-badge {
+.ratio-item-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.ratio-item-res {
   font-size: 0.72rem;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 3px 8px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
-  white-space: nowrap;
 }
 
-/* Lado Direito da Top Bar */
-.topbar-right-zone {
+/* 2. GRUPO CENTRO: Ferramentas de Ação Rápida (44px) */
+.topbar-group-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-tool-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.topbar-tool-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.topbar-tool-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.topbar-tool-btn.active {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #818cf8;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.topbar-tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 3. GRUPO DIREITA: Ação Principal de Exportação */
+.topbar-group-right {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.layers-count-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.layers-count-pill svg {
-  color: #a5b4fc;
-}
-
-.zoom-top-group {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-}
-
-.btn-top-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-}
-
-.btn-top-icon:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.zoom-top-text {
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 0 4px;
-  color: var(--text-muted);
-  min-width: 34px;
-  text-align: center;
-}
-
-.topbar-actions-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pill-action-btn {
+.btn-export-top {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  transition: all 0.18s ease;
-}
-
-.pill-action-btn:hover:not(:disabled) {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.pill-action-btn.active {
-  background: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-  border-color: rgba(99, 102, 241, 0.4);
-}
-
-.pill-action-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.topbar-export-group {
-  display: flex;
-  align-items: center;
   gap: 8px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.btn-export-top:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: 0 6px 22px var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.btn-export-top:active {
+  transform: scale(0.96);
 }
 
 .btn-ghost-glass {
@@ -378,8 +421,7 @@ input, select, textarea {
 
 .btn-primary-glow:hover {
   background: var(--accent-gradient-hover);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 /* --- 4. PALCO CENTRAL FLUTUANTE (CANVAS RESPONSIVO INTELIGENTE) --- */
@@ -2110,74 +2152,59 @@ input, select, textarea {
 }
 
 /* --- 9. RESPONSIVIDADE MOBILE & TABLET (DYNAMIC ISLAND & SAFE AREAS) --- */
-@media (max-width: 900px) {
-  .btn-text-responsive {
-    display: none;
-  }
-}
-
 @media (max-width: 768px) {
   .app-header-minimal {
     padding-top: max(16px, env(safe-area-inset-top));
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
     padding-bottom: 6px;
     gap: 6px;
   }
 
-  .topbar-left-zone {
-    gap: 6px;
-    min-width: 0;
+  .topbar-group-left {
+    gap: 8px;
   }
 
   .brand-name {
     display: none;
   }
 
-  .project-title-box {
-    display: none;
-  }
-
-  .resolution-badge {
-    display: none;
-  }
-
-  .btn-text-hide-mobile {
-    display: none;
-  }
-
-  .btn-text-responsive {
-    display: none;
-  }
-
-  .layers-count-pill {
-    display: none;
-  }
-
-  .zoom-top-group {
-    display: none;
-  }
-
-  .topbar-actions-group {
-    gap: 3px;
-  }
-
-  .pill-action-btn {
-    padding: 5px 7px;
-  }
-
-  .topbar-export-group {
-    gap: 4px;
-  }
-
-  .btn-ghost-glass {
-    padding: 6px 8px;
-  }
-
-  .btn-primary-glow {
-    padding: 6px 12px;
+  .btn-ratio-trigger {
+    padding: 4px 10px;
+    height: 36px;
     font-size: 0.8rem;
-    white-space: nowrap;
+  }
+
+  .ratio-custom-popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 220px;
+    z-index: 150;
+  }
+
+  .topbar-group-center {
+    gap: 6px;
+  }
+
+  .topbar-tool-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  .topbar-group-right {
+    gap: 6px;
+  }
+
+  .btn-export-top {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 0.82rem;
+    border-radius: 10px;
   }
 
   .main-stage-container {
@@ -2221,15 +2248,34 @@ input, select, textarea {
     gap: 4px;
   }
 
-  .topbar-actions-group {
-    gap: 2px;
+  .topbar-group-left {
+    gap: 4px;
   }
 
-  .pill-action-btn {
-    padding: 4px 6px;
+  .btn-ratio-trigger {
+    padding: 4px 8px;
+    height: 36px;
+    font-size: 0.78rem;
+    gap: 4px;
   }
 
-  .btn-primary-glow span {
+  .topbar-group-center {
+    gap: 4px;
+  }
+
+  .topbar-tool-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  .btn-export-top {
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .btn-export-label {
     font-size: 0.78rem;
   }
 }
