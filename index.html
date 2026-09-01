@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>StoryCraft — Editor de Fotos para Instagram Stories</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>StoryCraft — Editor de Stories</title>
   
   <!-- Meta tags essenciais para Apple Web App (iOS PWA Tela Cheia) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="StoryCraft">
-  <meta name="theme-color" content="#090d16">
+  <meta name="theme-color" content="#080a0f">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
@@ -17,9 +17,9 @@
   <!-- Conexão Otimizada com Google Fonts (Pré-carregamento Assíncrono sem Bloqueio de Renderização) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;500;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
   <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;500;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap">
   </noscript>
   
   <!-- Estilos da aplicação -->
@@ -27,711 +27,625 @@
 </head>
 <body class="dark-theme">
 
-  <!-- BARRA SUPERIOR (HEADER) -->
-  <header class="app-header" role="banner">
-    <div class="header-left">
-      <div class="logo-area">
-        <div class="logo-icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+  <!-- CABEÇALHO SUPERIOR MINIMALISTA -->
+  <header class="app-header-minimal" role="banner">
+    <div class="header-left-clean">
+      <div class="brand-minimal">
+        <div class="brand-glyph" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="2" y="2" width="20" height="20" rx="6" ry="6"></rect>
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
           </svg>
         </div>
-        <div class="logo-text">
-          <span class="brand-title">StoryCraft</span>
-          <span class="brand-badge">PRO 9:16</span>
-        </div>
+        <span class="brand-name">StoryCraft</span>
       </div>
 
-      <div class="project-title-wrapper">
+      <div class="project-title-box">
         <input type="text" id="projectTitleInput" class="project-title-input" value="Meu Story" title="Clique para renomear este Story" aria-label="Título do Story">
         <span class="edit-hint-icon" aria-hidden="true">✎</span>
       </div>
     </div>
 
-    <div class="header-center">
-      <div class="quick-toggles">
-        <button id="toggleSafeZoneBtn" class="btn-icon-toggle active" title="Mostrar/Ocultar Guias de Margem Segura do Instagram (Safe Zone)" aria-label="Mostrar ou ocultar guias de margem segura do Instagram">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <!-- Ações Rápidas Centrais (Vidro Fosco) -->
+    <div class="header-center-clean">
+      <div class="quick-pill-group">
+        <button id="toggleSafeZoneBtn" class="pill-action-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2"></rect>
             <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
             <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
           </svg>
-          <span class="btn-text-sm">Safe Zone</span>
-        </button>
-        <button id="btnUndo" class="btn-icon-toggle" title="Desfazer última alteração (Ctrl+Z)" aria-label="Desfazer última alteração" disabled>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M3 7v6h6"></path>
-            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-          </svg>
-          <span class="btn-text-sm">Desfazer</span>
-        </button>
-        <button id="resetCanvasBtn" class="btn-icon-toggle" title="Limpar elementos e recomeçar" aria-label="Limpar elementos e recomeçar a arte">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-            <path d="M3 3v5h5"></path>
-          </svg>
-          <span class="btn-text-sm">Limpar</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <button id="openPreviewModalBtn" class="btn btn-secondary" title="Visualizar como ficará no Instagram Story" aria-label="Pré-visualizar no simulador de Story">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-        <span>Pré-visualizar</span>
-      </button>
-
-      <!-- BOTÃO: Adicionar ao Perfil -->
-      <button id="saveProfileHeaderBtn" class="btn btn-accent-outline" title="Salvar apenas a disposição de textos atual como um Perfil" aria-label="Salvar textos atuais como perfil de estilização">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
-        <span>Adicionar ao Perfil</span>
-      </button>
-
-      <button id="exportStoryBtn" class="btn btn-primary" title="Exportar imagem final em PNG de alta definição 1080x1920" aria-label="Baixar Story em PNG 1080 por 1920">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="btn-icon-export">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span class="btn-label-export">Baixar Story (PNG 1080x1920)</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- CORPO PRINCIPAL DO EDITOR -->
-  <main class="app-layout" role="main">
-    
-    <!-- BARRA LATERAL ESQUERDA (FERRAMENTAS E ABAS / GAVETA ESQUERDA) -->
-    <aside class="sidebar-tools" aria-label="Painel de Ferramentas">
-      <!-- Topo da Gaveta Mobile: Identificação & Botão Fechar -->
-      <div class="drawer-header-mobile">
-        <div class="drawer-title">
-          <span class="drawer-badge">Menu</span>
-          <strong>Ferramentas</strong>
-        </div>
-        <button id="closeLeftDrawerBtn" class="btn-drawer-close" aria-label="Fechar gaveta de ferramentas">✕</button>
-      </div>
-
-      <!-- Container para Ações Rápidas no Topo da Gaveta Mobile -->
-      <div id="mobileDrawerActions" class="mobile-drawer-actions"></div>
-
-      <!-- Navegação de Abas -->
-      <nav class="sidebar-nav" role="tablist" aria-label="Categorias de Ferramentas">
-        <button class="nav-tab active" data-tab="tab-upload" role="tab" aria-selected="true" aria-controls="tab-upload" title="Upload e Ajustes da Foto">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          <span>Foto</span>
+          <span>Safe Zone</span>
         </button>
 
-        <button class="nav-tab" data-tab="tab-texts" role="tab" aria-selected="false" aria-controls="tab-texts" title="Adicionar Textos e Preços">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <polyline points="4 7 4 4 20 4 20 7"></polyline>
-            <line x1="9" y1="20" x2="15" y2="20"></line>
-            <line x1="12" y1="4" x2="12" y2="20"></line>
-          </svg>
-          <span>Textos</span>
-        </button>
-
-        <button class="nav-tab" data-tab="tab-profiles" role="tab" aria-selected="false" aria-controls="tab-profiles" title="Perfis e Modelos de Estilização Salvos">
-          <div class="nav-badge-wrapper">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-            <span id="profilesCountBadge" class="nav-counter" aria-label="Quantidade de perfis salvos">0</span>
-          </div>
-          <span>Perfis</span>
-        </button>
-
-        <button class="nav-tab" data-tab="tab-stickers" role="tab" aria-selected="false" aria-controls="tab-stickers" title="Selos, Adesivos e Badges">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-          </svg>
-          <span>Selos</span>
-        </button>
-
-        <button class="nav-tab" data-tab="tab-background" role="tab" aria-selected="false" aria-controls="tab-background" title="Cor e Gradiente de Fundo">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 2a10 10 0 0 0 0 20z"></path>
-          </svg>
-          <span>Fundo</span>
-        </button>
-
-        <button class="nav-tab" data-tab="tab-history" role="tab" aria-selected="false" aria-controls="tab-history" title="Histórico de Imagens Geradas">
-          <div class="nav-badge-wrapper">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span id="historyCountBadge" class="nav-counter" aria-label="Quantidade de artes no histórico">0</span>
-          </div>
-          <span>Histórico</span>
-        </button>
-      </nav>
-
-      <!-- Conteúdo das Abas -->
-      <div class="tab-content-container">
-        
-        <!-- ABA 1: UPLOAD & AJUSTE DE FOTO -->
-        <section id="tab-upload" class="tab-panel active" role="tabpanel" aria-labelledby="tab-upload">
-          <div class="panel-header">
-            <h3>Foto do Produto</h3>
-            <p class="panel-subtitle">Envie ou ajuste o enquadramento da foto</p>
-          </div>
-
-          <!-- Dropzone -->
-          <div class="dropzone" id="imageDropzone" tabindex="0" role="button" aria-label="Área de envio de foto do produto. Clique ou arraste uma foto aqui.">
-            <input type="file" id="imageFileInput" accept="image/*" class="file-input-hidden" aria-label="Selecionar arquivo de foto do produto">
-            <div class="dropzone-content">
-              <div class="dropzone-icon" aria-hidden="true">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-              </div>
-              <p class="dropzone-main-text">Clique ou arraste sua foto aqui</p>
-              <span class="dropzone-sub-text">PNG, JPG, WEBP até 15MB</span>
-              <button class="btn btn-outline btn-sm" type="button" onclick="document.getElementById('imageFileInput').click()" aria-label="Escolher arquivo de imagem">
-                Escolher Arquivo
-              </button>
-            </div>
-          </div>
-
-          <!-- Exemplos Rápidos de Produtos -->
-          <div class="sample-images-section">
-            <span class="section-label">Ou teste com um produto de exemplo:</span>
-            <div class="sample-chips">
-              <button class="sample-chip" data-sample="smartphone" aria-label="Usar exemplo Smartphone">📱 Smartphone</button>
-              <button class="sample-chip" data-sample="smartwatch" aria-label="Usar exemplo Smartwatch">⌚ Smartwatch</button>
-              <button class="sample-chip" data-sample="headphone" aria-label="Usar exemplo Headphone">🎧 Headphone</button>
-              <button class="sample-chip" data-sample="sneaker" aria-label="Usar exemplo Tênis">👟 Tênis</button>
-            </div>
-          </div>
-
-          <!-- Controles de Enquadramento da Imagem -->
-          <div id="imageControlsBox" class="control-group-box">
-            <div class="group-title-row">
-              <span class="group-title">Enquadramento da Foto</span>
-              <button id="resetImageTransformBtn" class="btn-text-action" title="Resetar posição e zoom da foto" aria-label="Resetar enquadramento da foto">Resetar</button>
-            </div>
-
-            <!-- CONTROLES FUNCIONAIS DE ZOOM (Botões + e - e Slider Sincronizado) -->
-            <div class="slider-control">
-              <div class="slider-header">
-                <label for="imageZoomSlider">Zoom da Foto</label>
-                <span id="imageZoomValue" class="slider-val">100%</span>
-              </div>
-              
-              <div class="zoom-stepper-row">
-                <button id="zoomOutPhotoBtn" class="btn-zoom-step" title="Diminuir Zoom (−10%)" aria-label="Diminuir zoom da foto">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
-
-                <input type="range" id="imageZoomSlider" min="40" max="300" value="100" class="custom-range zoom-range-flex" aria-label="Controle de zoom da foto">
-
-                <button id="zoomInPhotoBtn" class="btn-zoom-step" title="Aumentar Zoom (+10%)" aria-label="Aumentar zoom da foto">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- ABAS DE ENQUADRAMENTO (Preencher, Conter, Centralizar no mesmo container com flex:1) -->
-            <div class="fit-controls-section mt-2">
-              <span class="section-sublabel">Modo de Enquadramento:</span>
-              <div class="fit-buttons-container" id="fitButtonsContainer" role="group" aria-label="Modos de enquadramento da foto">
-                <button id="fitCoverBtn" class="btn-fit-mode active" data-mode="cover" title="Preencher toda a tela 9:16 mantendo a proporção" aria-label="Modo preencher tela">
-                  Preencher
-                </button>
-                <button id="fitContainBtn" class="btn-fit-mode" data-mode="contain" title="Exibir a imagem inteira sem cortes na tela" aria-label="Modo conter imagem inteira">
-                  Conter
-                </button>
-                <button id="centerImageBtn" class="btn-fit-mode" data-mode="center" title="Centralizar a foto na tela" aria-label="Modo centralizar foto">
-                  Centralizar
-                </button>
-              </div>
-            </div>
-
-            <p class="hint-text">💡 Dica: Você pode <strong>arrastar a foto</strong> com o mouse para reposicioná-la livremente na tela.</p>
-
-            <div class="filter-controls-collapsible">
-              <span class="section-label">Ajustes Rápidos de Imagem:</span>
-              <div class="slider-control">
-                <div class="slider-header">
-                  <label for="brightnessSlider">Brilho</label>
-                  <span id="brightnessValue" class="slider-val">100%</span>
-                </div>
-                <input type="range" id="brightnessSlider" min="50" max="150" value="100" class="custom-range" aria-label="Ajuste de brilho">
-              </div>
-
-              <div class="slider-control">
-                <div class="slider-header">
-                  <label for="contrastSlider">Contraste</label>
-                  <span id="contrastValue" class="slider-val">100%</span>
-                </div>
-                <input type="range" id="contrastSlider" min="50" max="150" value="100" class="custom-range" aria-label="Ajuste de contraste">
-              </div>
-
-              <div class="slider-control">
-                <div class="slider-header">
-                  <label for="saturationSlider">Saturação</label>
-                  <span id="saturationValue" class="slider-val">100%</span>
-                </div>
-                <input type="range" id="saturationSlider" min="0" max="200" value="100" class="custom-range" aria-label="Ajuste de saturação">
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ABA 2: PRESETS DE TEXTOS & PREÇOS -->
-        <section id="tab-texts" class="tab-panel" role="tabpanel" aria-labelledby="tab-texts">
-          <div class="panel-header">
-            <h3>Textos do Produto</h3>
-            <p class="panel-subtitle">Clique para adicionar blocos editáveis na arte</p>
-          </div>
-
-          <div class="preset-buttons-stack">
-            <!-- Preset: Título do Produto -->
-            <button class="preset-card" id="addProductNamePreset" title="Inserir título do produto" aria-label="Adicionar bloco de nome do produto">
-              <div class="preset-icon-badge title-icon" aria-hidden="true">T</div>
-              <div class="preset-info">
-                <span class="preset-name">Nome do Produto</span>
-                <span class="preset-desc">Ex: iPhone 15 Pro 128GB Titanium</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Preset: Preço à Vista -->
-            <button class="preset-card highlight-card" id="addPriceCashPreset" title="Inserir preço à vista com destaque" aria-label="Adicionar bloco de preço à vista">
-              <div class="preset-icon-badge cash-icon" aria-hidden="true">R$</div>
-              <div class="preset-info">
-                <span class="preset-name">Preço à Vista</span>
-                <span class="preset-desc">Ex: R$ 5.999,00 à vista no Pix</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Preset: Preço Parcelado -->
-            <button class="preset-card" id="addPriceInstallmentPreset" title="Inserir preço parcelado no cartão" aria-label="Adicionar bloco de preço parcelado no cartão">
-              <div class="preset-icon-badge card-icon" aria-hidden="true">💳</div>
-              <div class="preset-info">
-                <span class="preset-name">Preço Parcelado / Cartão</span>
-                <span class="preset-desc">Ex: ou 12x de R$ 549,90 no cartão</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Preset: Condições Especiais -->
-            <button class="preset-card" id="addConditionPreset" title="Inserir cupom ou condição especial" aria-label="Adicionar bloco de desconto ou condição">
-              <div class="preset-icon-badge condition-icon" aria-hidden="true">🏷️</div>
-              <div class="preset-info">
-                <span class="preset-name">Desconto / Condição</span>
-                <span class="preset-desc">Ex: 15% OFF com cupom exclusivo</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Preset: Chamada para Ação / CTA -->
-            <button class="preset-card" id="addCtaPreset" title="Inserir chamada para ação" aria-label="Adicionar bloco de chamada para ação">
-              <div class="preset-icon-badge cta-icon" aria-hidden="true">👆</div>
-              <div class="preset-info">
-                <span class="preset-name">Chamada para Ação (CTA)</span>
-                <span class="preset-desc">Ex: Responda ao Story para comprar</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Preset Especial de Varejo: Saldão Seminovos -->
-            <button class="preset-card highlight-card" id="addSaldaoPreset" title="Inserir chamada Saldão Seminovos" aria-label="Adicionar bloco Saldão Seminovos">
-              <div class="preset-icon-badge red-icon" aria-hidden="true">💥</div>
-              <div class="preset-info">
-                <span class="preset-name">Saldão Seminovos</span>
-                <span class="preset-desc">MEGA SALDÃO DE SEMINOVOS • ATÉ 40% OFF</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Preset Especial de Varejo: Troca com Troco -->
-            <button class="preset-card" id="addTrocaComTrocoPreset" title="Inserir chamada Troca com Troco" aria-label="Adicionar bloco Troca com Troco">
-              <div class="preset-icon-badge green-icon" aria-hidden="true">🔄</div>
-              <div class="preset-info">
-                <span class="preset-name">Troca com Troco</span>
-                <span class="preset-desc">Aceitamos seu usado c/ Troca com Troco</span>
-              </div>
-              <span class="preset-add-sign" aria-hidden="true">+</span>
-            </button>
-
-            <!-- Botão de Texto Livre Genérico -->
-            <button class="btn btn-primary btn-block mt-3" id="addFreeTextBtn" aria-label="Adicionar novo bloco de texto livre">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              <span>Adicionar Texto Livre</span>
-            </button>
-          </div>
-
-          <div class="control-group-box mt-3">
-            <span class="section-label">Estilos Prontos de Tipografia:</span>
-            <div class="template-style-grid">
-              <button class="style-template-pill" data-style="modern" aria-label="Aplicar estilo tipográfico moderno">🔥 Moderno</button>
-              <button class="style-template-pill" data-style="minimal" aria-label="Aplicar estilo tipográfico minimalista">✨ Minimalista</button>
-              <button class="style-template-pill" data-style="bold" aria-label="Aplicar estilo tipográfico impactante">⚡ Impactante</button>
-              <button class="style-template-pill" data-style="luxury" aria-label="Aplicar estilo tipográfico luxo">💎 Luxo</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ABA 3: PERFIS DE ESTILIZAÇÃO (PERFIS) -->
-        <section id="tab-profiles" class="tab-panel" role="tabpanel" aria-labelledby="tab-profiles">
-          <div class="panel-header-row">
-            <div>
-              <h3>Perfis de Estilização</h3>
-              <p class="panel-subtitle">Modelos salvos de textos, fontes e preços</p>
-            </div>
-          </div>
-
-          <button id="createProfileFromTabBtn" class="btn btn-primary btn-block mb-3" aria-label="Salvar os textos atuais como novo perfil">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-              <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-            <span>+ Salvar Textos Atuais como Perfil</span>
-          </button>
-
-          <!-- Indicador de Carregamento dos Perfis -->
-          <div id="profilesLoadingIndicator" class="loading-state-indicator" style="display: none;">
-            <div class="spinner-sm" aria-hidden="true"></div>
-            <span>Carregando perfis...</span>
-          </div>
-
-          <div id="profilesListContainer" class="profiles-cards-list">
-            <!-- Gerado dinamicamente via JS -->
-            <div class="empty-history-message" id="emptyProfilesMsg" style="display:none;">
-              <div class="empty-icon" aria-hidden="true">🎨</div>
-              <p>Nenhum perfil personalizado salvo.</p>
-              <span>Monte a combinação perfeita de textos e clique em "Adicionar ao Perfil" para reutilizar sempre que quiser em qualquer foto!</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- ABA 4: SELOS, BADGES & ADESIVOS -->
-        <section id="tab-stickers" class="tab-panel" role="tabpanel" aria-labelledby="tab-stickers">
-          <div class="panel-header">
-            <h3>Selos e Destaques</h3>
-            <p class="panel-subtitle">Adicione selos chamativos na sua arte</p>
-          </div>
-
-          <div class="stickers-grid">
-            <button class="sticker-item" data-text="🚀 FRETE GRÁTIS" data-bg="#10b981" data-color="#ffffff" aria-label="Adicionar selo Frete Grátis">
-              <span class="sticker-preview" style="background:#10b981; color:#fff;">🚀 FRETE GRÁTIS</span>
-            </button>
-            <button class="sticker-item" data-text="⚡ PRONTA ENTREGA" data-bg="#f59e0b" data-color="#000000" aria-label="Adicionar selo Pronta Entrega">
-              <span class="sticker-preview" style="background:#f59e0b; color:#000;">⚡ PRONTA ENTREGA</span>
-            </button>
-            <button class="sticker-item" data-text="🔥 OFERTA DO DIA" data-bg="#ef4444" data-color="#ffffff" aria-label="Adicionar selo Oferta do Dia">
-              <span class="sticker-preview" style="background:#ef4444; color:#fff;">🔥 OFERTA DO DIA</span>
-            </button>
-            <button class="sticker-item" data-text="⭐ 100% ORIGINAL" data-bg="#6366f1" data-color="#ffffff" aria-label="Adicionar selo 100% Original">
-              <span class="sticker-preview" style="background:#6366f1; color:#fff;">⭐ 100% ORIGINAL</span>
-            </button>
-            <button class="sticker-item" data-text="🛡️ GARANTIA DE 1 ANO" data-bg="#0284c7" data-color="#ffffff" aria-label="Adicionar selo Garantia de 1 Ano">
-              <span class="sticker-preview" style="background:#0284c7; color:#fff;">🛡️ GARANTIA 1 ANO</span>
-            </button>
-            <button class="sticker-item" data-text="⚠️ ÚLTIMAS UNIDADES" data-bg="#dc2626" data-color="#ffffff" aria-label="Adicionar selo Últimas Unidades">
-              <span class="sticker-preview" style="background:#dc2626; color:#fff;">⚠️ ÚLTIMAS UNIDADES</span>
-            </button>
-            <button class="sticker-item" data-text="🎁 BRINDE EXCLUSIVO" data-bg="#ec4899" data-color="#ffffff" aria-label="Adicionar selo Brinde Exclusivo">
-              <span class="sticker-preview" style="background:#ec4899; color:#fff;">🎁 BRINDE EXCLUSIVO</span>
-            </button>
-            <button class="sticker-item" data-text="💳 EM ATÉ 12X SEM JUROS" data-bg="#059669" data-color="#ffffff" aria-label="Adicionar selo Até 12x Sem Juros">
-              <span class="sticker-preview" style="background:#059669; color:#fff;">💳 ATÉ 12X SEM JUROS</span>
-            </button>
-          </div>
-
-          <div class="mt-4">
-            <span class="section-label">Criar Selo Personalizado:</span>
-            <div class="custom-badge-creator">
-              <input type="text" id="customBadgeTextInput" placeholder="Texto do selo (ex: NOVO!)" class="custom-input" aria-label="Texto para o selo personalizado">
-              <button id="addCustomBadgeBtn" class="btn btn-outline btn-block mt-2" aria-label="Inserir selo personalizado">+ Inserir Selo</button>
-            </div>
-          </div>
-
-          <!-- Upload de Logo / Sticker do Lojista -->
-          <div class="mt-4 logo-upload-container">
-            <span class="section-label">Logo / Imagem do Lojista:</span>
-            <div class="dropzone dropzone-compact" id="logoDropzone" tabindex="0" role="button" aria-label="Enviar logo PNG ou WEBP com fundo transparente">
-              <input type="file" id="logoFileInput" accept="image/png, image/webp" class="file-input-hidden" aria-label="Selecionar arquivo de logo PNG ou WEBP">
-              <div class="dropzone-content">
-                <div class="dropzone-icon-sm" aria-hidden="true">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                  </svg>
-                </div>
-                <div class="dropzone-text-compact">
-                  <strong>+ Upload de Logo / Imagem</strong>
-                  <span>Formatos PNG ou WEBP transparente</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ABA 5: FUNDO & GRADIENTES -->
-        <section id="tab-background" class="tab-panel" role="tabpanel" aria-labelledby="tab-background">
-          <div class="panel-header">
-            <h3>Fundo da Arte</h3>
-            <p class="panel-subtitle">Cores sólidas e gradientes para a base</p>
-          </div>
-
-          <div class="bg-settings-box">
-            <span class="section-label">Cores Sólidas:</span>
-            <div class="color-palette-grid" role="group" aria-label="Paleta de cores sólidas de fundo">
-              <button class="color-swatch active" data-color="#0f172a" style="background: #0f172a;" title="Azul Noturno" aria-label="Fundo Azul Noturno"></button>
-              <button class="color-swatch" data-color="#000000" style="background: #000000;" title="Preto Puro" aria-label="Fundo Preto Puro"></button>
-              <button class="color-swatch" data-color="#18181b" style="background: #18181b;" title="Grafite" aria-label="Fundo Grafite"></button>
-              <button class="color-swatch" data-color="#ffffff" style="background: #ffffff;" title="Branco" aria-label="Fundo Branco"></button>
-              <button class="color-swatch" data-color="#4f46e5" style="background: #4f46e5;" title="Índigo" aria-label="Fundo Índigo"></button>
-              <button class="color-swatch" data-color="#059669" style="background: #059669;" title="Esmeralda" aria-label="Fundo Esmeralda"></button>
-              <button class="color-swatch" data-color="#dc2626" style="background: #dc2626;" title="Vermelho" aria-label="Fundo Vermelho"></button>
-              <button class="color-swatch" data-color="#d97706" style="background: #d97706;" title="Âmbar" aria-label="Fundo Âmbar"></button>
-              <button class="color-swatch" data-color="#db2777" style="background: #db2777;" title="Rosa" aria-label="Fundo Rosa"></button>
-              <button class="color-swatch" data-color="#7c3aed" style="background: #7c3aed;" title="Roxo" aria-label="Fundo Roxo"></button>
-            </div>
-
-            <div class="color-picker-row mt-3">
-              <label for="customBgColorInput" class="color-picker-label">Cor personalizada:</label>
-              <div class="color-picker-input-group">
-                <input type="color" id="customBgColorInput" value="#0f172a" aria-label="Seletor de cor de fundo personalizada">
-                <input type="text" id="customBgColorText" value="#0f172a" class="hex-text-input" aria-label="Código hexadecimal da cor de fundo">
-              </div>
-            </div>
-
-            <span class="section-label mt-4">Gradientes de Destaque:</span>
-            <div class="gradient-palette-grid" role="group" aria-label="Paleta de gradientes de fundo">
-              <button class="gradient-swatch" data-gradient="linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);" aria-label="Gradiente Azul Cósmico"></button>
-              <button class="gradient-swatch" data-gradient="linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)" style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);" aria-label="Gradiente Índigo Ciano"></button>
-              <button class="gradient-swatch" data-gradient="linear-gradient(135deg, #831843 0%, #be185d 100%)" style="background: linear-gradient(135deg, #831843 0%, #be185d 100%);" aria-label="Gradiente Magenta"></button>
-              <button class="gradient-swatch" data-gradient="linear-gradient(135deg, #14532d 0%, #059669 100%)" style="background: linear-gradient(135deg, #14532d 0%, #059669 100%);" aria-label="Gradiente Esmeralda"></button>
-              <button class="gradient-swatch" data-gradient="linear-gradient(135deg, #78350f 0%, #d97706 100%)" style="background: linear-gradient(135deg, #78350f 0%, #d97706 100%);" aria-label="Gradiente Âmbar Dourado"></button>
-              <button class="gradient-swatch" data-gradient="linear-gradient(135deg, #09090b 0%, #27272a 100%)" style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%);" aria-label="Gradiente Preto Grafite"></button>
-            </div>
-
-            <div class="slider-control mt-3">
-              <div class="slider-header">
-                <label for="overlayDarknessSlider">Escurecimento sobre a Foto (Vinheta)</label>
-                <span id="overlayDarknessValue" class="slider-val">0%</span>
-              </div>
-              <input type="range" id="overlayDarknessSlider" min="0" max="90" value="0" class="custom-range" aria-label="Escurecimento de vinheta sobre a foto">
-            </div>
-          </div>
-        </section>
-
-        <!-- ABA 6: HISTÓRICO DE ARTES -->
-        <section id="tab-history" class="tab-panel" role="tabpanel" aria-labelledby="tab-history">
-          <div class="panel-header-row">
-            <div>
-              <h3>Histórico de Artes</h3>
-              <p class="panel-subtitle">Salvo localmente no IndexedDB</p>
-            </div>
-            <button id="clearAllHistoryBtn" class="btn-text-danger" title="Limpar todo o histórico" aria-label="Limpar todo o histórico de artes salvas">Limpar tudo</button>
-          </div>
-
-          <!-- Indicador de Carregamento do Histórico -->
-          <div id="historyLoadingIndicator" class="loading-state-indicator" style="display: none;">
-            <div class="spinner-sm" aria-hidden="true"></div>
-            <span>Carregando histórico...</span>
-          </div>
-
-          <div id="historyListContainer" class="history-cards-list">
-            <!-- Gerado dinamicamente via JS -->
-            <div class="empty-history-message" id="emptyHistoryMsg">
-              <div class="empty-icon" aria-hidden="true">📁</div>
-              <p>Nenhuma arte salva ainda.</p>
-              <span>Suas artes exportadas ficarão salvas aqui para você reabrir e editar quando quiser!</span>
-            </div>
-          </div>
-        </section>
-
-      </div>
-    </aside>
-
-    <!-- ÁREA CENTRAL DO CANVAS (STAGE / MESA DE TRABALHO) -->
-    <section class="canvas-workspace" id="canvasWorkspace" aria-label="Área de Trabalho e Palco de Edição">
-      
-      <!-- Barra superior do Workspace -->
-      <div class="workspace-toolbar">
-        <div class="workspace-info">
-          <span class="aspect-badge">9:16 Story (1080 x 1920 px)</span>
-          <span id="activeLayersCount" class="layers-badge">0 camadas</span>
-        </div>
-
-        <div class="workspace-actions">
-          <button id="zoomOutWorkspaceBtn" class="btn-icon-sm" title="Diminuir visualização da área de trabalho" aria-label="Diminuir visualização da área de trabalho">−</button>
-          <span id="workspaceZoomPercent" class="zoom-display" aria-label="Porcentagem de visualização da área de trabalho">100%</span>
-          <button id="zoomInWorkspaceBtn" class="btn-icon-sm" title="Aumentar visualização da área de trabalho" aria-label="Aumentar visualização da área de trabalho">+</button>
-          <button id="fitScreenBtn" class="btn-icon-sm" title="Ajustar visualização em 100%" aria-label="Resetar visualização da área de trabalho para 100%">⛶</button>
-        </div>
-      </div>
-
-      <!-- Barra de Ações Rápidas Mobile -->
-      <div class="mobile-quick-actions" role="toolbar" aria-label="Ações Rápidas">
-        <button id="quickAddTextBtn" class="quick-pill-btn" aria-label="Adicionar Texto">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          <span>Texto</span>
-        </button>
-        <button id="quickOpenStickersBtn" class="quick-pill-btn" aria-label="Abrir Selos">
-          <span>⭐ Selos</span>
-        </button>
-        <button id="btnToggleSafeZone" class="btn-pill">Ocultar Guias</button>
-        <button id="mobileUndoBtn" class="btn-pill" aria-label="Desfazer última alteração" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="btnUndo" class="pill-action-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 7v6h6"></path>
             <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
           </svg>
           <span>Desfazer</span>
         </button>
-        <button id="quickOpenProfilesBtn" class="quick-pill-btn" aria-label="Abrir Perfis">
-          <span>💎 Perfis</span>
-        </button>
-        <button id="quickOpenHistoryBtn" class="quick-pill-btn" aria-label="Abrir Histórico">
-          <span>🕒 Histórico</span>
-        </button>
-        <button id="quickOpenRightBtn" class="quick-pill-btn quick-pill-accent" aria-label="Editar Propriedades">
-          <span>🎨 Editar</span>
+
+        <button id="resetCanvasBtn" class="pill-action-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Limpar</span>
         </button>
       </div>
+    </div>
 
-      <!-- Moldura do Smartphone / Palco de Edição -->
-      <div class="stage-viewport" id="stageViewport">
-        <div class="smartphone-frame" id="smartphoneFrame">
-          
-          <div class="story-canvas-container" id="storyCanvasContainer" tabindex="0" role="region" aria-label="Palco de edição do Story do Instagram">
-            
-            <!-- Canvas de Fundo -->
-            <canvas id="backgroundCanvas" width="1080" height="1920" aria-label="Canvas de renderização da foto de fundo"></canvas>
+    <!-- Ações Finais à Direita -->
+    <div class="header-right-clean">
+      <button id="saveProfileHeaderBtn" class="btn-ghost-minimal" title="Salvar disposição de textos atual como um Perfil" aria-label="Salvar perfil">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span class="btn-text-hide-mobile">Salvar Perfil</span>
+      </button>
 
-            <!-- Camada Interativa DOM para Textos Móveis -->
-            <div id="textLayersOverlay" class="text-layers-overlay" aria-label="Camadas de texto sobrepostas"></div>
+      <button id="openPreviewModalBtn" class="btn-ghost-minimal" title="Visualizar simulação no Instagram Story" aria-label="Pré-visualizar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span class="btn-text-hide-mobile">Preview</span>
+      </button>
 
-            <!-- Camada de Guias de Margem Segura do Instagram (Safe Zones) -->
-            <div id="safeZonesGuide" class="safe-zones-guide active" aria-hidden="true">
-              <div class="safe-zone-top">
-                <div class="safe-zone-tag">Área do Topo do Instagram (Avatar / Nome / Progresso)</div>
-              </div>
-              <div class="safe-zone-center-hint">
-                <span>Área Segura Recomendada</span>
-              </div>
-              <div class="safe-zone-bottom">
-                <div class="safe-zone-tag">Área Inferior (Mensagem / Compartilhar)</div>
-              </div>
-            </div>
+      <button id="exportStoryBtn" class="btn-primary-glow" title="Baixar Story em alta definição 1080x1920" aria-label="Baixar Story">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="btn-icon-export">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Baixar Story</span>
+      </button>
+    </div>
+  </header>
 
-            <!-- Estado Vazio -->
-            <div id="canvasEmptyState" class="canvas-empty-state" aria-hidden="true">
-              <div class="empty-state-card">
-                <div class="empty-state-icon">📸</div>
-                <h4>Arraste uma foto aqui</h4>
-                <p>ou use o botão "Escolher Arquivo" na barra lateral para começar a montar o Story do seu produto.</p>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
+  <!-- PALCO CENTRAL FLUTUANTE (CANVAS 9:16) -->
+  <main class="main-stage-container" id="canvasWorkspace" role="main">
+    
+    <!-- Barra flutuante de Zoom & Metadados do Canvas -->
+    <div class="canvas-floating-meta">
+      <div class="canvas-meta-pill">
+        <span class="meta-ratio">9:16</span>
+        <span class="meta-res">1080×1920</span>
+        <span class="meta-dot">•</span>
+        <span id="activeLayersCount" class="meta-layers">0 camadas</span>
       </div>
 
-      <!-- Botão Flutuante (FAB) para Adicionar Foto no Mobile -->
-      <button id="fabAddPhoto" class="fab-add-photo" aria-label="Adicionar Foto" title="Adicionar Foto">📸</button>
-
-      <!-- Barra de ajuda rápida inferior -->
-      <footer class="workspace-footer">
-        <span>💡 <strong>Dicas:</strong> Dê duplo clique em qualquer texto para editar direto na tela. Pressione <code>Delete</code> para remover a camada selecionada.</span>
-      </footer>
-    </section>
-
-    <!-- PAINEL LATERAL DIREITO (INSPETOR DE PROPRIEDADES / GAVETA DIREITA) -->
-    <aside class="inspector-panel" id="inspectorPanel" aria-label="Painel Inspetor de Propriedades">
-      <!-- Topo da Gaveta Mobile Inspetor -->
-      <div class="drawer-header-mobile">
-        <div class="drawer-title">
-          <span class="drawer-badge">Editor</span>
-          <strong>Propriedades</strong>
-        </div>
-        <button id="closeRightDrawerBtn" class="btn-drawer-close" aria-label="Fechar gaveta de propriedades">✕</button>
+      <div class="zoom-floating-controls">
+        <button id="zoomOutWorkspaceBtn" class="zoom-btn" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+        <span id="workspaceZoomPercent" class="zoom-text">100%</span>
+        <button id="zoomInWorkspaceBtn" class="zoom-btn" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+        <button id="fitScreenBtn" class="zoom-btn" title="Ajustar tela" aria-label="Ajustar visualização">⛶</button>
       </div>
-      
-      <!-- Estado: Nenhuma camada selecionada -->
-      <div id="noSelectionState" class="inspector-empty">
-        <div class="inspector-empty-icon" aria-hidden="true">🎨</div>
-        <h4>Nenhum elemento selecionado</h4>
-        <p>Clique em um texto na arte ou adicione um novo bloco no menu à esquerda para personalizar fontes, cores e tamanhos.</p>
-      </div>
+    </div>
 
-      <!-- Estado: Camada de Texto Selecionada -->
-      <div id="textInspectorState" class="inspector-controls" style="display: none;">
+    <!-- Viewport do Canvas Flutuante -->
+    <div class="stage-viewport-clean" id="stageViewport">
+      <div class="smartphone-frame" id="smartphoneFrame">
         
-        <div class="inspector-header">
-          <div class="inspector-header-title">
-            <span class="inspector-badge">Camada de Texto</span>
-            <span id="selectedLayerTypeName" class="inspector-layer-name">Texto</span>
+        <div class="story-canvas-container" id="storyCanvasContainer" tabindex="0" role="region" aria-label="Palco de edição do Story do Instagram">
+          
+          <!-- Canvas 2D da Foto de Fundo -->
+          <canvas id="backgroundCanvas" width="1080" height="1920" aria-label="Canvas de renderização da foto"></canvas>
+
+          <!-- Camada Interativa DOM para Textos Móveis -->
+          <div id="textLayersOverlay" class="text-layers-overlay" aria-label="Camadas de texto sobrepostas"></div>
+
+          <!-- Guias de Margem Segura (Safe Zones) -->
+          <div id="safeZonesGuide" class="safe-zones-guide active" aria-hidden="true">
+            <div class="safe-zone-top">
+              <div class="safe-zone-tag">Área do Topo (Instagram)</div>
+            </div>
+            <div class="safe-zone-center-hint">
+              <span>Área Segura Recomendada</span>
+            </div>
+            <div class="safe-zone-bottom">
+              <div class="safe-zone-tag">Área Inferior (Mensagem / Resposta)</div>
+            </div>
           </div>
-          <div class="inspector-header-actions">
-            <button id="duplicateLayerBtn" class="btn-icon-sm" title="Duplicar texto selecionado" aria-label="Duplicar texto selecionado">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+
+          <!-- Estado Vazio Ultra-Clean -->
+          <div id="canvasEmptyState" class="canvas-empty-state" aria-hidden="true">
+            <div class="empty-state-clean-card">
+              <div class="empty-glow-icon">📸</div>
+              <h4>Adicione uma foto</h4>
+              <p>Clique em <strong>Foto</strong> no menu abaixo ou arraste uma imagem aqui.</p>
+              <button class="btn-empty-upload" type="button" onclick="document.getElementById('imageFileInput').click()">
+                Escolher Arquivo
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FLOATING BOTTOM DOCK (ESTILO macOS / INSTAGRAM) -->
+  <nav class="floating-dock-wrap" id="floatingDock" role="navigation" aria-label="Menu principal de ferramentas">
+    <div class="floating-dock-pill">
+      
+      <button class="dock-item active" data-tab="tab-upload" title="Foto & Enquadramento" aria-label="Ajustar Foto">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <span class="dock-label">Foto</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-texts" title="Textos & Preços" aria-label="Adicionar Textos">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 7 4 4 20 4 20 7"></polyline>
+            <line x1="9" y1="20" x2="15" y2="20"></line>
+            <line x1="12" y1="4" x2="12" y2="20"></line>
+          </svg>
+        </div>
+        <span class="dock-label">Textos</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-stickers" title="Selos & Adesivos" aria-label="Selos e Destaques">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <span class="dock-label">Selos</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-background" title="Fundo & Cores" aria-label="Cores e Fundo">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a10 10 0 0 0 0 20z"></path>
+          </svg>
+        </div>
+        <span class="dock-label">Fundo</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-profiles" title="Perfis Salvos" aria-label="Perfis de Estilização">
+        <div class="dock-icon dock-badge-rel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span id="profilesCountBadge" class="dock-counter">0</span>
+        </div>
+        <span class="dock-label">Perfis</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-history" title="Histórico de Artes" aria-label="Histórico">
+        <div class="dock-icon dock-badge-rel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span id="historyCountBadge" class="dock-counter">0</span>
+        </div>
+        <span class="dock-label">Histórico</span>
+      </button>
+
+      <button class="dock-item dock-item-inspector" data-tab="tab-inspector" id="dockInspectorBtn" title="Propriedades do Texto" aria-label="Editar Camada">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </div>
+        <span class="dock-label">Editar</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- BACKDROP & CONTAINER DE BOTTOM SHEETS (GAVETAS DESLIZANTES MODERNAS) -->
+  <div class="sheet-backdrop" id="sheetBackdrop" aria-hidden="true"></div>
+
+  <aside class="sheet-drawer" id="sheetDrawer" aria-label="Painel de Edição">
+    
+    <!-- Barra Superior da Gaveta (Header com alça e fechar) -->
+    <div class="sheet-header">
+      <div class="sheet-drag-handle" aria-hidden="true"></div>
+      <div class="sheet-title-wrap">
+        <h3 id="sheetTitle">Foto do Produto</h3>
+        <span id="sheetSubtitle" class="sheet-subtitle">Envie ou ajuste o enquadramento</span>
+      </div>
+      <button id="closeSheetBtn" class="sheet-close-btn" aria-label="Fechar painel">✕</button>
+    </div>
+
+    <!-- Conteúdo Scrollável das Abas -->
+    <div class="sheet-body-content">
+      
+      <!-- ABA 1: FOTO & ENQUADRAMENTO -->
+      <section id="tab-upload" class="tab-panel active" role="tabpanel">
+        
+        <!-- Dropzone Clean -->
+        <div class="dropzone-modern" id="imageDropzone" tabindex="0" role="button" aria-label="Área de upload de foto">
+          <input type="file" id="imageFileInput" accept="image/*" class="file-input-hidden" aria-label="Selecionar arquivo de foto">
+          <div class="dropzone-inner">
+            <div class="dropzone-circle-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-            </button>
-            <button id="deleteLayerBtn" class="btn-icon-sm btn-icon-danger" title="Excluir texto (Delete)" aria-label="Excluir texto selecionado">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
+            </div>
+            <div class="dropzone-text-block">
+              <strong>Toque para escolher uma foto</strong>
+              <span>PNG, JPG, WEBP até 15MB</span>
+            </div>
           </div>
         </div>
 
-        <div class="inspector-body">
-          
-          <!-- Conteúdo do Texto -->
-          <div class="control-field">
-            <label for="inspectorTextInput">Conteúdo do Texto</label>
-            <textarea id="inspectorTextInput" rows="2" class="custom-textarea" placeholder="Digite seu texto..." aria-label="Editar conteúdo do texto selecionado"></textarea>
+        <!-- Exemplos Rápidos de Produtos -->
+        <div class="sample-images-section">
+          <span class="section-label">Ou teste com um produto de exemplo:</span>
+          <div class="sample-chips-grid">
+            <button class="sample-chip" data-sample="smartphone">📱 Smartphone</button>
+            <button class="sample-chip" data-sample="smartwatch">⌚ Smartwatch</button>
+            <button class="sample-chip" data-sample="headphone">🎧 Headphone</button>
+            <button class="sample-chip" data-sample="sneaker">👟 Tênis</button>
+          </div>
+        </div>
+
+        <!-- Controles de Enquadramento da Imagem -->
+        <div id="imageControlsBox" class="clean-group-card">
+          <div class="group-title-row">
+            <span class="group-title">Enquadramento da Foto</span>
+            <button id="resetImageTransformBtn" class="btn-text-action" aria-label="Resetar foto">Resetar</button>
           </div>
 
-          <!-- Tipografia: 12+ Fontes Diversificadas + Upload de Fonte Customizada -->
-          <div class="control-field">
-            <div class="field-label-row">
-              <label for="fontFamilySelect">Fonte Tipográfica</label>
-              <label for="customFontFileInput" class="btn-custom-font-upload" title="Fazer upload de arquivo .ttf, .otf ou .woff">+ Upload (.ttf/.otf)</label>
-              <input type="file" id="customFontFileInput" accept=".ttf, .otf, .woff, .woff2" class="file-input-hidden" aria-label="Enviar arquivo de fonte customizada">
+          <!-- CONTROLE DE ZOOM -->
+          <div class="slider-clean-row">
+            <div class="slider-clean-header">
+              <label for="imageZoomSlider">Zoom da Foto</label>
+              <span id="imageZoomValue" class="slider-val-badge">100%</span>
             </div>
-            <select id="fontFamilySelect" class="custom-select" aria-label="Selecionar família tipográfica">
+            <div class="zoom-stepper-row">
+              <button id="zoomOutPhotoBtn" class="btn-zoom-step" aria-label="Diminuir zoom">−</button>
+              <input type="range" id="imageZoomSlider" min="40" max="300" value="100" class="custom-range" aria-label="Zoom da foto">
+              <button id="zoomInPhotoBtn" class="btn-zoom-step" aria-label="Aumentar zoom">+</button>
+            </div>
+          </div>
+
+          <!-- MODOS DE ENQUADRAMENTO -->
+          <div class="mt-3">
+            <span class="section-sublabel">Modo de Enquadramento:</span>
+            <div class="fit-segmented-control" id="fitButtonsContainer" role="group">
+              <button id="fitCoverBtn" class="btn-segmented active" data-mode="cover">Preencher</button>
+              <button id="fitContainBtn" class="btn-segmented" data-mode="contain">Conter</button>
+              <button id="centerImageBtn" class="btn-segmented" data-mode="center">Centralizar</button>
+            </div>
+          </div>
+
+          <!-- AJUSTES DE IMAGEM -->
+          <div class="image-filters-box mt-3">
+            <span class="section-label">Ajustes Rápidos:</span>
+            
+            <div class="slider-clean-row">
+              <div class="slider-clean-header">
+                <label for="brightnessSlider">Brilho</label>
+                <span id="brightnessValue" class="slider-val-badge">100%</span>
+              </div>
+              <input type="range" id="brightnessSlider" min="50" max="150" value="100" class="custom-range" aria-label="Brilho">
+            </div>
+
+            <div class="slider-clean-row">
+              <div class="slider-clean-header">
+                <label for="contrastSlider">Contraste</label>
+                <span id="contrastValue" class="slider-val-badge">100%</span>
+              </div>
+              <input type="range" id="contrastSlider" min="50" max="150" value="100" class="custom-range" aria-label="Contraste">
+            </div>
+
+            <div class="slider-clean-row">
+              <div class="slider-clean-header">
+                <label for="saturationSlider">Saturação</label>
+                <span id="saturationValue" class="slider-val-badge">100%</span>
+              </div>
+              <input type="range" id="saturationSlider" min="0" max="200" value="100" class="custom-range" aria-label="Saturação">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 2: PRESETS DE TEXTO & PREÇOS -->
+      <section id="tab-texts" class="tab-panel" role="tabpanel">
+        <button class="btn-primary-block mb-3" id="addFreeTextBtn" aria-label="Adicionar novo texto livre">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>+ Adicionar Novo Texto</span>
+        </button>
+
+        <span class="section-label">Blocos Prontos de Oferta:</span>
+        <div class="preset-cards-grid">
+          <!-- Nome do Produto -->
+          <button class="preset-pill-card" id="addProductNamePreset">
+            <div class="preset-pill-badge title-icon">T</div>
+            <div class="preset-pill-info">
+              <strong>Nome do Produto</strong>
+              <span>Ex: iPhone 15 Pro Max 256GB</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Preço à Vista -->
+          <button class="preset-pill-card highlight-card" id="addPriceCashPreset">
+            <div class="preset-pill-badge cash-icon">R$</div>
+            <div class="preset-pill-info">
+              <strong>Preço à Vista</strong>
+              <span>Ex: R$ 5.999,00 à vista no Pix</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Preço Parcelado -->
+          <button class="preset-pill-card" id="addPriceInstallmentPreset">
+            <div class="preset-pill-badge card-icon">💳</div>
+            <div class="preset-pill-info">
+              <strong>Preço Parcelado</strong>
+              <span>Ex: ou 12x de R$ 549,90</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Condição / Desconto -->
+          <button class="preset-pill-card" id="addConditionPreset">
+            <div class="preset-pill-badge condition-icon">🏷️</div>
+            <div class="preset-pill-info">
+              <strong>Desconto / Condição</strong>
+              <span>Ex: 15% OFF c/ Cupom</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Chamada CTA -->
+          <button class="preset-pill-card" id="addCtaPreset">
+            <div class="preset-pill-badge cta-icon">👆</div>
+            <div class="preset-pill-info">
+              <strong>Chamada (CTA)</strong>
+              <span>Ex: Responda ao Story</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Saldão -->
+          <button class="preset-pill-card highlight-card" id="addSaldaoPreset">
+            <div class="preset-pill-badge red-icon">💥</div>
+            <div class="preset-pill-info">
+              <strong>Saldão Seminovos</strong>
+              <span>MEGA SALDÃO • ATÉ 40% OFF</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Troca com Troco -->
+          <button class="preset-pill-card" id="addTrocaComTrocoPreset">
+            <div class="preset-pill-badge green-icon">🔄</div>
+            <div class="preset-pill-info">
+              <strong>Troca com Troco</strong>
+              <span>Aceitamos seu usado</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+        </div>
+
+        <div class="clean-group-card mt-3">
+          <span class="section-label">Estilos Tipográficos Prontos:</span>
+          <div class="template-style-grid">
+            <button class="style-template-pill" data-style="modern">🔥 Moderno</button>
+            <button class="style-template-pill" data-style="minimal">✨ Minimalista</button>
+            <button class="style-template-pill" data-style="bold">⚡ Impactante</button>
+            <button class="style-template-pill" data-style="luxury">💎 Luxo</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 3: SELOS, ADESIVOS & LOGO -->
+      <section id="tab-stickers" class="tab-panel" role="tabpanel">
+        <span class="section-label">Selos de Destaque:</span>
+        <div class="stickers-grid-modern">
+          <button class="sticker-chip" data-text="🚀 FRETE GRÁTIS" data-bg="#10b981" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#10b981; color:#fff;">🚀 FRETE GRÁTIS</span>
+          </button>
+          <button class="sticker-chip" data-text="⚡ PRONTA ENTREGA" data-bg="#f59e0b" data-color="#000000">
+            <span class="sticker-chip-inner" style="background:#f59e0b; color:#000;">⚡ PRONTA ENTREGA</span>
+          </button>
+          <button class="sticker-chip" data-text="🔥 OFERTA DO DIA" data-bg="#ef4444" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#ef4444; color:#fff;">🔥 OFERTA DO DIA</span>
+          </button>
+          <button class="sticker-chip" data-text="⭐ 100% ORIGINAL" data-bg="#6366f1" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#6366f1; color:#fff;">⭐ 100% ORIGINAL</span>
+          </button>
+          <button class="sticker-chip" data-text="🛡️ GARANTIA DE 1 ANO" data-bg="#0284c7" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#0284c7; color:#fff;">🛡️ GARANTIA 1 ANO</span>
+          </button>
+          <button class="sticker-chip" data-text="⚠️ ÚLTIMAS UNIDADES" data-bg="#dc2626" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#dc2626; color:#fff;">⚠️ ÚLTIMAS UNIDADES</span>
+          </button>
+          <button class="sticker-chip" data-text="🎁 BRINDE EXCLUSIVO" data-bg="#ec4899" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#ec4899; color:#fff;">🎁 BRINDE EXCLUSIVO</span>
+          </button>
+          <button class="sticker-chip" data-text="💳 EM ATÉ 12X SEM JUROS" data-bg="#059669" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#059669; color:#fff;">💳 ATÉ 12X SEM JUROS</span>
+          </button>
+        </div>
+
+        <div class="clean-group-card mt-3">
+          <span class="section-label">Criar Selo Personalizado:</span>
+          <div class="custom-badge-creator-row">
+            <input type="text" id="customBadgeTextInput" placeholder="Texto do selo (ex: NOVO!)" class="clean-input" aria-label="Texto do selo">
+            <button id="addCustomBadgeBtn" class="btn-secondary-clean">+ Inserir</button>
+          </div>
+        </div>
+
+        <div class="clean-group-card mt-3">
+          <span class="section-label">Logo / Imagem do Lojista:</span>
+          <div class="dropzone-compact" id="logoDropzone" tabindex="0" role="button" aria-label="Upload de logo transparente">
+            <input type="file" id="logoFileInput" accept="image/png, image/webp" class="file-input-hidden" aria-label="Logo PNG">
+            <div class="dropzone-compact-content">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>Upload de Logo (PNG/WEBP transparente)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 4: FUNDO & CORES -->
+      <section id="tab-background" class="tab-panel" role="tabpanel">
+        <span class="section-label">Cores Sólidas:</span>
+        <div class="color-palette-modern" role="group">
+          <button class="color-swatch-clean active" data-color="#0f172a" style="background: #0f172a;" title="Azul Noturno"></button>
+          <button class="color-swatch-clean" data-color="#000000" style="background: #000000;" title="Preto"></button>
+          <button class="color-swatch-clean" data-color="#18181b" style="background: #18181b;" title="Grafite"></button>
+          <button class="color-swatch-clean" data-color="#ffffff" style="background: #ffffff;" title="Branco"></button>
+          <button class="color-swatch-clean" data-color="#4f46e5" style="background: #4f46e5;" title="Índigo"></button>
+          <button class="color-swatch-clean" data-color="#059669" style="background: #059669;" title="Esmeralda"></button>
+          <button class="color-swatch-clean" data-color="#dc2626" style="background: #dc2626;" title="Vermelho"></button>
+          <button class="color-swatch-clean" data-color="#d97706" style="background: #d97706;" title="Âmbar"></button>
+          <button class="color-swatch-clean" data-color="#db2777" style="background: #db2777;" title="Rosa"></button>
+          <button class="color-swatch-clean" data-color="#7c3aed" style="background: #7c3aed;" title="Roxo"></button>
+        </div>
+
+        <div class="color-picker-clean-row mt-3">
+          <label for="customBgColorInput" class="field-label-clean">Cor personalizada:</label>
+          <div class="color-picker-input-clean">
+            <input type="color" id="customBgColorInput" value="#0f172a" aria-label="Seletor de cor de fundo">
+            <input type="text" id="customBgColorText" value="#0f172a" class="hex-text-clean" aria-label="Hex cor de fundo">
+          </div>
+        </div>
+
+        <span class="section-label mt-4">Gradientes de Fundo:</span>
+        <div class="gradient-palette-modern" role="group">
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);" aria-label="Azul Cósmico"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)" style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);" aria-label="Índigo Ciano"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #831843 0%, #be185d 100%)" style="background: linear-gradient(135deg, #831843 0%, #be185d 100%);" aria-label="Magenta"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #14532d 0%, #059669 100%)" style="background: linear-gradient(135deg, #14532d 0%, #059669 100%);" aria-label="Esmeralda"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #78350f 0%, #d97706 100%)" style="background: linear-gradient(135deg, #78350f 0%, #d97706 100%);" aria-label="Âmbar"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #09090b 0%, #27272a 100%)" style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%);" aria-label="Preto Grafite"></button>
+        </div>
+
+        <div class="slider-clean-row mt-4">
+          <div class="slider-clean-header">
+            <label for="overlayDarknessSlider">Escurecimento sobre a Foto (Vinheta)</label>
+            <span id="overlayDarknessValue" class="slider-val-badge">0%</span>
+          </div>
+          <input type="range" id="overlayDarknessSlider" min="0" max="90" value="0" class="custom-range" aria-label="Vinheta">
+        </div>
+      </section>
+
+      <!-- ABA 5: PERFIS DE ESTILIZAÇÃO -->
+      <section id="tab-profiles" class="tab-panel" role="tabpanel">
+        <button id="createProfileFromTabBtn" class="btn-primary-block mb-3" aria-label="Salvar perfil atual">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span>Salvar Textos Atuais como Perfil</span>
+        </button>
+
+        <div id="profilesLoadingIndicator" class="loading-state-indicator" style="display: none;">
+          <div class="spinner-sm" aria-hidden="true"></div>
+          <span>Carregando perfis...</span>
+        </div>
+
+        <div id="profilesListContainer" class="profiles-cards-list">
+          <div class="empty-clean-message" id="emptyProfilesMsg" style="display:none;">
+            <div class="empty-icon" aria-hidden="true">🎨</div>
+            <p>Nenhum perfil salvo ainda.</p>
+            <span>Monte seus textos e salve como perfil para reutilizar com 1 clique!</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 6: HISTÓRICO DE ARTES -->
+      <section id="tab-history" class="tab-panel" role="tabpanel">
+        <div class="panel-header-row mb-3">
+          <span class="section-label">Artes Salvas:</span>
+          <button id="clearAllHistoryBtn" class="btn-text-danger" aria-label="Limpar histórico">Limpar tudo</button>
+        </div>
+
+        <div id="historyLoadingIndicator" class="loading-state-indicator" style="display: none;">
+          <div class="spinner-sm" aria-hidden="true"></div>
+          <span>Carregando histórico...</span>
+        </div>
+
+        <div id="historyListContainer" class="history-cards-list">
+          <div class="empty-clean-message" id="emptyHistoryMsg">
+            <div class="empty-icon" aria-hidden="true">📁</div>
+            <p>Nenhuma arte salva ainda.</p>
+            <span>Suas criações exportadas aparecerão aqui automaticamente.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 7: INSPETOR / PROPRIEDADES DO TEXTO SELECIONADO -->
+      <section id="tab-inspector" class="tab-panel" role="tabpanel">
+        
+        <!-- Estado: Nenhuma camada selecionada -->
+        <div id="noSelectionState" class="empty-clean-message">
+          <div class="empty-icon" aria-hidden="true">👆</div>
+          <p>Nenhum texto selecionado</p>
+          <span>Toque em qualquer texto na arte para editar fonte, cores, tamanho e efeitos.</span>
+        </div>
+
+        <!-- Estado: Camada de Texto Selecionada -->
+        <div id="textInspectorState" class="inspector-clean-controls" style="display: none;">
+          
+          <div class="inspector-clean-top">
+            <div class="inspector-badge-row">
+              <span class="inspector-pill">Camada</span>
+              <span id="selectedLayerTypeName" class="inspector-layer-name">Texto</span>
+            </div>
+            <div class="inspector-actions-group">
+              <button id="duplicateLayerBtn" class="btn-icon-clean" title="Duplicar texto" aria-label="Duplicar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <button id="deleteLayerBtn" class="btn-icon-clean btn-icon-danger" title="Excluir texto" aria-label="Excluir">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Conteúdo do Texto -->
+          <div class="control-field-clean mt-3">
+            <label for="inspectorTextInput" class="field-label-clean">Conteúdo do Texto</label>
+            <textarea id="inspectorTextInput" rows="2" class="clean-textarea" placeholder="Digite seu texto..." aria-label="Texto"></textarea>
+          </div>
+
+          <!-- Tipografia & Upload de Fonte Customizada -->
+          <div class="control-field-clean mt-3">
+            <div class="field-label-row">
+              <label for="fontFamilySelect" class="field-label-clean">Fonte Tipográfica</label>
+              <label for="customFontFileInput" class="btn-custom-font-upload" title="Upload de fonte">+ Upload (.ttf/.otf)</label>
+              <input type="file" id="customFontFileInput" accept=".ttf, .otf, .woff, .woff2" class="file-input-hidden" aria-label="Fonte customizada">
+            </div>
+            <select id="fontFamilySelect" class="clean-select" aria-label="Família tipográfica">
               <optgroup label="✨ Sem Serifa (Modernas & Clean)">
                 <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat';">Montserrat (Moderna/Forte)</option>
                 <option value="'Poppins', sans-serif" style="font-family: 'Poppins';">Poppins (Geométrica)</option>
@@ -739,95 +653,90 @@
                 <option value="'Outfit', sans-serif" style="font-family: 'Outfit';">Outfit (Trendy/Minimal)</option>
                 <option value="'Roboto', sans-serif" style="font-family: 'Roboto';">Roboto (Equilibrada)</option>
               </optgroup>
-
               <optgroup label="⚡ Impacto & Destaque (Preços/Ofertas)">
                 <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue';">Bebas Neue (Condensada/Caps)</option>
                 <option value="'Oswald', sans-serif" style="font-family: 'Oswald';">Oswald (Bold Comercial)</option>
                 <option value="'Anton', sans-serif" style="font-family: 'Anton';">Anton (Super Pesada)</option>
               </optgroup>
-
               <optgroup label="💎 Serifadas (Luxo & Sofisticação)">
                 <option value="'Playfair Display', serif" style="font-family: 'Playfair Display';">Playfair Display (Elegante)</option>
                 <option value="'Cinzel', serif" style="font-family: 'Cinzel';">Cinzel (Clássica/Premium)</option>
                 <option value="'Lora', serif" style="font-family: 'Lora';">Lora (Editorial/Suave)</option>
               </optgroup>
-
-              <optgroup label="🎈 Arredondadas (Amigáveis & Casuais)">
+              <optgroup label="🎈 Arredondadas">
                 <option value="'Nunito', sans-serif" style="font-family: 'Nunito';">Nunito (Moderna Arredondada)</option>
                 <option value="'Quicksand', sans-serif" style="font-family: 'Quicksand';">Quicksand (Leve/Harmônica)</option>
               </optgroup>
-
-              <optgroup label="✍️ Manuscritas & Script (Artesanais)">
+              <optgroup label="✍️ Manuscritas & Script">
                 <option value="'Caveat', cursive" style="font-family: 'Caveat';">Caveat (Manuscrita Despojada)</option>
                 <option value="'Pacifico', cursive" style="font-family: 'Pacifico';">Pacifico (Retro/Verão)</option>
                 <option value="'Dancing Script', cursive" style="font-family: 'Dancing Script';">Dancing Script (Fluida)</option>
-                <option value="'Great Vibes', cursive" style="font-family: 'Great Vibes';">Great Vibes (Caligrafia/Casamento)</option>
+                <option value="'Great Vibes', cursive" style="font-family: 'Great Vibes';">Great Vibes (Caligrafia)</option>
               </optgroup>
-
               <optgroup label="🖥️ Padrões do Sistema">
-                <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
-                <option value="Helvetica, sans-serif" style="font-family: Helvetica, sans-serif;">Helvetica</option>
-                <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
-                <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
-                <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Helvetica, sans-serif">Helvetica</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Courier New', monospace">Courier New</option>
               </optgroup>
             </select>
           </div>
 
           <!-- Tamanho da Fonte -->
-          <div class="slider-control">
-            <div class="slider-header">
+          <div class="slider-clean-row mt-3">
+            <div class="slider-clean-header">
               <label for="fontSizeSlider">Tamanho da Fonte</label>
-              <span id="fontSizeValue" class="slider-val">36px</span>
+              <span id="fontSizeValue" class="slider-val-badge">36px</span>
             </div>
-            <input type="range" id="fontSizeSlider" min="10" max="160" value="36" class="custom-range" aria-label="Tamanho da fonte em pixels">
+            <input type="range" id="fontSizeSlider" min="10" max="160" value="36" class="custom-range" aria-label="Tamanho da fonte">
           </div>
 
-          <!-- Espaçamento de Letras (Letter Spacing) -->
-          <div class="slider-control">
-            <div class="slider-header">
+          <!-- Espaçamento de Letras -->
+          <div class="slider-clean-row">
+            <div class="slider-clean-header">
               <label for="letterSpacingSlider">Espaçamento de Letras</label>
-              <span id="letterSpacingValue" class="slider-val">0px</span>
+              <span id="letterSpacingValue" class="slider-val-badge">0px</span>
             </div>
-            <input type="range" id="letterSpacingSlider" min="-4" max="30" step="0.5" value="0" class="custom-range" aria-label="Espaçamento entre letras em pixels">
+            <input type="range" id="letterSpacingSlider" min="-4" max="30" step="0.5" value="0" class="custom-range" aria-label="Espaçamento de letras">
           </div>
 
-          <!-- Altura da Linha (Line Height) -->
-          <div class="slider-control">
-            <div class="slider-header">
+          <!-- Altura da Linha -->
+          <div class="slider-clean-row">
+            <div class="slider-clean-header">
               <label for="lineHeightSlider">Altura da Linha</label>
-              <span id="lineHeightValue" class="slider-val">1.25x</span>
+              <span id="lineHeightValue" class="slider-val-badge">1.25x</span>
             </div>
-            <input type="range" id="lineHeightSlider" min="0.7" max="3.0" step="0.05" value="1.25" class="custom-range" aria-label="Altura da linha / entrelinha">
+            <input type="range" id="lineHeightSlider" min="0.7" max="3.0" step="0.05" value="1.25" class="custom-range" aria-label="Altura da linha">
           </div>
 
-          <!-- Formatações: Negrito, Itálico, Maiúsculas, Alinhamento -->
-          <div class="format-buttons-row">
-            <div class="btn-group" role="group" aria-label="Estilo do texto">
-              <button id="toggleBoldBtn" class="btn-format" title="Negrito" aria-label="Alternar negrito"><strong>B</strong></button>
-              <button id="toggleItalicBtn" class="btn-format" title="Itálico" aria-label="Alternar itálico"><em>I</em></button>
-              <button id="toggleUppercaseBtn" class="btn-format" title="Maiúsculas / Minúsculas" aria-label="Alternar maiúsculas e minúsculas">aA</button>
+          <!-- Formatações: B, I, aA e Alinhamentos -->
+          <div class="format-buttons-clean-row mt-3">
+            <div class="btn-group-clean" role="group">
+              <button id="toggleBoldBtn" class="btn-format-clean" title="Negrito"><strong>B</strong></button>
+              <button id="toggleItalicBtn" class="btn-format-clean" title="Itálico"><em>I</em></button>
+              <button id="toggleUppercaseBtn" class="btn-format-clean" title="Maiúsculas/Minúsculas">aA</button>
             </div>
 
-            <div class="btn-group" role="group" aria-label="Alinhamento do texto">
-              <button id="alignLeftBtn" class="btn-format" title="Alinhar à Esquerda" aria-label="Alinhar texto à esquerda">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <div class="btn-group-clean" role="group">
+              <button id="alignLeftBtn" class="btn-format-clean" title="Alinhar à Esquerda">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="17" y1="10" x2="3" y2="10"></line>
                   <line x1="21" y1="6" x2="3" y2="6"></line>
                   <line x1="21" y1="14" x2="3" y2="14"></line>
                   <line x1="17" y1="18" x2="3" y2="18"></line>
                 </svg>
               </button>
-              <button id="alignCenterBtn" class="btn-format active" title="Centralizar" aria-label="Centralizar texto">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <button id="alignCenterBtn" class="btn-format-clean active" title="Centralizar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="10" x2="6" y2="10"></line>
                   <line x1="21" y1="6" x2="3" y2="6"></line>
                   <line x1="21" y1="14" x2="3" y2="14"></line>
                   <line x1="18" y1="18" x2="6" y2="18"></line>
                 </svg>
               </button>
-              <button id="alignRightBtn" class="btn-format" title="Alinhar à Direita" aria-label="Alinhar texto à direita">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <button id="alignRightBtn" class="btn-format-clean" title="Alinhar à Direita">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="21" y1="10" x2="7" y2="10"></line>
                   <line x1="21" y1="6" x2="3" y2="6"></line>
                   <line x1="21" y1="14" x2="3" y2="14"></line>
@@ -838,147 +747,135 @@
           </div>
 
           <!-- Cor do Texto -->
-          <div class="control-field mt-3">
-            <label for="textColorPicker">Cor do Texto</label>
-            <div class="color-picker-row">
-              <div class="color-picker-input-group">
-                <input type="color" id="textColorPicker" value="#ffffff" aria-label="Seletor de cor do texto">
-                <input type="text" id="textColorHex" value="#ffffff" class="hex-text-input" aria-label="Código hexadecimal da cor do texto">
+          <div class="control-field-clean mt-3">
+            <label for="textColorPicker" class="field-label-clean">Cor do Texto</label>
+            <div class="color-picker-clean-row">
+              <div class="color-picker-input-clean">
+                <input type="color" id="textColorPicker" value="#ffffff" aria-label="Cor do texto">
+                <input type="text" id="textColorHex" value="#ffffff" class="hex-text-clean" aria-label="Hex cor do texto">
               </div>
-              <div class="quick-colors-row" role="group" aria-label="Cores rápidas de texto">
-                <button class="quick-color-dot" data-color="#ffffff" style="background:#ffffff;" title="Branco" aria-label="Texto branco"></button>
-                <button class="quick-color-dot" data-color="#000000" style="background:#000000;" title="Preto" aria-label="Texto preto"></button>
-                <button class="quick-color-dot" data-color="#facc15" style="background:#facc15;" title="Amarelo" aria-label="Texto amarelo"></button>
-                <button class="quick-color-dot" data-color="#10b981" style="background:#10b981;" title="Verde" aria-label="Texto verde"></button>
-                <button class="quick-color-dot" data-color="#ef4444" style="background:#ef4444;" title="Vermelho" aria-label="Texto vermelho"></button>
+              <div class="quick-dots-clean">
+                <button class="quick-color-dot" data-color="#ffffff" style="background:#ffffff;" title="Branco"></button>
+                <button class="quick-color-dot" data-color="#000000" style="background:#000000;" title="Preto"></button>
+                <button class="quick-color-dot" data-color="#facc15" style="background:#facc15;" title="Amarelo"></button>
+                <button class="quick-color-dot" data-color="#10b981" style="background:#10b981;" title="Verde"></button>
+                <button class="quick-color-dot" data-color="#ef4444" style="background:#ef4444;" title="Vermelho"></button>
               </div>
             </div>
           </div>
 
-          <!-- Fundo / Destaque (Badge) -->
-          <div class="collapsible-card mt-3">
-            <div class="collapsible-header">
-              <label class="switch-label">
-                <input type="checkbox" id="enableBadgeCheck" aria-label="Ativar fundo de destaque no texto">
-                <span class="slider-switch" aria-hidden="true"></span>
-                <span class="switch-text">Fundo / Selo de Destaque</span>
-              </label>
-            </div>
+          <!-- Fundo / Selo de Destaque (Badge) -->
+          <div class="clean-group-card mt-3">
+            <label class="clean-switch-row">
+              <span class="field-label-clean mb-0">Fundo / Selo de Destaque</span>
+              <input type="checkbox" id="enableBadgeCheck" class="clean-toggle-input">
+            </label>
 
-            <div id="badgeOptionsContainer" class="collapsible-content" style="display: none;">
-              <div class="color-picker-row mt-2">
-                <label for="badgeColorPicker">Cor do Fundo:</label>
-                <div class="color-picker-input-group">
-                  <input type="color" id="badgeColorPicker" value="#10b981" aria-label="Seletor de cor do fundo do texto">
-                  <input type="text" id="badgeColorHex" value="#10b981" class="hex-text-input" aria-label="Código hexadecimal da cor do fundo do texto">
+            <div id="badgeOptionsContainer" style="display: none;" class="mt-2">
+              <div class="color-picker-clean-row mt-2">
+                <label for="badgeColorPicker" class="field-label-clean">Cor do Fundo:</label>
+                <div class="color-picker-input-clean">
+                  <input type="color" id="badgeColorPicker" value="#10b981" aria-label="Cor do fundo">
+                  <input type="text" id="badgeColorHex" value="#10b981" class="hex-text-clean" aria-label="Hex fundo">
                 </div>
               </div>
 
-              <div class="slider-control mt-2">
-                <div class="slider-header">
-                  <label for="badgeRadiusSlider">Arredondamento dos Cantos</label>
-                  <span id="badgeRadiusValue" class="slider-val">8px</span>
+              <div class="slider-clean-row mt-2">
+                <div class="slider-clean-header">
+                  <label for="badgeRadiusSlider">Arredondamento</label>
+                  <span id="badgeRadiusValue" class="slider-val-badge">8px</span>
                 </div>
-                <input type="range" id="badgeRadiusSlider" min="0" max="40" value="8" class="custom-range" aria-label="Arredondamento dos cantos do fundo">
+                <input type="range" id="badgeRadiusSlider" min="0" max="40" value="8" class="custom-range" aria-label="Arredondamento">
               </div>
 
-              <div class="slider-control mt-2">
-                <div class="slider-header">
-                  <label for="badgePaddingSlider">Espaçamento Interno (Padding)</label>
-                  <span id="badgePaddingValue" class="slider-val">12px</span>
+              <div class="slider-clean-row mt-2">
+                <div class="slider-clean-header">
+                  <label for="badgePaddingSlider">Espaçamento Interno</label>
+                  <span id="badgePaddingValue" class="slider-val-badge">12px</span>
                 </div>
-                <input type="range" id="badgePaddingSlider" min="2" max="30" value="12" class="custom-range" aria-label="Espaçamento interno do fundo">
+                <input type="range" id="badgePaddingSlider" min="2" max="30" value="12" class="custom-range" aria-label="Padding">
               </div>
             </div>
           </div>
 
           <!-- Sombra e Contorno -->
-          <div class="collapsible-card mt-2">
-            <div class="collapsible-header">
-              <label class="switch-label">
-                <input type="checkbox" id="enableShadowCheck" checked aria-label="Ativar sombra projetada no texto">
-                <span class="slider-switch" aria-hidden="true"></span>
-                <span class="switch-text">Sombra Projetada</span>
-              </label>
-            </div>
+          <div class="clean-group-card mt-2">
+            <label class="clean-switch-row">
+              <span class="field-label-clean mb-0">Sombra Projetada</span>
+              <input type="checkbox" id="enableShadowCheck" checked class="clean-toggle-input">
+            </label>
           </div>
 
-          <div class="collapsible-card mt-2">
-            <div class="collapsible-header">
-              <label class="switch-label">
-                <input type="checkbox" id="enableStrokeCheck" aria-label="Ativar contorno no texto">
-                <span class="slider-switch" aria-hidden="true"></span>
-                <span class="switch-text">Contorno no Texto</span>
-              </label>
-            </div>
-            <div id="strokeOptionsContainer" class="collapsible-content" style="display:none;">
-              <div class="color-picker-row mt-2">
-                <label for="strokeColorPicker">Cor do Contorno:</label>
-                <div class="color-picker-input-group">
-                  <input type="color" id="strokeColorPicker" value="#000000" aria-label="Seletor de cor do contorno">
-                  <input type="text" id="strokeColorHex" value="#000000" class="hex-text-input" aria-label="Código hexadecimal da cor do contorno">
+          <div class="clean-group-card mt-2">
+            <label class="clean-switch-row">
+              <span class="field-label-clean mb-0">Contorno no Texto</span>
+              <input type="checkbox" id="enableStrokeCheck" class="clean-toggle-input">
+            </label>
+            <div id="strokeOptionsContainer" style="display:none;" class="mt-2">
+              <div class="color-picker-clean-row">
+                <label for="strokeColorPicker" class="field-label-clean">Cor do Contorno:</label>
+                <div class="color-picker-input-clean">
+                  <input type="color" id="strokeColorPicker" value="#000000" aria-label="Cor do contorno">
+                  <input type="text" id="strokeColorHex" value="#000000" class="hex-text-clean" aria-label="Hex contorno">
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Posicionamento Rápido & Ordem de Camadas -->
-          <div class="control-group-box mt-3">
-            <span class="section-label">Alinhamento na Tela:</span>
-            <div class="alignment-buttons-grid">
-              <button id="alignCanvasLeftBtn" class="btn btn-ghost btn-xs" title="Alinhar à esquerda" aria-label="Alinhar texto à esquerda do Story">⇤ Esquerda</button>
-              <button id="alignCanvasCenterHBtn" class="btn btn-ghost btn-xs" title="Centralizar horizontalmente" aria-label="Centralizar texto horizontalmente no Story">⬌ Centro H</button>
-              <button id="alignCanvasRightBtn" class="btn btn-ghost btn-xs" title="Alinhar à direita" aria-label="Alinhar texto à direita do Story">Direita ⇥</button>
-              <button id="alignCanvasTopBtn" class="btn btn-ghost btn-xs" title="Alinhar ao topo" aria-label="Alinhar texto ao topo do Story">⇡ Topo</button>
-              <button id="alignCanvasCenterVBtn" class="btn btn-ghost btn-xs" title="Centralizar verticalmente" aria-label="Centralizar texto verticalmente no Story">⬍ Centro V</button>
-              <button id="alignCanvasBottomBtn" class="btn btn-ghost btn-xs" title="Alinhar ao rodapé" aria-label="Alinhar texto ao rodapé do Story">⇣ Base</button>
+          <!-- Alinhamento e Ordem de Camadas -->
+          <div class="clean-group-card mt-3">
+            <span class="section-label">Posicionamento Rápido:</span>
+            <div class="alignment-grid-clean">
+              <button id="alignCanvasLeftBtn" class="btn-align-pill" title="Esquerda">⇤ Esquerda</button>
+              <button id="alignCanvasCenterHBtn" class="btn-align-pill" title="Centro H">⬌ Centro H</button>
+              <button id="alignCanvasRightBtn" class="btn-align-pill" title="Direita">Direita ⇥</button>
+              <button id="alignCanvasTopBtn" class="btn-align-pill" title="Topo">⇡ Topo</button>
+              <button id="alignCanvasCenterVBtn" class="btn-align-pill" title="Centro V">⬍ Centro V</button>
+              <button id="alignCanvasBottomBtn" class="btn-align-pill" title="Base">⇣ Base</button>
             </div>
 
             <span class="section-label mt-3">Ordem da Camada:</span>
-            <div class="layer-order-grid">
-              <button id="bringForwardBtn" class="btn btn-ghost btn-xs" title="Trazer para frente" aria-label="Trazer camada para frente">⬆ Para Frente</button>
-              <button id="sendBackwardBtn" class="btn btn-ghost btn-xs" title="Enviar para trás" aria-label="Enviar camada para trás">⬇ Para Trás</button>
+            <div class="layer-order-clean">
+              <button id="bringForwardBtn" class="btn-align-pill" title="Trazer para frente">⬆ Para Frente</button>
+              <button id="sendBackwardBtn" class="btn-align-pill" title="Enviar para trás">⬇ Para Trás</button>
             </div>
           </div>
 
         </div>
+      </section>
 
-      </div>
-    </aside>
+    </div>
+  </aside>
 
-  </main>
-
-  <!-- MODAL DE PRÉ-VISUALIZAÇÃO (SIMULADOR DE INSTAGRAM STORY) -->
+  <!-- MODAL DE PRÉ-VISUALIZAÇÃO (SIMULADOR INSTAGRAM STORY) -->
   <div id="previewModal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
     <div class="modal-backdrop" id="closePreviewBackdrop" aria-hidden="true"></div>
     
     <div class="modal-dialog instagram-simulator-dialog">
-      
       <div class="modal-header-bar">
         <div class="modal-title-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
           </svg>
           <h4 id="previewModalTitle">Simulador de Story do Instagram</h4>
         </div>
-        <button id="closePreviewModalBtn" class="modal-close-btn" title="Fechar preview" aria-label="Fechar janela de pré-visualização">&times;</button>
+        <button id="closePreviewModalBtn" class="modal-close-btn" title="Fechar">&times;</button>
       </div>
 
       <div class="simulator-body">
         <div class="instagram-phone-shell">
-          <!-- Dynamic Island (Estilo iPhone 16 Pro) -->
+          <!-- Dynamic Island -->
           <div class="phone-notch dynamic-island" aria-hidden="true">
             <div class="notch-camera"></div>
             <div class="notch-sensor"></div>
           </div>
 
           <div class="instagram-story-screen" id="previewStoryScreen">
-            <img id="previewRenderedImage" alt="Preview em alta definição da Arte do Story" class="preview-img-fill">
+            <img id="previewRenderedImage" alt="Preview da Arte do Story" class="preview-img-fill">
 
             <div class="instagram-ui-overlay" id="instagramUiOverlay" aria-hidden="true">
-              <!-- BLOCO SUPERIOR: Barras de Progresso + Cabeçalho do Perfil -->
               <div class="ig-top-container">
                 <div class="ig-progress-bars">
                   <div class="ig-progress-bar"><div class="ig-progress-fill"></div></div>
@@ -1003,7 +900,6 @@
                 </div>
               </div>
 
-              <!-- BLOCO INFERIOR: Barra de Mensagem e Ações -->
               <div class="ig-footer-bar">
                 <div class="ig-message-input">
                   <span>Enviar mensagem...</span>
@@ -1025,23 +921,22 @@
 
       <div class="modal-footer-bar">
         <label class="toggle-ig-ui-label">
-          <input type="checkbox" id="toggleIgUiCheck" checked aria-label="Alternar exibição da moldura do Instagram">
+          <input type="checkbox" id="toggleIgUiCheck" checked>
           <span>Mostrar moldura do Instagram</span>
         </label>
         
         <div class="modal-actions-right">
-          <button id="closePreviewBtn2" class="btn btn-secondary" aria-label="Voltar ao editor">Voltar ao Editor</button>
-          <button id="downloadFromPreviewBtn" class="btn btn-primary" aria-label="Baixar imagem PNG de alta resolução">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="btn-icon-export">
+          <button id="closePreviewBtn2" class="btn-ghost-minimal">Voltar ao Editor</button>
+          <button id="downloadFromPreviewBtn" class="btn-primary-glow">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span class="btn-label-export">Baixar Imagem PNG</span>
+            <span>Baixar Imagem PNG</span>
           </button>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -1057,7 +952,7 @@
       <h3 id="welcomeModalTitle" class="welcome-modal-title">StoryCraft</h3>
       <p class="welcome-modal-text">Seja bem vindo ao Story Craft, aqui você pode transformar suas ideias em realidade</p>
       <div class="welcome-modal-actions">
-        <button id="btnWelcomeOk" class="btn btn-primary btn-welcome-ok" aria-label="Confirmar e entrar no StoryCraft">OK</button>
+        <button id="btnWelcomeOk" class="btn-welcome-ok" aria-label="Confirmar e entrar">OK</button>
       </div>
     </div>
   </div>

@@ -1,3 +1,3018 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>StoryCraft — Editor de Stories</title>
+  
+  <!-- Meta tags essenciais para Apple Web App (iOS PWA Tela Cheia) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="StoryCraft">
+  <meta name="theme-color" content="#080a0f">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Conexão Otimizada com Google Fonts (Pré-carregamento Assíncrono sem Bloqueio de Renderização) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;500;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;500;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap">
+  </noscript>
+  
+  <!-- Estilos da aplicação -->
+  <style>
+/* ==========================================================================
+   STORYCRAFT — DESIGN SYSTEM & ESTILOS MODERNOS (ULTRA-CLEAN MINIMALIST)
+   Inspirado no design nativo do iOS, macOS Dock e Instagram Story Studio
+   ========================================================================== */
+
+/* --- 1. DESIGN TOKENS & VARIÁVEIS GLOBAIS --- */
+:root {
+  --bg-base: #080a0f;
+  --bg-surface: #10141f;
+  --bg-elevated: #161b2a;
+  --bg-card: rgba(22, 27, 42, 0.7);
+  --bg-glass: rgba(18, 24, 38, 0.8);
+  --bg-glass-heavy: rgba(14, 18, 28, 0.92);
+
+  --text-main: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+
+  --accent-primary: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-light: #818cf8;
+  --accent-glow: rgba(99, 102, 241, 0.35);
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --warning: #f59e0b;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-focus: rgba(99, 102, 241, 0.6);
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --shadow-canvas: 0 30px 90px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* --- 2. RESET & BASE --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.dark-theme {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  outline: none;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* --- 3. CABEÇALHO SUPERIOR MINIMALISTA --- */
+.app-header-minimal {
+  height: 58px;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(8, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 50;
+}
+
+.header-left-clean {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 200px;
+}
+
+.brand-minimal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.brand-glyph {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.brand-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.project-title-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.project-title-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  padding: 4px 22px 4px 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  width: 140px;
+  transition: all 0.2s ease;
+}
+
+.project-title-input:hover {
+  border-color: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+}
+
+.project-title-input:focus {
+  border-color: var(--border-focus);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  outline: none;
+  width: 180px;
+}
+
+.edit-hint-icon {
+  position: absolute;
+  right: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Ações Centrais (Vidro Fosco) */
+.header-center-clean {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.pill-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.18s ease;
+}
+
+.pill-action-btn:hover:not(:disabled) {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pill-action-btn.active {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.pill-action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Ações Direitas */
+.header-right-clean {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-ghost-minimal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s ease;
+}
+
+.btn-ghost-minimal:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-medium);
+}
+
+.btn-primary-glow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  transition: all 0.2s ease;
+}
+
+.btn-primary-glow:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-primary-glow:active {
+  transform: translateY(0);
+}
+
+/* --- 4. PALCO CENTRAL FLUTUANTE (CANVAS 9:16) --- */
+.main-stage-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px 90px;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #121624 0%, #080a0f 85%);
+}
+
+/* Barra de Metadados & Zoom Flutuante */
+.canvas-floating-meta {
+  position: absolute;
+  top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.canvas-meta-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(16, 20, 31, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.meta-ratio {
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+.meta-dot {
+  opacity: 0.4;
+}
+
+.zoom-floating-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  background: rgba(16, 20, 31, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.zoom-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.zoom-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.zoom-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 4px;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: center;
+}
+
+/* Viewport do Canvas */
+.stage-viewport-clean {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 170px);
+  max-height: 720px;
+  aspect-ratio: 9 / 16;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.smartphone-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  transition: transform 0.2s ease;
+}
+
+.story-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-canvas);
+  background-color: #0f172a;
+  user-select: none;
+  outline: none;
+}
+
+#backgroundCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* Camadas de Texto Móveis */
+.text-layers-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.text-layer-item {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  white-space: pre-wrap;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.text-layer-item:active {
+  cursor: grabbing;
+}
+
+.text-layer-item.selected {
+  outline: 2px dashed rgba(99, 102, 241, 0.9);
+  outline-offset: 4px;
+}
+
+/* Safe Zones Overlay */
+.safe-zones-guide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.safe-zones-guide.active {
+  display: flex;
+}
+
+.safe-zone-top {
+  height: 14%;
+  border-bottom: 1px dashed rgba(239, 68, 68, 0.4);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, transparent 100%);
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 12px;
+}
+
+.safe-zone-center-hint {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.safe-zone-center-hint span {
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+.safe-zone-bottom {
+  height: 18%;
+  border-top: 1px dashed rgba(239, 68, 68, 0.4);
+  background: linear-gradient(0deg, rgba(239, 68, 68, 0.12) 0%, transparent 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 12px;
+}
+
+.safe-zone-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(239, 68, 68, 0.8);
+  letter-spacing: 0.4px;
+}
+
+/* Estado Vazio Ultra-Clean */
+.canvas-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  padding: 24px;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.canvas-empty-state.hidden {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.empty-state-clean-card {
+  pointer-events: auto;
+  text-align: center;
+  max-width: 240px;
+  padding: 28px 20px;
+  border-radius: var(--radius-md);
+  background: rgba(16, 22, 36, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+.empty-glow-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 4px 12px var(--accent-glow));
+}
+
+.empty-state-clean-card h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.empty-state-clean-card p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.btn-empty-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px var(--accent-glow);
+  transition: all 0.2s ease;
+}
+
+.btn-empty-upload:hover {
+  transform: scale(1.03);
+}
+
+/* --- 5. FLOATING BOTTOM DOCK (ESTILO macOS / INSTAGRAM) --- */
+.floating-dock-wrap {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  pointer-events: auto;
+}
+
+.floating-dock-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--bg-glass-heavy);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  min-width: 54px;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dock-item:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.dock-item.active {
+  color: #ffffff;
+  background: rgba(99, 102, 241, 0.22);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.dock-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dock-badge-rel {
+  position: relative;
+}
+
+.dock-counter {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: var(--accent-primary);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.dock-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+}
+
+.dock-item-inspector.has-selection {
+  color: #a5b4fc;
+  animation: pulse-border 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 12px 2px rgba(99, 102, 241, 0.6); }
+}
+
+/* --- 6. BOTTOM SHEETS & GAVETAS DESLIZANTES --- */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 95;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.sheet-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sheet-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 105%);
+  width: min(620px, 100vw);
+  max-height: 80vh;
+  background: #0f131f;
+  border: 1px solid var(--border-medium);
+  border-top-left-radius: 26px;
+  border-top-right-radius: 26px;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.85);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.sheet-drawer.open {
+  transform: translate(-50%, 0);
+}
+
+.sheet-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(15, 19, 31, 0.95);
+  user-select: none;
+}
+
+.sheet-drag-handle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sheet-title-wrap h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.2px;
+}
+
+.sheet-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.sheet-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.18s ease;
+}
+
+.sheet-close-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+}
+
+.sheet-body-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  overscroll-behavior: contain;
+}
+
+/* Custom Scrollbar */
+.sheet-body-content::-webkit-scrollbar {
+  width: 6px;
+}
+.sheet-body-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* --- 7. COMPONENTES E CONTROLES DAS ABAS --- */
+
+/* Dropzone Modern */
+.dropzone-modern {
+  border: 2px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropzone-modern:hover {
+  border-color: var(--accent-light);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropzone-circle-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a5b4fc;
+}
+
+.dropzone-text-block strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.dropzone-text-block span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+/* Cards & Grupos Clean */
+.clean-group-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.group-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.group-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.btn-text-action {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  transition: color 0.15s ease;
+}
+
+.btn-text-action:hover {
+  color: #c7d2fe;
+}
+
+.section-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.section-sublabel {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* Sliders Clean */
+.slider-clean-row {
+  margin-bottom: 12px;
+}
+
+.slider-clean-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.slider-clean-header label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.slider-val-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.custom-range {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  outline: none;
+}
+
+.custom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.custom-range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Stepper Zoom */
+.zoom-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-zoom-step {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+
+.btn-zoom-step:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Segmented Control (Fit Mode) */
+.fit-segmented-control {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+}
+
+.btn-segmented {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.btn-segmented.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+/* Sample Chips */
+.sample-images-section {
+  margin-top: 16px;
+}
+
+.sample-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.sample-chip {
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.sample-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-medium);
+  color: var(--text-main);
+}
+
+/* Preset Cards (Textos & Ofertas) */
+.preset-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.preset-pill-card {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  gap: 12px;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.preset-pill-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border-medium);
+  transform: translateX(2px);
+}
+
+.preset-pill-card.highlight-card {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.preset-pill-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.title-icon { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+.cash-icon { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.card-icon { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.condition-icon { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+.cta-icon { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+.red-icon { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.green-icon { background: rgba(5, 150, 105, 0.2); color: #10b981; }
+
+.preset-pill-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.preset-pill-info strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.preset-pill-info span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preset-plus {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Template Styles Grid */
+.template-style-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.style-template-pill {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.style-template-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-medium);
+}
+
+/* Stickers Grid */
+.stickers-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.sticker-chip {
+  padding: 2px;
+  border-radius: var(--radius-full);
+  transition: transform 0.15s ease;
+}
+
+.sticker-chip:hover {
+  transform: scale(1.03);
+}
+
+.sticker-chip-inner {
+  display: block;
+  padding: 8px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.4px;
+}
+
+.custom-badge-creator-row {
+  display: flex;
+  gap: 8px;
+}
+
+.clean-input {
+  flex: 1;
+  padding: 9px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.85rem;
+}
+
+.clean-input:focus {
+  border-color: var(--border-focus);
+  outline: none;
+}
+
+.btn-secondary-clean {
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+
+.btn-secondary-clean:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dropzone-compact {
+  padding: 14px;
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropzone-compact:hover {
+  border-color: var(--accent-light);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.dropzone-compact-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* Paleta de Cores e Gradientes */
+.color-palette-modern {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.color-swatch-clean {
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.color-swatch-clean:hover {
+  transform: scale(1.15);
+}
+
+.color-swatch-clean.active {
+  border-color: #ffffff;
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.color-picker-clean-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label-clean {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.color-picker-input-clean {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.color-picker-input-clean input[type='color'] {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.hex-text-clean {
+  width: 68px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+}
+
+.gradient-palette-modern {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.gradient-swatch-clean {
+  height: 42px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.gradient-swatch-clean:hover {
+  transform: scale(1.04);
+}
+
+.gradient-swatch-clean.active {
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+/* Primary Block Button */
+.btn-primary-block {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  transition: all 0.2s ease;
+}
+
+.btn-primary-block:hover {
+  background: var(--accent-gradient-hover);
+  transform: translateY(-1px);
+}
+
+/* Empty Clean Message */
+.empty-clean-message {
+  text-align: center;
+  padding: 36px 20px;
+}
+
+.empty-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+
+.empty-clean-message p {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.empty-clean-message span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 260px;
+  display: inline-block;
+  line-height: 1.45;
+}
+
+/* Inspetor / Propriedades Controls */
+.inspector-clean-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.inspector-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inspector-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border-radius: var(--radius-full);
+}
+
+.inspector-layer-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.inspector-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-icon-clean {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.btn-icon-clean:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+}
+
+.btn-icon-danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.clean-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+}
+
+.clean-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.clean-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(16, 20, 31, 0.9);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.clean-select:focus {
+  border-color: var(--border-focus);
+}
+
+.btn-custom-font-upload {
+  font-size: 0.75rem;
+  color: var(--accent-light);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+/* Format Buttons */
+.format-buttons-clean-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.btn-group-clean {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.btn-format-clean {
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.btn-format-clean:hover {
+  color: var(--text-main);
+}
+
+.btn-format-clean.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.quick-dots-clean {
+  display: flex;
+  gap: 6px;
+}
+
+.quick-color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.quick-color-dot:hover {
+  transform: scale(1.2);
+}
+
+/* Clean Switch */
+.clean-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.clean-toggle-input {
+  width: 36px;
+  height: 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clean-toggle-input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.clean-toggle-input:checked {
+  background: var(--accent-primary);
+}
+
+.clean-toggle-input:checked::after {
+  transform: translateX(16px);
+}
+
+/* Alignment & Order Grids */
+.alignment-grid-clean {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.layer-order-clean {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-align-pill {
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.btn-align-pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-main);
+}
+
+/* Profiles & History Lists */
+.profiles-cards-list, .history-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-card-item, .history-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.18s ease;
+}
+
+.profile-card-item:hover, .history-card-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-medium);
+}
+
+.btn-text-danger {
+  font-size: 0.78rem;
+  color: var(--danger);
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.btn-text-danger:hover {
+  opacity: 0.8;
+}
+
+.loading-state-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- 8. MODAL DE PRÉ-VISUALIZAÇÃO & BOAS-VINDAS --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.instagram-simulator-dialog {
+  position: relative;
+  background: #0f131f;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  width: min(460px, 95vw);
+  max-height: 90vh;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.modal-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-title-wrap h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.modal-close-btn {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.simulator-body {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.instagram-phone-shell {
+  width: 280px;
+  aspect-ratio: 9 / 16;
+  background: #000000;
+  border-radius: 36px;
+  padding: 10px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.dynamic-island {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 18px;
+  background: #000000;
+  border-radius: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.notch-camera {
+  width: 8px;
+  height: 8px;
+  background: #111827;
+  border-radius: 50%;
+}
+
+.notch-sensor {
+  width: 6px;
+  height: 6px;
+  background: #064e3b;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.instagram-story-screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  background: #0f172a;
+}
+
+.preview-img-fill {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.instagram-ui-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 12px 14px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.ig-progress-bars {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.ig-progress-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ig-progress-fill {
+  width: 65%;
+  height: 100%;
+  background: #ffffff;
+}
+
+.ig-user-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ig-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ig-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ig-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ig-username {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.ig-time {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 4px;
+}
+
+.ig-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 0.85rem;
+}
+
+.ig-footer-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ig-message-input {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.72rem;
+}
+
+.ig-actions {
+  display: flex;
+  gap: 8px;
+  color: #ffffff;
+}
+
+.modal-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(15, 19, 31, 0.95);
+}
+
+.toggle-ig-ui-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.modal-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* Modal Boas-Vindas */
+.welcome-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.welcome-modal-backdrop.closing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.welcome-modal-card {
+  background: #111522;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  animation: scale-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scale-up {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.welcome-modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 4px 16px var(--accent-glow));
+}
+
+.welcome-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.welcome-modal-text {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.btn-welcome-ok {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: var(--radius-full);
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  transition: all 0.2s ease;
+}
+
+.btn-welcome-ok:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: rgba(16, 22, 36, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 160;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--success);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.toast-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* --- 9. RESPONSIVIDADE MOBILE & TABLET --- */
+@media (max-width: 768px) {
+  .app-header-minimal {
+    padding: 0 12px;
+  }
+
+  .header-left-clean {
+    min-width: unset;
+  }
+
+  .project-title-box {
+    display: none;
+  }
+
+  .btn-text-hide-mobile {
+    display: none;
+  }
+
+  .pill-action-btn span {
+    display: none;
+  }
+
+  .pill-action-btn {
+    padding: 6px;
+  }
+
+  .main-stage-container {
+    padding: 10px 10px 80px;
+  }
+
+  .stage-viewport-clean {
+    height: calc(100vh - 150px);
+  }
+
+  .floating-dock-pill {
+    padding: 4px 6px;
+    gap: 2px;
+  }
+
+  .dock-item {
+    min-width: 44px;
+    padding: 5px 6px;
+  }
+
+  .dock-label {
+    font-size: 0.62rem;
+  }
+
+  .sheet-drawer {
+    width: 100vw;
+    max-height: 85vh;
+    border-radius: 24px 24px 0 0;
+  }
+}
+
+</style>
+</head>
+<body class="dark-theme">
+
+  <!-- CABEÇALHO SUPERIOR MINIMALISTA -->
+  <header class="app-header-minimal" role="banner">
+    <div class="header-left-clean">
+      <div class="brand-minimal">
+        <div class="brand-glyph" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="2" y="2" width="20" height="20" rx="6" ry="6"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </div>
+        <span class="brand-name">StoryCraft</span>
+      </div>
+
+      <div class="project-title-box">
+        <input type="text" id="projectTitleInput" class="project-title-input" value="Meu Story" title="Clique para renomear este Story" aria-label="Título do Story">
+        <span class="edit-hint-icon" aria-hidden="true">✎</span>
+      </div>
+    </div>
+
+    <!-- Ações Rápidas Centrais (Vidro Fosco) -->
+    <div class="header-center-clean">
+      <div class="quick-pill-group">
+        <button id="toggleSafeZoneBtn" class="pill-action-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
+            <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
+          </svg>
+          <span>Safe Zone</span>
+        </button>
+
+        <button id="btnUndo" class="pill-action-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+          </svg>
+          <span>Desfazer</span>
+        </button>
+
+        <button id="resetCanvasBtn" class="pill-action-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Limpar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Ações Finais à Direita -->
+    <div class="header-right-clean">
+      <button id="saveProfileHeaderBtn" class="btn-ghost-minimal" title="Salvar disposição de textos atual como um Perfil" aria-label="Salvar perfil">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span class="btn-text-hide-mobile">Salvar Perfil</span>
+      </button>
+
+      <button id="openPreviewModalBtn" class="btn-ghost-minimal" title="Visualizar simulação no Instagram Story" aria-label="Pré-visualizar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span class="btn-text-hide-mobile">Preview</span>
+      </button>
+
+      <button id="exportStoryBtn" class="btn-primary-glow" title="Baixar Story em alta definição 1080x1920" aria-label="Baixar Story">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="btn-icon-export">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Baixar Story</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- PALCO CENTRAL FLUTUANTE (CANVAS 9:16) -->
+  <main class="main-stage-container" id="canvasWorkspace" role="main">
+    
+    <!-- Barra flutuante de Zoom & Metadados do Canvas -->
+    <div class="canvas-floating-meta">
+      <div class="canvas-meta-pill">
+        <span class="meta-ratio">9:16</span>
+        <span class="meta-res">1080×1920</span>
+        <span class="meta-dot">•</span>
+        <span id="activeLayersCount" class="meta-layers">0 camadas</span>
+      </div>
+
+      <div class="zoom-floating-controls">
+        <button id="zoomOutWorkspaceBtn" class="zoom-btn" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+        <span id="workspaceZoomPercent" class="zoom-text">100%</span>
+        <button id="zoomInWorkspaceBtn" class="zoom-btn" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+        <button id="fitScreenBtn" class="zoom-btn" title="Ajustar tela" aria-label="Ajustar visualização">⛶</button>
+      </div>
+    </div>
+
+    <!-- Viewport do Canvas Flutuante -->
+    <div class="stage-viewport-clean" id="stageViewport">
+      <div class="smartphone-frame" id="smartphoneFrame">
+        
+        <div class="story-canvas-container" id="storyCanvasContainer" tabindex="0" role="region" aria-label="Palco de edição do Story do Instagram">
+          
+          <!-- Canvas 2D da Foto de Fundo -->
+          <canvas id="backgroundCanvas" width="1080" height="1920" aria-label="Canvas de renderização da foto"></canvas>
+
+          <!-- Camada Interativa DOM para Textos Móveis -->
+          <div id="textLayersOverlay" class="text-layers-overlay" aria-label="Camadas de texto sobrepostas"></div>
+
+          <!-- Guias de Margem Segura (Safe Zones) -->
+          <div id="safeZonesGuide" class="safe-zones-guide active" aria-hidden="true">
+            <div class="safe-zone-top">
+              <div class="safe-zone-tag">Área do Topo (Instagram)</div>
+            </div>
+            <div class="safe-zone-center-hint">
+              <span>Área Segura Recomendada</span>
+            </div>
+            <div class="safe-zone-bottom">
+              <div class="safe-zone-tag">Área Inferior (Mensagem / Resposta)</div>
+            </div>
+          </div>
+
+          <!-- Estado Vazio Ultra-Clean -->
+          <div id="canvasEmptyState" class="canvas-empty-state" aria-hidden="true">
+            <div class="empty-state-clean-card">
+              <div class="empty-glow-icon">📸</div>
+              <h4>Adicione uma foto</h4>
+              <p>Clique em <strong>Foto</strong> no menu abaixo ou arraste uma imagem aqui.</p>
+              <button class="btn-empty-upload" type="button" onclick="document.getElementById('imageFileInput').click()">
+                Escolher Arquivo
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FLOATING BOTTOM DOCK (ESTILO macOS / INSTAGRAM) -->
+  <nav class="floating-dock-wrap" id="floatingDock" role="navigation" aria-label="Menu principal de ferramentas">
+    <div class="floating-dock-pill">
+      
+      <button class="dock-item active" data-tab="tab-upload" title="Foto & Enquadramento" aria-label="Ajustar Foto">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <span class="dock-label">Foto</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-texts" title="Textos & Preços" aria-label="Adicionar Textos">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 7 4 4 20 4 20 7"></polyline>
+            <line x1="9" y1="20" x2="15" y2="20"></line>
+            <line x1="12" y1="4" x2="12" y2="20"></line>
+          </svg>
+        </div>
+        <span class="dock-label">Textos</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-stickers" title="Selos & Adesivos" aria-label="Selos e Destaques">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <span class="dock-label">Selos</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-background" title="Fundo & Cores" aria-label="Cores e Fundo">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a10 10 0 0 0 0 20z"></path>
+          </svg>
+        </div>
+        <span class="dock-label">Fundo</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-profiles" title="Perfis Salvos" aria-label="Perfis de Estilização">
+        <div class="dock-icon dock-badge-rel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span id="profilesCountBadge" class="dock-counter">0</span>
+        </div>
+        <span class="dock-label">Perfis</span>
+      </button>
+
+      <button class="dock-item" data-tab="tab-history" title="Histórico de Artes" aria-label="Histórico">
+        <div class="dock-icon dock-badge-rel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span id="historyCountBadge" class="dock-counter">0</span>
+        </div>
+        <span class="dock-label">Histórico</span>
+      </button>
+
+      <button class="dock-item dock-item-inspector" data-tab="tab-inspector" id="dockInspectorBtn" title="Propriedades do Texto" aria-label="Editar Camada">
+        <div class="dock-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </div>
+        <span class="dock-label">Editar</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- BACKDROP & CONTAINER DE BOTTOM SHEETS (GAVETAS DESLIZANTES MODERNAS) -->
+  <div class="sheet-backdrop" id="sheetBackdrop" aria-hidden="true"></div>
+
+  <aside class="sheet-drawer" id="sheetDrawer" aria-label="Painel de Edição">
+    
+    <!-- Barra Superior da Gaveta (Header com alça e fechar) -->
+    <div class="sheet-header">
+      <div class="sheet-drag-handle" aria-hidden="true"></div>
+      <div class="sheet-title-wrap">
+        <h3 id="sheetTitle">Foto do Produto</h3>
+        <span id="sheetSubtitle" class="sheet-subtitle">Envie ou ajuste o enquadramento</span>
+      </div>
+      <button id="closeSheetBtn" class="sheet-close-btn" aria-label="Fechar painel">✕</button>
+    </div>
+
+    <!-- Conteúdo Scrollável das Abas -->
+    <div class="sheet-body-content">
+      
+      <!-- ABA 1: FOTO & ENQUADRAMENTO -->
+      <section id="tab-upload" class="tab-panel active" role="tabpanel">
+        
+        <!-- Dropzone Clean -->
+        <div class="dropzone-modern" id="imageDropzone" tabindex="0" role="button" aria-label="Área de upload de foto">
+          <input type="file" id="imageFileInput" accept="image/*" class="file-input-hidden" aria-label="Selecionar arquivo de foto">
+          <div class="dropzone-inner">
+            <div class="dropzone-circle-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <div class="dropzone-text-block">
+              <strong>Toque para escolher uma foto</strong>
+              <span>PNG, JPG, WEBP até 15MB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exemplos Rápidos de Produtos -->
+        <div class="sample-images-section">
+          <span class="section-label">Ou teste com um produto de exemplo:</span>
+          <div class="sample-chips-grid">
+            <button class="sample-chip" data-sample="smartphone">📱 Smartphone</button>
+            <button class="sample-chip" data-sample="smartwatch">⌚ Smartwatch</button>
+            <button class="sample-chip" data-sample="headphone">🎧 Headphone</button>
+            <button class="sample-chip" data-sample="sneaker">👟 Tênis</button>
+          </div>
+        </div>
+
+        <!-- Controles de Enquadramento da Imagem -->
+        <div id="imageControlsBox" class="clean-group-card">
+          <div class="group-title-row">
+            <span class="group-title">Enquadramento da Foto</span>
+            <button id="resetImageTransformBtn" class="btn-text-action" aria-label="Resetar foto">Resetar</button>
+          </div>
+
+          <!-- CONTROLE DE ZOOM -->
+          <div class="slider-clean-row">
+            <div class="slider-clean-header">
+              <label for="imageZoomSlider">Zoom da Foto</label>
+              <span id="imageZoomValue" class="slider-val-badge">100%</span>
+            </div>
+            <div class="zoom-stepper-row">
+              <button id="zoomOutPhotoBtn" class="btn-zoom-step" aria-label="Diminuir zoom">−</button>
+              <input type="range" id="imageZoomSlider" min="40" max="300" value="100" class="custom-range" aria-label="Zoom da foto">
+              <button id="zoomInPhotoBtn" class="btn-zoom-step" aria-label="Aumentar zoom">+</button>
+            </div>
+          </div>
+
+          <!-- MODOS DE ENQUADRAMENTO -->
+          <div class="mt-3">
+            <span class="section-sublabel">Modo de Enquadramento:</span>
+            <div class="fit-segmented-control" id="fitButtonsContainer" role="group">
+              <button id="fitCoverBtn" class="btn-segmented active" data-mode="cover">Preencher</button>
+              <button id="fitContainBtn" class="btn-segmented" data-mode="contain">Conter</button>
+              <button id="centerImageBtn" class="btn-segmented" data-mode="center">Centralizar</button>
+            </div>
+          </div>
+
+          <!-- AJUSTES DE IMAGEM -->
+          <div class="image-filters-box mt-3">
+            <span class="section-label">Ajustes Rápidos:</span>
+            
+            <div class="slider-clean-row">
+              <div class="slider-clean-header">
+                <label for="brightnessSlider">Brilho</label>
+                <span id="brightnessValue" class="slider-val-badge">100%</span>
+              </div>
+              <input type="range" id="brightnessSlider" min="50" max="150" value="100" class="custom-range" aria-label="Brilho">
+            </div>
+
+            <div class="slider-clean-row">
+              <div class="slider-clean-header">
+                <label for="contrastSlider">Contraste</label>
+                <span id="contrastValue" class="slider-val-badge">100%</span>
+              </div>
+              <input type="range" id="contrastSlider" min="50" max="150" value="100" class="custom-range" aria-label="Contraste">
+            </div>
+
+            <div class="slider-clean-row">
+              <div class="slider-clean-header">
+                <label for="saturationSlider">Saturação</label>
+                <span id="saturationValue" class="slider-val-badge">100%</span>
+              </div>
+              <input type="range" id="saturationSlider" min="0" max="200" value="100" class="custom-range" aria-label="Saturação">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 2: PRESETS DE TEXTO & PREÇOS -->
+      <section id="tab-texts" class="tab-panel" role="tabpanel">
+        <button class="btn-primary-block mb-3" id="addFreeTextBtn" aria-label="Adicionar novo texto livre">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>+ Adicionar Novo Texto</span>
+        </button>
+
+        <span class="section-label">Blocos Prontos de Oferta:</span>
+        <div class="preset-cards-grid">
+          <!-- Nome do Produto -->
+          <button class="preset-pill-card" id="addProductNamePreset">
+            <div class="preset-pill-badge title-icon">T</div>
+            <div class="preset-pill-info">
+              <strong>Nome do Produto</strong>
+              <span>Ex: iPhone 15 Pro Max 256GB</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Preço à Vista -->
+          <button class="preset-pill-card highlight-card" id="addPriceCashPreset">
+            <div class="preset-pill-badge cash-icon">R$</div>
+            <div class="preset-pill-info">
+              <strong>Preço à Vista</strong>
+              <span>Ex: R$ 5.999,00 à vista no Pix</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Preço Parcelado -->
+          <button class="preset-pill-card" id="addPriceInstallmentPreset">
+            <div class="preset-pill-badge card-icon">💳</div>
+            <div class="preset-pill-info">
+              <strong>Preço Parcelado</strong>
+              <span>Ex: ou 12x de R$ 549,90</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Condição / Desconto -->
+          <button class="preset-pill-card" id="addConditionPreset">
+            <div class="preset-pill-badge condition-icon">🏷️</div>
+            <div class="preset-pill-info">
+              <strong>Desconto / Condição</strong>
+              <span>Ex: 15% OFF c/ Cupom</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Chamada CTA -->
+          <button class="preset-pill-card" id="addCtaPreset">
+            <div class="preset-pill-badge cta-icon">👆</div>
+            <div class="preset-pill-info">
+              <strong>Chamada (CTA)</strong>
+              <span>Ex: Responda ao Story</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Saldão -->
+          <button class="preset-pill-card highlight-card" id="addSaldaoPreset">
+            <div class="preset-pill-badge red-icon">💥</div>
+            <div class="preset-pill-info">
+              <strong>Saldão Seminovos</strong>
+              <span>MEGA SALDÃO • ATÉ 40% OFF</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+
+          <!-- Troca com Troco -->
+          <button class="preset-pill-card" id="addTrocaComTrocoPreset">
+            <div class="preset-pill-badge green-icon">🔄</div>
+            <div class="preset-pill-info">
+              <strong>Troca com Troco</strong>
+              <span>Aceitamos seu usado</span>
+            </div>
+            <span class="preset-plus">+</span>
+          </button>
+        </div>
+
+        <div class="clean-group-card mt-3">
+          <span class="section-label">Estilos Tipográficos Prontos:</span>
+          <div class="template-style-grid">
+            <button class="style-template-pill" data-style="modern">🔥 Moderno</button>
+            <button class="style-template-pill" data-style="minimal">✨ Minimalista</button>
+            <button class="style-template-pill" data-style="bold">⚡ Impactante</button>
+            <button class="style-template-pill" data-style="luxury">💎 Luxo</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 3: SELOS, ADESIVOS & LOGO -->
+      <section id="tab-stickers" class="tab-panel" role="tabpanel">
+        <span class="section-label">Selos de Destaque:</span>
+        <div class="stickers-grid-modern">
+          <button class="sticker-chip" data-text="🚀 FRETE GRÁTIS" data-bg="#10b981" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#10b981; color:#fff;">🚀 FRETE GRÁTIS</span>
+          </button>
+          <button class="sticker-chip" data-text="⚡ PRONTA ENTREGA" data-bg="#f59e0b" data-color="#000000">
+            <span class="sticker-chip-inner" style="background:#f59e0b; color:#000;">⚡ PRONTA ENTREGA</span>
+          </button>
+          <button class="sticker-chip" data-text="🔥 OFERTA DO DIA" data-bg="#ef4444" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#ef4444; color:#fff;">🔥 OFERTA DO DIA</span>
+          </button>
+          <button class="sticker-chip" data-text="⭐ 100% ORIGINAL" data-bg="#6366f1" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#6366f1; color:#fff;">⭐ 100% ORIGINAL</span>
+          </button>
+          <button class="sticker-chip" data-text="🛡️ GARANTIA DE 1 ANO" data-bg="#0284c7" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#0284c7; color:#fff;">🛡️ GARANTIA 1 ANO</span>
+          </button>
+          <button class="sticker-chip" data-text="⚠️ ÚLTIMAS UNIDADES" data-bg="#dc2626" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#dc2626; color:#fff;">⚠️ ÚLTIMAS UNIDADES</span>
+          </button>
+          <button class="sticker-chip" data-text="🎁 BRINDE EXCLUSIVO" data-bg="#ec4899" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#ec4899; color:#fff;">🎁 BRINDE EXCLUSIVO</span>
+          </button>
+          <button class="sticker-chip" data-text="💳 EM ATÉ 12X SEM JUROS" data-bg="#059669" data-color="#ffffff">
+            <span class="sticker-chip-inner" style="background:#059669; color:#fff;">💳 ATÉ 12X SEM JUROS</span>
+          </button>
+        </div>
+
+        <div class="clean-group-card mt-3">
+          <span class="section-label">Criar Selo Personalizado:</span>
+          <div class="custom-badge-creator-row">
+            <input type="text" id="customBadgeTextInput" placeholder="Texto do selo (ex: NOVO!)" class="clean-input" aria-label="Texto do selo">
+            <button id="addCustomBadgeBtn" class="btn-secondary-clean">+ Inserir</button>
+          </div>
+        </div>
+
+        <div class="clean-group-card mt-3">
+          <span class="section-label">Logo / Imagem do Lojista:</span>
+          <div class="dropzone-compact" id="logoDropzone" tabindex="0" role="button" aria-label="Upload de logo transparente">
+            <input type="file" id="logoFileInput" accept="image/png, image/webp" class="file-input-hidden" aria-label="Logo PNG">
+            <div class="dropzone-compact-content">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>Upload de Logo (PNG/WEBP transparente)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 4: FUNDO & CORES -->
+      <section id="tab-background" class="tab-panel" role="tabpanel">
+        <span class="section-label">Cores Sólidas:</span>
+        <div class="color-palette-modern" role="group">
+          <button class="color-swatch-clean active" data-color="#0f172a" style="background: #0f172a;" title="Azul Noturno"></button>
+          <button class="color-swatch-clean" data-color="#000000" style="background: #000000;" title="Preto"></button>
+          <button class="color-swatch-clean" data-color="#18181b" style="background: #18181b;" title="Grafite"></button>
+          <button class="color-swatch-clean" data-color="#ffffff" style="background: #ffffff;" title="Branco"></button>
+          <button class="color-swatch-clean" data-color="#4f46e5" style="background: #4f46e5;" title="Índigo"></button>
+          <button class="color-swatch-clean" data-color="#059669" style="background: #059669;" title="Esmeralda"></button>
+          <button class="color-swatch-clean" data-color="#dc2626" style="background: #dc2626;" title="Vermelho"></button>
+          <button class="color-swatch-clean" data-color="#d97706" style="background: #d97706;" title="Âmbar"></button>
+          <button class="color-swatch-clean" data-color="#db2777" style="background: #db2777;" title="Rosa"></button>
+          <button class="color-swatch-clean" data-color="#7c3aed" style="background: #7c3aed;" title="Roxo"></button>
+        </div>
+
+        <div class="color-picker-clean-row mt-3">
+          <label for="customBgColorInput" class="field-label-clean">Cor personalizada:</label>
+          <div class="color-picker-input-clean">
+            <input type="color" id="customBgColorInput" value="#0f172a" aria-label="Seletor de cor de fundo">
+            <input type="text" id="customBgColorText" value="#0f172a" class="hex-text-clean" aria-label="Hex cor de fundo">
+          </div>
+        </div>
+
+        <span class="section-label mt-4">Gradientes de Fundo:</span>
+        <div class="gradient-palette-modern" role="group">
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);" aria-label="Azul Cósmico"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)" style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);" aria-label="Índigo Ciano"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #831843 0%, #be185d 100%)" style="background: linear-gradient(135deg, #831843 0%, #be185d 100%);" aria-label="Magenta"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #14532d 0%, #059669 100%)" style="background: linear-gradient(135deg, #14532d 0%, #059669 100%);" aria-label="Esmeralda"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #78350f 0%, #d97706 100%)" style="background: linear-gradient(135deg, #78350f 0%, #d97706 100%);" aria-label="Âmbar"></button>
+          <button class="gradient-swatch-clean" data-gradient="linear-gradient(135deg, #09090b 0%, #27272a 100%)" style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%);" aria-label="Preto Grafite"></button>
+        </div>
+
+        <div class="slider-clean-row mt-4">
+          <div class="slider-clean-header">
+            <label for="overlayDarknessSlider">Escurecimento sobre a Foto (Vinheta)</label>
+            <span id="overlayDarknessValue" class="slider-val-badge">0%</span>
+          </div>
+          <input type="range" id="overlayDarknessSlider" min="0" max="90" value="0" class="custom-range" aria-label="Vinheta">
+        </div>
+      </section>
+
+      <!-- ABA 5: PERFIS DE ESTILIZAÇÃO -->
+      <section id="tab-profiles" class="tab-panel" role="tabpanel">
+        <button id="createProfileFromTabBtn" class="btn-primary-block mb-3" aria-label="Salvar perfil atual">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span>Salvar Textos Atuais como Perfil</span>
+        </button>
+
+        <div id="profilesLoadingIndicator" class="loading-state-indicator" style="display: none;">
+          <div class="spinner-sm" aria-hidden="true"></div>
+          <span>Carregando perfis...</span>
+        </div>
+
+        <div id="profilesListContainer" class="profiles-cards-list">
+          <div class="empty-clean-message" id="emptyProfilesMsg" style="display:none;">
+            <div class="empty-icon" aria-hidden="true">🎨</div>
+            <p>Nenhum perfil salvo ainda.</p>
+            <span>Monte seus textos e salve como perfil para reutilizar com 1 clique!</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 6: HISTÓRICO DE ARTES -->
+      <section id="tab-history" class="tab-panel" role="tabpanel">
+        <div class="panel-header-row mb-3">
+          <span class="section-label">Artes Salvas:</span>
+          <button id="clearAllHistoryBtn" class="btn-text-danger" aria-label="Limpar histórico">Limpar tudo</button>
+        </div>
+
+        <div id="historyLoadingIndicator" class="loading-state-indicator" style="display: none;">
+          <div class="spinner-sm" aria-hidden="true"></div>
+          <span>Carregando histórico...</span>
+        </div>
+
+        <div id="historyListContainer" class="history-cards-list">
+          <div class="empty-clean-message" id="emptyHistoryMsg">
+            <div class="empty-icon" aria-hidden="true">📁</div>
+            <p>Nenhuma arte salva ainda.</p>
+            <span>Suas criações exportadas aparecerão aqui automaticamente.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 7: INSPETOR / PROPRIEDADES DO TEXTO SELECIONADO -->
+      <section id="tab-inspector" class="tab-panel" role="tabpanel">
+        
+        <!-- Estado: Nenhuma camada selecionada -->
+        <div id="noSelectionState" class="empty-clean-message">
+          <div class="empty-icon" aria-hidden="true">👆</div>
+          <p>Nenhum texto selecionado</p>
+          <span>Toque em qualquer texto na arte para editar fonte, cores, tamanho e efeitos.</span>
+        </div>
+
+        <!-- Estado: Camada de Texto Selecionada -->
+        <div id="textInspectorState" class="inspector-clean-controls" style="display: none;">
+          
+          <div class="inspector-clean-top">
+            <div class="inspector-badge-row">
+              <span class="inspector-pill">Camada</span>
+              <span id="selectedLayerTypeName" class="inspector-layer-name">Texto</span>
+            </div>
+            <div class="inspector-actions-group">
+              <button id="duplicateLayerBtn" class="btn-icon-clean" title="Duplicar texto" aria-label="Duplicar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <button id="deleteLayerBtn" class="btn-icon-clean btn-icon-danger" title="Excluir texto" aria-label="Excluir">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Conteúdo do Texto -->
+          <div class="control-field-clean mt-3">
+            <label for="inspectorTextInput" class="field-label-clean">Conteúdo do Texto</label>
+            <textarea id="inspectorTextInput" rows="2" class="clean-textarea" placeholder="Digite seu texto..." aria-label="Texto"></textarea>
+          </div>
+
+          <!-- Tipografia & Upload de Fonte Customizada -->
+          <div class="control-field-clean mt-3">
+            <div class="field-label-row">
+              <label for="fontFamilySelect" class="field-label-clean">Fonte Tipográfica</label>
+              <label for="customFontFileInput" class="btn-custom-font-upload" title="Upload de fonte">+ Upload (.ttf/.otf)</label>
+              <input type="file" id="customFontFileInput" accept=".ttf, .otf, .woff, .woff2" class="file-input-hidden" aria-label="Fonte customizada">
+            </div>
+            <select id="fontFamilySelect" class="clean-select" aria-label="Família tipográfica">
+              <optgroup label="✨ Sem Serifa (Modernas & Clean)">
+                <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat';">Montserrat (Moderna/Forte)</option>
+                <option value="'Poppins', sans-serif" style="font-family: 'Poppins';">Poppins (Geométrica)</option>
+                <option value="'Inter', sans-serif" style="font-family: 'Inter';">Inter (Tech/Clean)</option>
+                <option value="'Outfit', sans-serif" style="font-family: 'Outfit';">Outfit (Trendy/Minimal)</option>
+                <option value="'Roboto', sans-serif" style="font-family: 'Roboto';">Roboto (Equilibrada)</option>
+              </optgroup>
+              <optgroup label="⚡ Impacto & Destaque (Preços/Ofertas)">
+                <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue';">Bebas Neue (Condensada/Caps)</option>
+                <option value="'Oswald', sans-serif" style="font-family: 'Oswald';">Oswald (Bold Comercial)</option>
+                <option value="'Anton', sans-serif" style="font-family: 'Anton';">Anton (Super Pesada)</option>
+              </optgroup>
+              <optgroup label="💎 Serifadas (Luxo & Sofisticação)">
+                <option value="'Playfair Display', serif" style="font-family: 'Playfair Display';">Playfair Display (Elegante)</option>
+                <option value="'Cinzel', serif" style="font-family: 'Cinzel';">Cinzel (Clássica/Premium)</option>
+                <option value="'Lora', serif" style="font-family: 'Lora';">Lora (Editorial/Suave)</option>
+              </optgroup>
+              <optgroup label="🎈 Arredondadas">
+                <option value="'Nunito', sans-serif" style="font-family: 'Nunito';">Nunito (Moderna Arredondada)</option>
+                <option value="'Quicksand', sans-serif" style="font-family: 'Quicksand';">Quicksand (Leve/Harmônica)</option>
+              </optgroup>
+              <optgroup label="✍️ Manuscritas & Script">
+                <option value="'Caveat', cursive" style="font-family: 'Caveat';">Caveat (Manuscrita Despojada)</option>
+                <option value="'Pacifico', cursive" style="font-family: 'Pacifico';">Pacifico (Retro/Verão)</option>
+                <option value="'Dancing Script', cursive" style="font-family: 'Dancing Script';">Dancing Script (Fluida)</option>
+                <option value="'Great Vibes', cursive" style="font-family: 'Great Vibes';">Great Vibes (Caligrafia)</option>
+              </optgroup>
+              <optgroup label="🖥️ Padrões do Sistema">
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Helvetica, sans-serif">Helvetica</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Courier New', monospace">Courier New</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Tamanho da Fonte -->
+          <div class="slider-clean-row mt-3">
+            <div class="slider-clean-header">
+              <label for="fontSizeSlider">Tamanho da Fonte</label>
+              <span id="fontSizeValue" class="slider-val-badge">36px</span>
+            </div>
+            <input type="range" id="fontSizeSlider" min="10" max="160" value="36" class="custom-range" aria-label="Tamanho da fonte">
+          </div>
+
+          <!-- Espaçamento de Letras -->
+          <div class="slider-clean-row">
+            <div class="slider-clean-header">
+              <label for="letterSpacingSlider">Espaçamento de Letras</label>
+              <span id="letterSpacingValue" class="slider-val-badge">0px</span>
+            </div>
+            <input type="range" id="letterSpacingSlider" min="-4" max="30" step="0.5" value="0" class="custom-range" aria-label="Espaçamento de letras">
+          </div>
+
+          <!-- Altura da Linha -->
+          <div class="slider-clean-row">
+            <div class="slider-clean-header">
+              <label for="lineHeightSlider">Altura da Linha</label>
+              <span id="lineHeightValue" class="slider-val-badge">1.25x</span>
+            </div>
+            <input type="range" id="lineHeightSlider" min="0.7" max="3.0" step="0.05" value="1.25" class="custom-range" aria-label="Altura da linha">
+          </div>
+
+          <!-- Formatações: B, I, aA e Alinhamentos -->
+          <div class="format-buttons-clean-row mt-3">
+            <div class="btn-group-clean" role="group">
+              <button id="toggleBoldBtn" class="btn-format-clean" title="Negrito"><strong>B</strong></button>
+              <button id="toggleItalicBtn" class="btn-format-clean" title="Itálico"><em>I</em></button>
+              <button id="toggleUppercaseBtn" class="btn-format-clean" title="Maiúsculas/Minúsculas">aA</button>
+            </div>
+
+            <div class="btn-group-clean" role="group">
+              <button id="alignLeftBtn" class="btn-format-clean" title="Alinhar à Esquerda">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="17" y1="10" x2="3" y2="10"></line>
+                  <line x1="21" y1="6" x2="3" y2="6"></line>
+                  <line x1="21" y1="14" x2="3" y2="14"></line>
+                  <line x1="17" y1="18" x2="3" y2="18"></line>
+                </svg>
+              </button>
+              <button id="alignCenterBtn" class="btn-format-clean active" title="Centralizar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="10" x2="6" y2="10"></line>
+                  <line x1="21" y1="6" x2="3" y2="6"></line>
+                  <line x1="21" y1="14" x2="3" y2="14"></line>
+                  <line x1="18" y1="18" x2="6" y2="18"></line>
+                </svg>
+              </button>
+              <button id="alignRightBtn" class="btn-format-clean" title="Alinhar à Direita">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="21" y1="10" x2="7" y2="10"></line>
+                  <line x1="21" y1="6" x2="3" y2="6"></line>
+                  <line x1="21" y1="14" x2="3" y2="14"></line>
+                  <line x1="21" y1="18" x2="7" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cor do Texto -->
+          <div class="control-field-clean mt-3">
+            <label for="textColorPicker" class="field-label-clean">Cor do Texto</label>
+            <div class="color-picker-clean-row">
+              <div class="color-picker-input-clean">
+                <input type="color" id="textColorPicker" value="#ffffff" aria-label="Cor do texto">
+                <input type="text" id="textColorHex" value="#ffffff" class="hex-text-clean" aria-label="Hex cor do texto">
+              </div>
+              <div class="quick-dots-clean">
+                <button class="quick-color-dot" data-color="#ffffff" style="background:#ffffff;" title="Branco"></button>
+                <button class="quick-color-dot" data-color="#000000" style="background:#000000;" title="Preto"></button>
+                <button class="quick-color-dot" data-color="#facc15" style="background:#facc15;" title="Amarelo"></button>
+                <button class="quick-color-dot" data-color="#10b981" style="background:#10b981;" title="Verde"></button>
+                <button class="quick-color-dot" data-color="#ef4444" style="background:#ef4444;" title="Vermelho"></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fundo / Selo de Destaque (Badge) -->
+          <div class="clean-group-card mt-3">
+            <label class="clean-switch-row">
+              <span class="field-label-clean mb-0">Fundo / Selo de Destaque</span>
+              <input type="checkbox" id="enableBadgeCheck" class="clean-toggle-input">
+            </label>
+
+            <div id="badgeOptionsContainer" style="display: none;" class="mt-2">
+              <div class="color-picker-clean-row mt-2">
+                <label for="badgeColorPicker" class="field-label-clean">Cor do Fundo:</label>
+                <div class="color-picker-input-clean">
+                  <input type="color" id="badgeColorPicker" value="#10b981" aria-label="Cor do fundo">
+                  <input type="text" id="badgeColorHex" value="#10b981" class="hex-text-clean" aria-label="Hex fundo">
+                </div>
+              </div>
+
+              <div class="slider-clean-row mt-2">
+                <div class="slider-clean-header">
+                  <label for="badgeRadiusSlider">Arredondamento</label>
+                  <span id="badgeRadiusValue" class="slider-val-badge">8px</span>
+                </div>
+                <input type="range" id="badgeRadiusSlider" min="0" max="40" value="8" class="custom-range" aria-label="Arredondamento">
+              </div>
+
+              <div class="slider-clean-row mt-2">
+                <div class="slider-clean-header">
+                  <label for="badgePaddingSlider">Espaçamento Interno</label>
+                  <span id="badgePaddingValue" class="slider-val-badge">12px</span>
+                </div>
+                <input type="range" id="badgePaddingSlider" min="2" max="30" value="12" class="custom-range" aria-label="Padding">
+              </div>
+            </div>
+          </div>
+
+          <!-- Sombra e Contorno -->
+          <div class="clean-group-card mt-2">
+            <label class="clean-switch-row">
+              <span class="field-label-clean mb-0">Sombra Projetada</span>
+              <input type="checkbox" id="enableShadowCheck" checked class="clean-toggle-input">
+            </label>
+          </div>
+
+          <div class="clean-group-card mt-2">
+            <label class="clean-switch-row">
+              <span class="field-label-clean mb-0">Contorno no Texto</span>
+              <input type="checkbox" id="enableStrokeCheck" class="clean-toggle-input">
+            </label>
+            <div id="strokeOptionsContainer" style="display:none;" class="mt-2">
+              <div class="color-picker-clean-row">
+                <label for="strokeColorPicker" class="field-label-clean">Cor do Contorno:</label>
+                <div class="color-picker-input-clean">
+                  <input type="color" id="strokeColorPicker" value="#000000" aria-label="Cor do contorno">
+                  <input type="text" id="strokeColorHex" value="#000000" class="hex-text-clean" aria-label="Hex contorno">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alinhamento e Ordem de Camadas -->
+          <div class="clean-group-card mt-3">
+            <span class="section-label">Posicionamento Rápido:</span>
+            <div class="alignment-grid-clean">
+              <button id="alignCanvasLeftBtn" class="btn-align-pill" title="Esquerda">⇤ Esquerda</button>
+              <button id="alignCanvasCenterHBtn" class="btn-align-pill" title="Centro H">⬌ Centro H</button>
+              <button id="alignCanvasRightBtn" class="btn-align-pill" title="Direita">Direita ⇥</button>
+              <button id="alignCanvasTopBtn" class="btn-align-pill" title="Topo">⇡ Topo</button>
+              <button id="alignCanvasCenterVBtn" class="btn-align-pill" title="Centro V">⬍ Centro V</button>
+              <button id="alignCanvasBottomBtn" class="btn-align-pill" title="Base">⇣ Base</button>
+            </div>
+
+            <span class="section-label mt-3">Ordem da Camada:</span>
+            <div class="layer-order-clean">
+              <button id="bringForwardBtn" class="btn-align-pill" title="Trazer para frente">⬆ Para Frente</button>
+              <button id="sendBackwardBtn" class="btn-align-pill" title="Enviar para trás">⬇ Para Trás</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </aside>
+
+  <!-- MODAL DE PRÉ-VISUALIZAÇÃO (SIMULADOR INSTAGRAM STORY) -->
+  <div id="previewModal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+    <div class="modal-backdrop" id="closePreviewBackdrop" aria-hidden="true"></div>
+    
+    <div class="modal-dialog instagram-simulator-dialog">
+      <div class="modal-header-bar">
+        <div class="modal-title-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          <h4 id="previewModalTitle">Simulador de Story do Instagram</h4>
+        </div>
+        <button id="closePreviewModalBtn" class="modal-close-btn" title="Fechar">&times;</button>
+      </div>
+
+      <div class="simulator-body">
+        <div class="instagram-phone-shell">
+          <!-- Dynamic Island -->
+          <div class="phone-notch dynamic-island" aria-hidden="true">
+            <div class="notch-camera"></div>
+            <div class="notch-sensor"></div>
+          </div>
+
+          <div class="instagram-story-screen" id="previewStoryScreen">
+            <img id="previewRenderedImage" alt="Preview da Arte do Story" class="preview-img-fill">
+
+            <div class="instagram-ui-overlay" id="instagramUiOverlay" aria-hidden="true">
+              <div class="ig-top-container">
+                <div class="ig-progress-bars">
+                  <div class="ig-progress-bar"><div class="ig-progress-fill"></div></div>
+                  <div class="ig-progress-bar"></div>
+                  <div class="ig-progress-bar"></div>
+                </div>
+
+                <div class="ig-user-header">
+                  <div class="ig-user-info">
+                    <div class="ig-avatar">
+                      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%236366f1'><circle cx='12' cy='12' r='10'/><path fill='%23fff' d='M12 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'/></svg>" alt="Avatar">
+                    </div>
+                    <div class="ig-user-names">
+                      <span class="ig-username">sualoja.oficial</span>
+                      <span class="ig-time">12 min</span>
+                    </div>
+                  </div>
+                  <div class="ig-header-icons">
+                    <span>⋯</span>
+                    <span class="ig-close">✕</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ig-footer-bar">
+                <div class="ig-message-input">
+                  <span>Enviar mensagem...</span>
+                </div>
+                <div class="ig-actions">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <label class="toggle-ig-ui-label">
+          <input type="checkbox" id="toggleIgUiCheck" checked>
+          <span>Mostrar moldura do Instagram</span>
+        </label>
+        
+        <div class="modal-actions-right">
+          <button id="closePreviewBtn2" class="btn-ghost-minimal">Voltar ao Editor</button>
+          <button id="downloadFromPreviewBtn" class="btn-primary-glow">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Baixar Imagem PNG</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANVAS OCULTO PARA EXPORTAÇÃO 1080x1920 (HIGH RESOLUTION) -->
+  <canvas id="exportCanvas" width="1080" height="1920" style="display:none;" aria-hidden="true"></canvas>
+
+  <!-- MODAL DE BOAS-VINDAS INICIAL -->
+  <div id="welcomeModal" class="welcome-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle">
+    <div class="welcome-modal-card">
+      <div class="welcome-modal-icon" aria-hidden="true">
+        <span>✨</span>
+      </div>
+      <h3 id="welcomeModalTitle" class="welcome-modal-title">StoryCraft</h3>
+      <p class="welcome-modal-text">Seja bem vindo ao Story Craft, aqui você pode transformar suas ideias em realidade</p>
+      <div class="welcome-modal-actions">
+        <button id="btnWelcomeOk" class="btn-welcome-ok" aria-label="Confirmar e entrar">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICAÇÃO TOAST FLUTUANTE COM ACESSIBILIDADE ARIA-LIVE -->
+  <div id="toastNotification" class="toast-notification" role="status" aria-live="polite" aria-atomic="true">
+    <span id="toastIcon" class="toast-icon" aria-hidden="true">✓</span>
+    <span id="toastMessage" class="toast-text">Arte salva com sucesso!</span>
+  </div>
+
+  <!-- SCRIPTS DA APLICAÇÃO -->
+  <script>
 /**
  * ============================================================================
  * StoryCraft — Editor de Fotos para Instagram Stories (9:16)
@@ -4520,3 +7535,7 @@
   });
 
 })();
+
+</script>
+</body>
+</html>
