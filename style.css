@@ -91,21 +91,26 @@ input, select, textarea {
   color: inherit;
 }
 
-/* --- 3. TOP BAR REPAGINADA (FLEXBOX LIMPO SEM SOBREPOSIÇÕES) --- */
+/* --- 3. TOP BAR REPAGINADA (FLEXBOX LIMPO COM SAFE AREA PARA iOS) --- */
 .app-header-minimal {
-  height: 56px;
-  min-height: 56px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(56px + env(safe-area-inset-top, 0px));
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 0 16px;
   background: rgba(20, 20, 20, 0.65);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   border-bottom: 1px solid var(--border-subtle);
   border-top: var(--border-glass-top);
   z-index: 50;
+  flex-shrink: 0;
 }
 
 .topbar-left-zone {
@@ -2104,7 +2109,7 @@ input, select, textarea {
   color: var(--text-main);
 }
 
-/* --- 9. RESPONSIVIDADE MOBILE & TABLET --- */
+/* --- 9. RESPONSIVIDADE MOBILE & TABLET (DYNAMIC ISLAND & SAFE AREAS) --- */
 @media (max-width: 900px) {
   .btn-text-responsive {
     display: none;
@@ -2113,12 +2118,20 @@ input, select, textarea {
 
 @media (max-width: 768px) {
   .app-header-minimal {
-    padding: 0 10px;
-    gap: 4px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: 6px;
+    gap: 6px;
   }
 
   .topbar-left-zone {
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .brand-name {
+    display: none;
   }
 
   .project-title-box {
@@ -2133,6 +2146,10 @@ input, select, textarea {
     display: none;
   }
 
+  .btn-text-responsive {
+    display: none;
+  }
+
   .layers-count-pill {
     display: none;
   }
@@ -2141,12 +2158,38 @@ input, select, textarea {
     display: none;
   }
 
+  .topbar-actions-group {
+    gap: 3px;
+  }
+
+  .pill-action-btn {
+    padding: 5px 7px;
+  }
+
+  .topbar-export-group {
+    gap: 4px;
+  }
+
+  .btn-ghost-glass {
+    padding: 6px 8px;
+  }
+
+  .btn-primary-glow {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
   .main-stage-container {
-    padding: 10px 10px 76px;
+    padding: 8px 8px 76px;
   }
 
   .stage-viewport-clean {
-    max-height: calc(100vh - 145px);
+    max-height: calc(100vh - 145px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+
+  .floating-dock-wrap {
+    bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .floating-dock-pill {
@@ -2167,5 +2210,26 @@ input, select, textarea {
     width: 100vw;
     max-height: 85vh;
     border-radius: 24px 24px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header-minimal {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    gap: 4px;
+  }
+
+  .topbar-actions-group {
+    gap: 2px;
+  }
+
+  .pill-action-btn {
+    padding: 4px 6px;
+  }
+
+  .btn-primary-glow span {
+    font-size: 0.78rem;
   }
 }
