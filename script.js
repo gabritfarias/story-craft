@@ -53,7 +53,7 @@
      2. ESTADO GLOBAL DA APLICAÇÃO (AppState)
      ========================================================================== */
   const AppState = {
-    projectTitle: 'Oferta Smartphone Pro',
+    projectTitle: 'Meu Story',
     
     // Imagem de Fundo
     bgImage: null, // HTMLImageElement ou null
@@ -1117,6 +1117,10 @@
     instagramUiOverlay: document.getElementById('instagramUiOverlay'),
     toggleIgUiCheck: document.getElementById('toggleIgUiCheck'),
     downloadFromPreviewBtn: document.getElementById('downloadFromPreviewBtn'),
+
+    // Modal de Boas-Vindas Inicial
+    welcomeModal: document.getElementById('welcomeModal'),
+    btnWelcomeOk: document.getElementById('btnWelcomeOk'),
 
     // Toast & Export Canvas
     toastNotification: document.getElementById('toastNotification'),
@@ -3961,6 +3965,16 @@
       });
     }
 
+    // 8. Modal de Boas-Vindas Inicial
+    if (DOM.btnWelcomeOk && DOM.welcomeModal) {
+      DOM.btnWelcomeOk.addEventListener('click', () => {
+        DOM.welcomeModal.classList.add('closing');
+        setTimeout(() => {
+          DOM.welcomeModal.style.display = 'none';
+        }, 360);
+      });
+    }
+
     let currentWorkspaceZoom = 100;
     const updateWorkspaceZoom = (newZoom) => {
       currentWorkspaceZoom = Math.min(Math.max(50, newZoom), 180);
@@ -4030,11 +4044,16 @@
         console.error('[Bootstrap] setupGeneralUI:', uiErr);
       }
 
-      // Carrega o produto de amostra padrão inicial
-      try {
-        BackgroundController.loadSampleProduct('smartphone');
-      } catch (sampleErr) {
-        console.warn('[Bootstrap] loadSampleProduct:', sampleErr);
+      // Inicialização Totalmente Limpa (sem arte ou textos de exemplo pré-carregados)
+      AppState.bgImage = null;
+      AppState.bgImageDataUrl = null;
+      AppState.textLayers = [];
+      AppState.selectedLayerId = null;
+      BackgroundController.render();
+      TextLayerManager.renderLayers();
+      InspectorController.update();
+      if (DOM.canvasEmptyState) {
+        DOM.canvasEmptyState.classList.remove('hidden');
       }
 
       // 2. Inicialização dos Subsistemas Assíncronos / Storage
@@ -4057,7 +4076,6 @@
       }
 
       console.log('StoryCraft inicializado com sucesso (Safe Boot Ativo).');
-      showToast('Bem-vindo de volta, João! Pronto para criar?', 'success');
       closeAllDrawers();
     } catch (err) {
       alert('Erro na inicialização: ' + (err && err.message ? err.message : err));

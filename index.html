@@ -45,7 +45,7 @@
       </div>
 
       <div class="project-title-wrapper">
-        <input type="text" id="projectTitleInput" class="project-title-input" value="Oferta Smartphone Pro" title="Clique para renomear este Story" aria-label="Título do Story">
+        <input type="text" id="projectTitleInput" class="project-title-input" value="Meu Story" title="Clique para renomear este Story" aria-label="Título do Story">
         <span class="edit-hint-icon" aria-hidden="true">✎</span>
       </div>
     </div>
@@ -1047,6 +1047,20 @@
 
   <!-- CANVAS OCULTO PARA EXPORTAÇÃO 1080x1920 (HIGH RESOLUTION) -->
   <canvas id="exportCanvas" width="1080" height="1920" style="display:none;" aria-hidden="true"></canvas>
+
+  <!-- MODAL DE BOAS-VINDAS INICIAL -->
+  <div id="welcomeModal" class="welcome-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle">
+    <div class="welcome-modal-card">
+      <div class="welcome-modal-icon" aria-hidden="true">
+        <span>✨</span>
+      </div>
+      <h3 id="welcomeModalTitle" class="welcome-modal-title">StoryCraft</h3>
+      <p class="welcome-modal-text">Seja bem vindo ao Story Craft, aqui você pode transformar suas ideias em realidade</p>
+      <div class="welcome-modal-actions">
+        <button id="btnWelcomeOk" class="btn btn-primary btn-welcome-ok" aria-label="Confirmar e entrar no StoryCraft">OK</button>
+      </div>
+    </div>
+  </div>
 
   <!-- NOTIFICAÇÃO TOAST FLUTUANTE COM ACESSIBILIDADE ARIA-LIVE -->
   <div id="toastNotification" class="toast-notification" role="status" aria-live="polite" aria-atomic="true">
