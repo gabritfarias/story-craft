@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>StoryCraft — Editor de Stories</title>
+  <title>StoryCraft — Editor de Stories & Artes</title>
   
   <!-- Meta tags essenciais para Apple Web App (iOS PWA Tela Cheia) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +14,7 @@
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
   
-  <!-- Conexão Otimizada com Google Fonts (Pré-carregamento Assíncrono sem Bloqueio de Renderização) -->
+  <!-- Conexão Otimizada com Google Fonts (Pré-carregamento Assíncrono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600;700&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,600&family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Nunito:wght@600;700;800&family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Poppins:wght@400;500;600;700;800&family=Quicksand:wght@600;700&family=Roboto:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
@@ -25,8 +25,8 @@
   <!-- Estilos da aplicação -->
   <style>
 /* ==========================================================================
-   STORYCRAFT — DESIGN SYSTEM & ESTILOS MODERNOS (ULTRA-CLEAN MINIMALIST)
-   Inspirado no design nativo do iOS, macOS Dock e Instagram Story Studio
+   STORYCRAFT — DESIGN SYSTEM & ESTILOS MODERNOS
+   Efeito Glassmorphism (Vidro Fosco Real), Gestos iOS & Múltiplas Proporções
    ========================================================================== */
 
 /* --- 1. DESIGN TOKENS & VARIÁVEIS GLOBAIS --- */
@@ -34,9 +34,9 @@
   --bg-base: #080a0f;
   --bg-surface: #10141f;
   --bg-elevated: #161b2a;
-  --bg-card: rgba(22, 27, 42, 0.7);
-  --bg-glass: rgba(18, 24, 38, 0.8);
-  --bg-glass-heavy: rgba(14, 18, 28, 0.92);
+  --bg-card: rgba(20, 20, 20, 0.6);
+  --bg-glass: rgba(20, 20, 20, 0.6);
+  --bg-glass-heavy: rgba(18, 22, 34, 0.75);
 
   --text-main: #f8fafc;
   --text-secondary: #94a3b8;
@@ -59,6 +59,7 @@
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.14);
   --border-focus: rgba(99, 102, 241, 0.6);
+  --border-glass-top: 1px solid rgba(255, 255, 255, 0.12);
 
   --radius-xs: 6px;
   --radius-sm: 10px;
@@ -71,6 +72,7 @@
   --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
   --shadow-canvas: 0 30px 90px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08);
 
+  --canvas-aspect-ratio: 9 / 16;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
@@ -115,26 +117,28 @@ input, select, textarea {
   color: inherit;
 }
 
-/* --- 3. CABEÇALHO SUPERIOR MINIMALISTA --- */
+/* --- 3. TOP BAR REPAGINADA (FLEXBOX LIMPO SEM SOBREPOSIÇÕES) --- */
 .app-header-minimal {
-  height: 58px;
-  min-height: 58px;
+  height: 56px;
+  min-height: 56px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  background: rgba(8, 10, 15, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  background: rgba(20, 20, 20, 0.65);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border-bottom: 1px solid var(--border-subtle);
+  border-top: var(--border-glass-top);
   z-index: 50;
 }
 
-.header-left-clean {
+.topbar-left-zone {
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-width: 200px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .brand-minimal {
@@ -142,12 +146,13 @@ input, select, textarea {
   align-items: center;
   gap: 8px;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .brand-glyph {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   background: var(--accent-gradient);
   display: flex;
   align-items: center;
@@ -157,7 +162,7 @@ input, select, textarea {
 }
 
 .brand-name {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.3px;
   background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
@@ -175,11 +180,11 @@ input, select, textarea {
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
-  padding: 4px 22px 4px 8px;
-  font-size: 0.88rem;
+  padding: 3px 20px 3px 6px;
+  font-size: 0.84rem;
   font-weight: 500;
   color: var(--text-secondary);
-  width: 140px;
+  width: 110px;
   transition: all 0.2s ease;
 }
 
@@ -194,55 +199,154 @@ input, select, textarea {
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-main);
   outline: none;
-  width: 180px;
+  width: 150px;
 }
 
 .edit-hint-icon {
   position: absolute;
-  right: 6px;
-  font-size: 0.75rem;
+  right: 5px;
+  font-size: 0.7rem;
   color: var(--text-muted);
   pointer-events: none;
 }
 
-/* Ações Centrais (Vidro Fosco) */
-.header-center-clean {
+/* Seletor de Proporção de Canvas */
+.ratio-selector-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
 }
 
-.quick-pill-group {
+.ratio-selector-pill {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 4px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-full);
+  color: #a5b4fc;
+}
+
+.ratio-icon {
+  opacity: 0.8;
+}
+
+.canvas-ratio-dropdown {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.canvas-ratio-dropdown option {
+  background: #0f131f;
+  color: #ffffff;
+}
+
+.resolution-badge {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+/* Lado Direito da Top Bar */
+.topbar-right-zone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.layers-count-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.layers-count-pill svg {
+  color: #a5b4fc;
+}
+
+.zoom-top-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
 }
 
+.btn-top-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.btn-top-icon:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.zoom-top-text {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0 4px;
+  color: var(--text-muted);
+  min-width: 34px;
+  text-align: center;
+}
+
+.topbar-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .pill-action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 5px;
+  padding: 5px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
   transition: all 0.18s ease;
 }
 
 .pill-action-btn:hover:not(:disabled) {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .pill-action-btn.active {
   background: rgba(99, 102, 241, 0.2);
   color: #a5b4fc;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 .pill-action-btn:disabled {
@@ -250,41 +354,44 @@ input, select, textarea {
   cursor: not-allowed;
 }
 
-/* Ações Direitas */
-.header-right-clean {
+.topbar-export-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.btn-ghost-minimal {
+.btn-ghost-glass {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
+  padding: 6px 12px;
   border-radius: var(--radius-full);
-  font-size: 0.84rem;
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid var(--border-subtle);
+  border-top: var(--border-glass-top);
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
   transition: all 0.2s ease;
 }
 
-.btn-ghost-minimal:hover {
+.btn-ghost-glass:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
   border-color: var(--border-medium);
 }
 
 .btn-primary-glow {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 18px;
+  gap: 6px;
+  padding: 7px 16px;
   border-radius: var(--radius-full);
   background: var(--accent-gradient);
   color: #ffffff;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   box-shadow: 0 4px 16px var(--accent-glow);
   transition: all 0.2s ease;
@@ -296,11 +403,7 @@ input, select, textarea {
   transform: translateY(-1px);
 }
 
-.btn-primary-glow:active {
-  transform: translateY(0);
-}
-
-/* --- 4. PALCO CENTRAL FLUTUANTE (CANVAS 9:16) --- */
+/* --- 4. PALCO CENTRAL FLUTUANTE (CANVAS RESPONSIVO INTELIGENTE) --- */
 .main-stage-container {
   position: relative;
   flex: 1;
@@ -308,115 +411,47 @@ input, select, textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 20px 90px;
+  padding: 12px 16px 86px;
   overflow: hidden;
   background: radial-gradient(circle at center, #121624 0%, #080a0f 85%);
 }
 
-/* Barra de Metadados & Zoom Flutuante */
-.canvas-floating-meta {
-  position: absolute;
-  top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 10;
-  pointer-events: auto;
-}
-
-.canvas-meta-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background: rgba(16, 20, 31, 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.meta-ratio {
-  font-weight: 700;
-  color: #a5b4fc;
-}
-
-.meta-dot {
-  opacity: 0.4;
-}
-
-.zoom-floating-controls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
-  background: rgba(16, 20, 31, 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-}
-
-.zoom-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-}
-
-.zoom-btn:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.zoom-text {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0 4px;
-  color: var(--text-muted);
-  min-width: 36px;
-  text-align: center;
-}
-
-/* Viewport do Canvas */
 .stage-viewport-clean {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(100vh - 170px);
-  max-height: 720px;
-  aspect-ratio: 9 / 16;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 100%;
+  max-height: calc(100vh - 160px);
+  max-width: calc(100vw - 32px);
+  aspect-ratio: var(--canvas-aspect-ratio, 9 / 16);
+  transition: aspect-ratio 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease;
 }
 
 .smartphone-frame {
   position: relative;
   width: 100%;
   height: 100%;
+  aspect-ratio: var(--canvas-aspect-ratio, 9 / 16);
   display: flex;
   align-items: center;
   justify-content: center;
   transform-origin: center center;
-  transition: transform 0.2s ease;
+  transition: aspect-ratio 0.3s ease, transform 0.2s ease;
 }
 
 .story-canvas-container {
   position: relative;
   width: 100%;
   height: 100%;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: var(--canvas-aspect-ratio, 9 / 16);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-canvas);
   background-color: #0f172a;
   user-select: none;
   outline: none;
+  transition: aspect-ratio 0.3s ease;
 }
 
 #backgroundCanvas {
@@ -458,7 +493,7 @@ input, select, textarea {
   outline-offset: 4px;
 }
 
-/* Safe Zones Overlay */
+/* Safe Zones Overlay (Não Invasiva) */
 .safe-zones-guide {
   position: absolute;
   top: 0;
@@ -476,13 +511,17 @@ input, select, textarea {
   display: flex;
 }
 
+.safe-zones-guide.hidden {
+  display: none !important;
+}
+
 .safe-zone-top {
-  height: 14%;
-  border-bottom: 1px dashed rgba(239, 68, 68, 0.4);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, transparent 100%);
+  height: 13%;
+  border-bottom: 1px dashed rgba(239, 68, 68, 0.35);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, transparent 100%);
   display: flex;
   align-items: flex-start;
-  padding: 8px 12px;
+  padding: 6px 10px;
 }
 
 .safe-zone-center-hint {
@@ -493,27 +532,27 @@ input, select, textarea {
 }
 
 .safe-zone-center-hint span {
-  font-size: 0.65rem;
-  letter-spacing: 1px;
+  font-size: 0.62rem;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.12);
   font-weight: 700;
 }
 
 .safe-zone-bottom {
-  height: 18%;
-  border-top: 1px dashed rgba(239, 68, 68, 0.4);
-  background: linear-gradient(0deg, rgba(239, 68, 68, 0.12) 0%, transparent 100%);
+  height: 16%;
+  border-top: 1px dashed rgba(239, 68, 68, 0.35);
+  background: linear-gradient(0deg, rgba(239, 68, 68, 0.08) 0%, transparent 100%);
   display: flex;
   align-items: flex-end;
-  padding: 8px 12px;
+  padding: 6px 10px;
 }
 
 .safe-zone-tag {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  color: rgba(239, 68, 68, 0.8);
-  letter-spacing: 0.4px;
+  color: rgba(239, 68, 68, 0.7);
+  letter-spacing: 0.3px;
 }
 
 /* Estado Vazio Ultra-Clean */
@@ -539,32 +578,34 @@ input, select, textarea {
   pointer-events: auto;
   text-align: center;
   max-width: 240px;
-  padding: 28px 20px;
+  padding: 26px 20px;
   border-radius: var(--radius-md);
-  background: rgba(16, 22, 36, 0.75);
-  backdrop-filter: blur(16px);
+  background: rgba(20, 20, 20, 0.65);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid var(--border-subtle);
+  border-top: var(--border-glass-top);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
 .empty-glow-icon {
   font-size: 2.2rem;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   filter: drop-shadow(0 4px 12px var(--accent-glow));
 }
 
 .empty-state-clean-card h4 {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .empty-state-clean-card p {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-secondary);
   line-height: 1.4;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .btn-empty-upload {
@@ -575,7 +616,7 @@ input, select, textarea {
   border-radius: var(--radius-full);
   background: var(--accent-gradient);
   color: #ffffff;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   box-shadow: 0 4px 12px var(--accent-glow);
   transition: all 0.2s ease;
@@ -585,7 +626,7 @@ input, select, textarea {
   transform: scale(1.03);
 }
 
-/* --- 5. FLOATING BOTTOM DOCK (ESTILO macOS / INSTAGRAM) --- */
+/* --- 5. FLOATING BOTTOM DOCK (GLASSMORPHISM ESTILO macOS / iOS) --- */
 .floating-dock-wrap {
   position: fixed;
   bottom: 16px;
@@ -600,10 +641,11 @@ input, select, textarea {
   align-items: center;
   gap: 4px;
   padding: 6px 8px;
-  background: var(--bg-glass-heavy);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid var(--border-medium);
+  border-top: var(--border-glass-top);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
@@ -614,7 +656,7 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   padding: 6px 12px;
-  min-width: 54px;
+  min-width: 52px;
   border-radius: var(--radius-full);
   color: var(--text-secondary);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -633,8 +675,8 @@ input, select, textarea {
 }
 
 .dock-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -663,7 +705,7 @@ input, select, textarea {
 }
 
 .dock-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   margin-top: 2px;
   letter-spacing: 0.2px;
@@ -679,7 +721,7 @@ input, select, textarea {
   50% { box-shadow: 0 0 12px 2px rgba(99, 102, 241, 0.6); }
 }
 
-/* --- 6. BOTTOM SHEETS & GAVETAS DESLIZANTES --- */
+/* --- 6. BOTTOM SHEETS & GAVETAS DESLIZANTES COM SWIPE-TO-CLOSE --- */
 .sheet-backdrop {
   position: fixed;
   inset: 0;
@@ -704,8 +746,11 @@ input, select, textarea {
   transform: translate(-50%, 105%);
   width: min(620px, 100vw);
   max-height: 80vh;
-  background: #0f131f;
+  background: rgba(20, 20, 20, 0.65);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid var(--border-medium);
+  border-top: var(--border-glass-top);
   border-top-left-radius: 26px;
   border-top-right-radius: 26px;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.85);
@@ -714,10 +759,15 @@ input, select, textarea {
   flex-direction: column;
   transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .sheet-drawer.open {
   transform: translate(-50%, 0);
+}
+
+.sheet-drawer.dragging {
+  transition: none !important;
 }
 
 .sheet-header {
@@ -727,8 +777,13 @@ input, select, textarea {
   justify-content: space-between;
   padding: 16px 20px 12px;
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(15, 19, 31, 0.95);
+  background: rgba(16, 20, 30, 0.6);
   user-select: none;
+  cursor: grab;
+}
+
+.sheet-header:active {
+  cursor: grabbing;
 }
 
 .sheet-drag-handle {
@@ -736,10 +791,11 @@ input, select, textarea {
   top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
-  height: 4px;
+  width: 40px;
+  height: 5px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
+  cursor: grab;
 }
 
 .sheet-title-wrap h3 {
@@ -779,7 +835,6 @@ input, select, textarea {
   overscroll-behavior: contain;
 }
 
-/* Custom Scrollbar */
 .sheet-body-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -797,6 +852,50 @@ input, select, textarea {
 }
 
 /* --- 7. COMPONENTES E CONTROLES DAS ABAS --- */
+
+/* Ratio Chips Grid (Fundo & Formato) */
+.ratio-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ratio-chip-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: all 0.18s ease;
+}
+
+.ratio-chip-btn strong {
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.ratio-chip-btn span {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.ratio-chip-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-medium);
+}
+
+.ratio-chip-btn.active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.ratio-chip-btn.active strong {
+  color: #a5b4fc;
+}
 
 /* Dropzone Modern */
 .dropzone-modern {
@@ -852,9 +951,15 @@ input, select, textarea {
 .clean-group-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
+  border-top: var(--border-glass-top);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-top: 16px;
+}
+
+.clean-group-card.mb-3 {
+  margin-top: 0;
+  margin-bottom: 16px;
 }
 
 .group-title-row {
@@ -1593,6 +1698,7 @@ input, select, textarea {
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
+  border-top: var(--border-glass-top);
   border-radius: var(--radius-md);
   transition: all 0.18s ease;
 }
@@ -1636,7 +1742,7 @@ input, select, textarea {
   to { transform: rotate(360deg); }
 }
 
-/* --- 8. MODAL DE PRÉ-VISUALIZAÇÃO & BOAS-VINDAS --- */
+/* --- 8. MODAL DE PRÉ-VISUALIZAÇÃO & BOAS-VINDAS (GLASSMORPHISM) --- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1651,14 +1757,17 @@ input, select, textarea {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 .instagram-simulator-dialog {
   position: relative;
-  background: #0f131f;
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid var(--border-medium);
+  border-top: var(--border-glass-top);
   border-radius: var(--radius-lg);
   width: min(460px, 95vw);
   max-height: 90vh;
@@ -1876,7 +1985,7 @@ input, select, textarea {
   justify-content: space-between;
   padding: 12px 18px;
   border-top: 1px solid var(--border-subtle);
-  background: rgba(15, 19, 31, 0.95);
+  background: rgba(16, 20, 30, 0.7);
 }
 
 .toggle-ig-ui-label {
@@ -1899,8 +2008,8 @@ input, select, textarea {
   inset: 0;
   z-index: 150;
   background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1917,8 +2026,11 @@ input, select, textarea {
 }
 
 .welcome-modal-card {
-  background: #111522;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid var(--border-medium);
+  border-top: var(--border-glass-top);
   border-radius: var(--radius-lg);
   padding: 32px 28px;
   max-width: 380px;
@@ -1977,9 +2089,11 @@ input, select, textarea {
   top: 70px;
   left: 50%;
   transform: translateX(-50%) translateY(-20px);
-  background: rgba(16, 22, 36, 0.92);
-  backdrop-filter: blur(20px);
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid var(--border-medium);
+  border-top: var(--border-glass-top);
   border-radius: var(--radius-full);
   padding: 8px 18px;
   display: flex;
@@ -2017,16 +2131,27 @@ input, select, textarea {
 }
 
 /* --- 9. RESPONSIVIDADE MOBILE & TABLET --- */
+@media (max-width: 900px) {
+  .btn-text-responsive {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .app-header-minimal {
-    padding: 0 12px;
+    padding: 0 10px;
+    gap: 4px;
   }
 
-  .header-left-clean {
-    min-width: unset;
+  .topbar-left-zone {
+    gap: 8px;
   }
 
   .project-title-box {
+    display: none;
+  }
+
+  .resolution-badge {
     display: none;
   }
 
@@ -2034,20 +2159,20 @@ input, select, textarea {
     display: none;
   }
 
-  .pill-action-btn span {
+  .layers-count-pill {
     display: none;
   }
 
-  .pill-action-btn {
-    padding: 6px;
+  .zoom-top-group {
+    display: none;
   }
 
   .main-stage-container {
-    padding: 10px 10px 80px;
+    padding: 10px 10px 76px;
   }
 
   .stage-viewport-clean {
-    height: calc(100vh - 150px);
+    max-height: calc(100vh - 145px);
   }
 
   .floating-dock-pill {
@@ -2075,12 +2200,14 @@ input, select, textarea {
 </head>
 <body class="dark-theme">
 
-  <!-- CABEÇALHO SUPERIOR MINIMALISTA -->
+  <!-- TOP BAR (BARRA SUPERIOR REPAGINADA COM FLEXBOX LIMPO) -->
   <header class="app-header-minimal" role="banner">
-    <div class="header-left-clean">
+    
+    <!-- Lado Esquerdo: Marca, Título do Projeto, Seletor de Proporção e Resolução -->
+    <div class="topbar-left-zone">
       <div class="brand-minimal">
         <div class="brand-glyph" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <rect x="2" y="2" width="20" height="20" rx="6" ry="6"></rect>
             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
             <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
@@ -2093,92 +2220,114 @@ input, select, textarea {
         <input type="text" id="projectTitleInput" class="project-title-input" value="Meu Story" title="Clique para renomear este Story" aria-label="Título do Story">
         <span class="edit-hint-icon" aria-hidden="true">✎</span>
       </div>
+
+      <!-- SELETOR DE PROPORÇÃO DE CANVAS (9:16, 4:3, 16:10, 21:9, 16:9, 1:1) -->
+      <div class="ratio-selector-container">
+        <div class="ratio-selector-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ratio-icon">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          </svg>
+          <select id="canvasRatioSelect" class="canvas-ratio-dropdown" aria-label="Proporção do Canvas">
+            <option value="9:16" selected>9:16 (Story)</option>
+            <option value="4:3">4:3 (Retrato)</option>
+            <option value="16:10">16:10 (Display)</option>
+            <option value="21:9">21:9 (Ultrawide)</option>
+            <option value="16:9">16:9 (Vídeo)</option>
+            <option value="1:1">1:1 (Quadrado)</option>
+          </select>
+        </div>
+        <span id="topBarResolutionBadge" class="resolution-badge" title="Resolução nativa de exportação">1080×1920</span>
+      </div>
     </div>
 
-    <!-- Ações Rápidas Centrais (Vidro Fosco) -->
-    <div class="header-center-clean">
-      <div class="quick-pill-group">
+    <!-- Lado Direito: Camadas, Zoom, Safe Zone, Desfazer, Limpar, Preview e Baixar -->
+    <div class="topbar-right-zone">
+      
+      <!-- Contagem de Camadas Ativas -->
+      <div class="layers-count-pill" title="Camadas ativas no Canvas">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span id="activeLayersCount">0 camadas</span>
+      </div>
+
+      <!-- Controles de Zoom Integrados -->
+      <div class="zoom-top-group">
+        <button id="zoomOutWorkspaceBtn" class="btn-top-icon" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+        <span id="workspaceZoomPercent" class="zoom-top-text">100%</span>
+        <button id="zoomInWorkspaceBtn" class="btn-top-icon" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+        <button id="fitScreenBtn" class="btn-top-icon" title="Ajustar à tela" aria-label="Ajustar à tela">⛶</button>
+      </div>
+
+      <!-- Ações Rápidas -->
+      <div class="topbar-actions-group">
         <button id="toggleSafeZoneBtn" class="pill-action-btn active" title="Mostrar/Ocultar Margens Seguras do Instagram" aria-label="Alternar Safe Zone">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2"></rect>
             <line x1="3" y1="9" x2="21" y2="9" stroke-dasharray="2 2"></line>
             <line x1="3" y1="15" x2="21" y2="15" stroke-dasharray="2 2"></line>
           </svg>
-          <span>Safe Zone</span>
+          <span class="btn-text-responsive">Safe Zone</span>
         </button>
 
         <button id="btnUndo" class="pill-action-btn" title="Desfazer alteração (Ctrl+Z)" aria-label="Desfazer" disabled>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 7v6h6"></path>
             <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
           </svg>
-          <span>Desfazer</span>
+          <span class="btn-text-responsive">Desfazer</span>
         </button>
 
         <button id="resetCanvasBtn" class="pill-action-btn" title="Limpar elementos da arte" aria-label="Limpar Canvas">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
-          <span>Limpar</span>
+          <span class="btn-text-responsive">Limpar</span>
         </button>
       </div>
-    </div>
 
-    <!-- Ações Finais à Direita -->
-    <div class="header-right-clean">
-      <button id="saveProfileHeaderBtn" class="btn-ghost-minimal" title="Salvar disposição de textos atual como um Perfil" aria-label="Salvar perfil">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-          <polyline points="7 3 7 8 15 8"></polyline>
-        </svg>
-        <span class="btn-text-hide-mobile">Salvar Perfil</span>
-      </button>
+      <!-- Botões de Ação Principal -->
+      <div class="topbar-export-group">
+        <button id="saveProfileHeaderBtn" class="btn-ghost-glass" title="Salvar disposição de textos atual como um Perfil" aria-label="Salvar perfil">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span class="btn-text-hide-mobile">Salvar Perfil</span>
+        </button>
 
-      <button id="openPreviewModalBtn" class="btn-ghost-minimal" title="Visualizar simulação no Instagram Story" aria-label="Pré-visualizar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-        <span class="btn-text-hide-mobile">Preview</span>
-      </button>
+        <button id="openPreviewModalBtn" class="btn-ghost-glass" title="Visualizar simulação no Instagram Story" aria-label="Pré-visualizar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span class="btn-text-hide-mobile">Preview</span>
+        </button>
 
-      <button id="exportStoryBtn" class="btn-primary-glow" title="Baixar Story em alta definição 1080x1920" aria-label="Baixar Story">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="btn-icon-export">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span>Baixar Story</span>
-      </button>
+        <button id="exportStoryBtn" class="btn-primary-glow" title="Baixar arte em alta definição" aria-label="Baixar Arte">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Baixar Arte</span>
+        </button>
+      </div>
+
     </div>
   </header>
 
-  <!-- PALCO CENTRAL FLUTUANTE (CANVAS 9:16) -->
+  <!-- PALCO CENTRAL FLUTUANTE (CANVAS RESPONSIVO COM PROPORÇÃO DINÂMICA) -->
   <main class="main-stage-container" id="canvasWorkspace" role="main">
     
-    <!-- Barra flutuante de Zoom & Metadados do Canvas -->
-    <div class="canvas-floating-meta">
-      <div class="canvas-meta-pill">
-        <span class="meta-ratio">9:16</span>
-        <span class="meta-res">1080×1920</span>
-        <span class="meta-dot">•</span>
-        <span id="activeLayersCount" class="meta-layers">0 camadas</span>
-      </div>
-
-      <div class="zoom-floating-controls">
-        <button id="zoomOutWorkspaceBtn" class="zoom-btn" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
-        <span id="workspaceZoomPercent" class="zoom-text">100%</span>
-        <button id="zoomInWorkspaceBtn" class="zoom-btn" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
-        <button id="fitScreenBtn" class="zoom-btn" title="Ajustar tela" aria-label="Ajustar visualização">⛶</button>
-      </div>
-    </div>
-
-    <!-- Viewport do Canvas Flutuante -->
+    <!-- Viewport do Canvas Adaptativo -->
     <div class="stage-viewport-clean" id="stageViewport">
       <div class="smartphone-frame" id="smartphoneFrame">
         
-        <div class="story-canvas-container" id="storyCanvasContainer" tabindex="0" role="region" aria-label="Palco de edição do Story do Instagram">
+        <div class="story-canvas-container" id="storyCanvasContainer" tabindex="0" role="region" aria-label="Palco de edição do Story e Canvas">
           
           <!-- Canvas 2D da Foto de Fundo -->
           <canvas id="backgroundCanvas" width="1080" height="1920" aria-label="Canvas de renderização da foto"></canvas>
@@ -2186,7 +2335,7 @@ input, select, textarea {
           <!-- Camada Interativa DOM para Textos Móveis -->
           <div id="textLayersOverlay" class="text-layers-overlay" aria-label="Camadas de texto sobrepostas"></div>
 
-          <!-- Guias de Margem Segura (Safe Zones) -->
+          <!-- Guias de Margem Segura (Safe Zones não invasiva) -->
           <div id="safeZonesGuide" class="safe-zones-guide active" aria-hidden="true">
             <div class="safe-zone-top">
               <div class="safe-zone-tag">Área do Topo (Instagram)</div>
@@ -2218,7 +2367,7 @@ input, select, textarea {
 
   </main>
 
-  <!-- FLOATING BOTTOM DOCK (ESTILO macOS / INSTAGRAM) -->
+  <!-- FLOATING BOTTOM DOCK (GLASSMORPHISM ESTILO macOS / iOS) -->
   <nav class="floating-dock-wrap" id="floatingDock" role="navigation" aria-label="Menu principal de ferramentas">
     <div class="floating-dock-pill">
       
@@ -2253,7 +2402,7 @@ input, select, textarea {
         <span class="dock-label">Selos</span>
       </button>
 
-      <button class="dock-item" data-tab="tab-background" title="Fundo & Cores" aria-label="Cores e Fundo">
+      <button class="dock-item" data-tab="tab-background" title="Fundo & Formato" aria-label="Cores e Fundo">
         <div class="dock-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -2298,14 +2447,14 @@ input, select, textarea {
     </div>
   </nav>
 
-  <!-- BACKDROP & CONTAINER DE BOTTOM SHEETS (GAVETAS DESLIZANTES MODERNAS) -->
+  <!-- BACKDROP & CONTAINER DE BOTTOM SHEETS (GAVETAS DESLIZANTES COM SWIPE-TO-CLOSE) -->
   <div class="sheet-backdrop" id="sheetBackdrop" aria-hidden="true"></div>
 
   <aside class="sheet-drawer" id="sheetDrawer" aria-label="Painel de Edição">
     
     <!-- Barra Superior da Gaveta (Header com alça e fechar) -->
-    <div class="sheet-header">
-      <div class="sheet-drag-handle" aria-hidden="true"></div>
+    <div class="sheet-header" id="sheetHeader">
+      <div class="sheet-drag-handle" id="sheetDragHandle" aria-hidden="true"></div>
       <div class="sheet-title-wrap">
         <h3 id="sheetTitle">Foto do Produto</h3>
         <span id="sheetSubtitle" class="sheet-subtitle">Envie ou ajuste o enquadramento</span>
@@ -2314,7 +2463,7 @@ input, select, textarea {
     </div>
 
     <!-- Conteúdo Scrollável das Abas -->
-    <div class="sheet-body-content">
+    <div class="sheet-body-content" id="sheetBodyContent">
       
       <!-- ABA 1: FOTO & ENQUADRAMENTO -->
       <section id="tab-upload" class="tab-panel active" role="tabpanel">
@@ -2557,8 +2706,40 @@ input, select, textarea {
         </div>
       </section>
 
-      <!-- ABA 4: FUNDO & CORES -->
+      <!-- ABA 4: FUNDO, CORES & FORMATO DE CANVAS -->
       <section id="tab-background" class="tab-panel" role="tabpanel">
+        
+        <!-- Seleção Rápida de Formatos de Canvas -->
+        <div class="clean-group-card mb-3">
+          <span class="section-label">Proporção do Canvas / Arte:</span>
+          <div class="ratio-chips-grid" id="ratioChipsContainer">
+            <button class="ratio-chip-btn active" data-ratio="9:16">
+              <strong>9:16</strong>
+              <span>Story/Reels</span>
+            </button>
+            <button class="ratio-chip-btn" data-ratio="4:3">
+              <strong>4:3</strong>
+              <span>Retrato</span>
+            </button>
+            <button class="ratio-chip-btn" data-ratio="16:10">
+              <strong>16:10</strong>
+              <span>Display</span>
+            </button>
+            <button class="ratio-chip-btn" data-ratio="21:9">
+              <strong>21:9</strong>
+              <span>Ultrawide</span>
+            </button>
+            <button class="ratio-chip-btn" data-ratio="16:9">
+              <strong>16:9</strong>
+              <span>Vídeo/Post</span>
+            </button>
+            <button class="ratio-chip-btn" data-ratio="1:1">
+              <strong>1:1</strong>
+              <span>Quadrado</span>
+            </button>
+          </div>
+        </div>
+
         <span class="section-label">Cores Sólidas:</span>
         <div class="color-palette-modern" role="group">
           <button class="color-swatch-clean active" data-color="#0f172a" style="background: #0f172a;" title="Azul Noturno"></button>
@@ -2974,7 +3155,7 @@ input, select, textarea {
         </label>
         
         <div class="modal-actions-right">
-          <button id="closePreviewBtn2" class="btn-ghost-minimal">Voltar ao Editor</button>
+          <button id="closePreviewBtn2" class="btn-ghost-glass">Voltar ao Editor</button>
           <button id="downloadFromPreviewBtn" class="btn-primary-glow">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -2988,7 +3169,7 @@ input, select, textarea {
     </div>
   </div>
 
-  <!-- CANVAS OCULTO PARA EXPORTAÇÃO 1080x1920 (HIGH RESOLUTION) -->
+  <!-- CANVAS OCULTO PARA EXPORTAÇÃO (HIGH RESOLUTION) -->
   <canvas id="exportCanvas" width="1080" height="1920" style="display:none;" aria-hidden="true"></canvas>
 
   <!-- MODAL DE BOAS-VINDAS INICIAL -->
@@ -3087,6 +3268,7 @@ input, select, textarea {
     backgroundColor: '#0f172a',
     backgroundGradient: null,
     overlayDarkness: 0,
+    canvasRatio: '9:16', // '9:16', '4:3', '16:10', '21:9', '16:9', '1:1'
 
     // Camadas de Texto
     textLayers: [],
@@ -3118,6 +3300,7 @@ input, select, textarea {
         backgroundGradient: AppState.backgroundGradient,
         overlayDarkness: AppState.overlayDarkness,
         currentFitMode: AppState.currentFitMode,
+        canvasRatio: AppState.canvasRatio || '9:16',
         projectTitle: AppState.projectTitle
       };
     },
@@ -3150,6 +3333,9 @@ input, select, textarea {
       AppState.backgroundGradient = previousState.backgroundGradient;
       AppState.overlayDarkness = previousState.overlayDarkness;
       AppState.currentFitMode = previousState.currentFitMode;
+      if (previousState.canvasRatio && typeof CanvasRatioManager !== 'undefined') {
+        CanvasRatioManager.setRatio(previousState.canvasRatio, false);
+      }
       if (previousState.projectTitle !== undefined) {
         AppState.projectTitle = previousState.projectTitle;
         if (DOM.projectTitleInput) DOM.projectTitleInput.value = previousState.projectTitle;
@@ -4387,11 +4573,19 @@ input, select, textarea {
     workspaceZoomPercent: document.getElementById('workspaceZoomPercent'),
     fitScreenBtn: document.getElementById('fitScreenBtn'),
 
+    // Proporção de Canvas & Resolução
+    canvasRatioSelect: document.getElementById('canvasRatioSelect'),
+    topBarResolutionBadge: document.getElementById('topBarResolutionBadge'),
+    ratioChips: document.querySelectorAll('.ratio-chip-btn'),
+
     // Floating Dock & Bottom Sheets
     floatingDock: document.getElementById('floatingDock'),
     dockItems: document.querySelectorAll('.dock-item'),
     dockInspectorBtn: document.getElementById('dockInspectorBtn'),
     sheetDrawer: document.getElementById('sheetDrawer'),
+    sheetHeader: document.getElementById('sheetHeader'),
+    sheetDragHandle: document.getElementById('sheetDragHandle'),
+    sheetBodyContent: document.getElementById('sheetBodyContent'),
     sheetBackdrop: document.getElementById('sheetBackdrop'),
     closeSheetBtn: document.getElementById('closeSheetBtn'),
     sheetTitle: document.getElementById('sheetTitle'),
@@ -7165,6 +7359,196 @@ input, select, textarea {
   }
 
   /* ==========================================================================
+     GERENCIADOR DE PROPORÇÕES DE CANVAS (9:16, 4:3, 16:10, 21:9, 16:9, 1:1)
+     ========================================================================== */
+  const RATIO_CONFIGS = {
+    '9:16': { width: 1080, height: 1920, label: '1080×1920', cssRatio: '9 / 16', safeZoneSupported: true },
+    '4:3': { width: 1440, height: 1080, label: '1440×1080', cssRatio: '4 / 3', safeZoneSupported: false },
+    '16:10': { width: 1920, height: 1200, label: '1920×1200', cssRatio: '16 / 10', safeZoneSupported: false },
+    '21:9': { width: 2560, height: 1080, label: '2560×1080', cssRatio: '21 / 9', safeZoneSupported: false },
+    '16:9': { width: 1920, height: 1080, label: '1920×1080', cssRatio: '16 / 9', safeZoneSupported: false },
+    '1:1': { width: 1080, height: 1080, label: '1080×1080', cssRatio: '1 / 1', safeZoneSupported: false }
+  };
+
+  const CanvasRatioManager = {
+    init() {
+      // 1. Dropdown na Top Bar
+      if (DOM.canvasRatioSelect) {
+        DOM.canvasRatioSelect.addEventListener('change', (e) => {
+          this.setRatio(e.target.value);
+        });
+      }
+
+      // 2. Chips na aba de Fundo / Formato
+      if (DOM.ratioChips) {
+        DOM.ratioChips.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ratio = btn.getAttribute('data-ratio');
+            if (ratio) {
+              this.setRatio(ratio);
+            }
+          });
+        });
+      }
+
+      // Inicializa proporção
+      this.setRatio(AppState.canvasRatio || '9:16', false);
+    },
+
+    setRatio(ratioId, saveHistory = true) {
+      const config = RATIO_CONFIGS[ratioId] || RATIO_CONFIGS['9:16'];
+      
+      if (saveHistory && AppState.canvasRatio !== ratioId) {
+        ActionHistory.saveState();
+      }
+
+      AppState.canvasRatio = ratioId;
+      CONFIG.CANVAS_WIDTH = config.width;
+      CONFIG.CANVAS_HEIGHT = config.height;
+      CONFIG.ASPECT_RATIO = config.width / config.height;
+
+      // 1. Atualiza Select e Chips
+      if (DOM.canvasRatioSelect) {
+        DOM.canvasRatioSelect.value = ratioId;
+      }
+      if (DOM.topBarResolutionBadge) {
+        DOM.topBarResolutionBadge.textContent = config.label;
+      }
+      if (DOM.ratioChips) {
+        DOM.ratioChips.forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-ratio') === ratioId);
+        });
+      }
+
+      // 2. Atualiza variável CSS no Workspace e Containers
+      document.documentElement.style.setProperty('--canvas-aspect-ratio', config.cssRatio);
+      if (DOM.stageViewport) {
+        DOM.stageViewport.style.aspectRatio = config.cssRatio;
+      }
+      if (DOM.smartphoneFrame) {
+        DOM.smartphoneFrame.style.aspectRatio = config.cssRatio;
+      }
+      if (DOM.storyCanvasContainer) {
+        DOM.storyCanvasContainer.style.aspectRatio = config.cssRatio;
+      }
+
+      // 3. Redimensiona Canvas 2D
+      if (DOM.backgroundCanvas) {
+        DOM.backgroundCanvas.width = config.width;
+        DOM.backgroundCanvas.height = config.height;
+      }
+      if (DOM.exportCanvas) {
+        DOM.exportCanvas.width = config.width;
+        DOM.exportCanvas.height = config.height;
+      }
+
+      // 4. Safe Zones (habilitado apenas quando suportado, ex: 9:16)
+      if (DOM.safeZonesGuide) {
+        if (!config.safeZoneSupported) {
+          DOM.safeZonesGuide.classList.add('hidden');
+        } else if (AppState.showSafeZones) {
+          DOM.safeZonesGuide.classList.remove('hidden');
+        }
+      }
+
+      // 5. Redesenha fundo e camadas
+      BackgroundController.render();
+      TextLayerManager.renderLayers();
+
+      // 6. Sincroniza em background
+      if (typeof BackgroundSyncManager !== 'undefined') {
+        BackgroundSyncManager.triggerAutoSave();
+      }
+    }
+  };
+
+  /* ==========================================================================
+     GERENCIADOR DE GESTOS SWIPE-TO-CLOSE (ESTILO NATIVO iOS)
+     ========================================================================== */
+  const SwipeToCloseHandler = {
+    sheet: null,
+    header: null,
+    backdrop: null,
+    startY: 0,
+    currentY: 0,
+    deltaY: 0,
+    startTime: 0,
+    isSwiping: false,
+
+    init() {
+      this.sheet = document.getElementById('sheetDrawer');
+      this.header = document.getElementById('sheetHeader');
+      this.backdrop = document.getElementById('sheetBackdrop');
+
+      if (!this.sheet || !this.header) return;
+
+      const onTouchStart = (e) => {
+        if (!this.sheet.classList.contains('open')) return;
+        const touch = e.touches[0];
+        const content = document.getElementById('sheetBodyContent');
+
+        const isHeaderTouch = this.header.contains(e.target) || (e.target && e.target.classList.contains('sheet-drag-handle'));
+        const isAtTop = content ? content.scrollTop <= 0 : true;
+
+        if (!isHeaderTouch && !isAtTop) return;
+
+        this.startY = touch.clientY;
+        this.currentY = touch.clientY;
+        this.deltaY = 0;
+        this.startTime = Date.now();
+        this.isSwiping = true;
+      };
+
+      const onTouchMove = (e) => {
+        if (!this.isSwiping) return;
+        const touch = e.touches[0];
+        this.currentY = touch.clientY;
+        this.deltaY = this.currentY - this.startY;
+
+        if (this.deltaY > 0) {
+          if (e.cancelable) e.preventDefault();
+          this.sheet.classList.add('dragging');
+          this.sheet.style.transform = `translate(-50%, ${this.deltaY}px)`;
+          if (this.backdrop) {
+            const progress = Math.max(0, 1 - (this.deltaY / 300));
+            this.backdrop.style.opacity = `${progress}`;
+          }
+        } else {
+          this.sheet.style.transform = 'translate(-50%, 0)';
+        }
+      };
+
+      const onTouchEnd = (e) => {
+        if (!this.isSwiping) return;
+        this.isSwiping = false;
+        this.sheet.classList.remove('dragging');
+
+        const elapsed = Date.now() - this.startTime;
+        const velocity = this.deltaY / Math.max(1, elapsed);
+
+        if (this.deltaY > 80 || (velocity > 0.45 && this.deltaY > 20)) {
+          this.sheet.style.transform = '';
+          if (this.backdrop) this.backdrop.style.opacity = '';
+          closeSheet();
+        } else {
+          this.sheet.style.transform = 'translate(-50%, 0)';
+          if (this.backdrop) this.backdrop.style.opacity = '';
+          setTimeout(() => {
+            if (this.sheet.classList.contains('open')) {
+              this.sheet.style.transform = '';
+            }
+          }, 320);
+        }
+      };
+
+      this.header.addEventListener('touchstart', onTouchStart, { passive: true });
+      this.sheet.addEventListener('touchmove', onTouchMove, { passive: false });
+      this.sheet.addEventListener('touchend', onTouchEnd, { passive: true });
+      this.sheet.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    }
+  };
+
+  /* ==========================================================================
      11. GERENCIADOR DE WEB SHARE TARGET (PWA / COMPARTILHAMENTO DE IMAGENS)
      ========================================================================== */
   const WebShareTargetHandler = {
@@ -7320,7 +7704,13 @@ input, select, textarea {
       sheetBackdrop.addEventListener('click', () => closeSheet());
     }
 
-    // 3. Alternador das Áreas Seguras do Instagram
+    // 3. Gestos Swipe-to-Close
+    SwipeToCloseHandler.init();
+
+    // 4. Proporções de Canvas
+    CanvasRatioManager.init();
+
+    // 5. Alternador das Áreas Seguras do Instagram
     const updateSafeZonesUI = () => {
       const guide = document.getElementById('safeZonesGuide');
       if (guide) {
@@ -7336,7 +7726,7 @@ input, select, textarea {
       DOM.toggleSafeZoneBtn.addEventListener('click', updateSafeZonesUI);
     }
 
-    // 4. Botão de Desfazer (Undo)
+    // 6. Botão de Desfazer (Undo)
     if (DOM.btnUndo) {
       DOM.btnUndo.addEventListener('click', () => ActionHistory.undo());
     }
@@ -7356,7 +7746,7 @@ input, select, textarea {
 
     ActionHistory.updateUI();
 
-    // 5. Limpar Canvas
+    // 7. Limpar Canvas
     if (DOM.resetCanvasBtn) {
       DOM.resetCanvasBtn.addEventListener('click', () => {
         if (confirm('Deseja limpar todos os elementos e recomeçar a arte?')) {
@@ -7374,21 +7764,21 @@ input, select, textarea {
       });
     }
 
-    // 6. Exportar PNG
+    // 8. Exportar PNG
     if (DOM.exportStoryBtn) {
       DOM.exportStoryBtn.addEventListener('click', () => {
         CanvasExporter.exportAsPNG();
       });
     }
 
-    // 7. Renomear Projeto
+    // 9. Renomear Projeto
     if (DOM.projectTitleInput) {
       DOM.projectTitleInput.addEventListener('input', (e) => {
         AppState.projectTitle = e.target.value.trim();
       });
     }
 
-    // 8. Modal de Boas-Vindas Inicial
+    // 10. Modal de Boas-Vindas Inicial
     if (DOM.btnWelcomeOk && DOM.welcomeModal) {
       DOM.btnWelcomeOk.addEventListener('click', () => {
         DOM.welcomeModal.classList.add('closing');
@@ -7398,7 +7788,7 @@ input, select, textarea {
       });
     }
 
-    // 9. Zoom do Canvas
+    // 11. Zoom do Canvas
     let currentWorkspaceZoom = 100;
     const updateWorkspaceZoom = (newZoom) => {
       currentWorkspaceZoom = Math.min(Math.max(50, newZoom), 180);

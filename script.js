@@ -72,6 +72,7 @@
     backgroundColor: '#0f172a',
     backgroundGradient: null,
     overlayDarkness: 0,
+    canvasRatio: '9:16', // '9:16', '4:3', '16:10', '21:9', '16:9', '1:1'
 
     // Camadas de Texto
     textLayers: [],
@@ -103,6 +104,7 @@
         backgroundGradient: AppState.backgroundGradient,
         overlayDarkness: AppState.overlayDarkness,
         currentFitMode: AppState.currentFitMode,
+        canvasRatio: AppState.canvasRatio || '9:16',
         projectTitle: AppState.projectTitle
       };
     },
@@ -135,6 +137,9 @@
       AppState.backgroundGradient = previousState.backgroundGradient;
       AppState.overlayDarkness = previousState.overlayDarkness;
       AppState.currentFitMode = previousState.currentFitMode;
+      if (previousState.canvasRatio && typeof CanvasRatioManager !== 'undefined') {
+        CanvasRatioManager.setRatio(previousState.canvasRatio, false);
+      }
       if (previousState.projectTitle !== undefined) {
         AppState.projectTitle = previousState.projectTitle;
         if (DOM.projectTitleInput) DOM.projectTitleInput.value = previousState.projectTitle;
@@ -1372,11 +1377,19 @@
     workspaceZoomPercent: document.getElementById('workspaceZoomPercent'),
     fitScreenBtn: document.getElementById('fitScreenBtn'),
 
+    // Proporção de Canvas & Resolução
+    canvasRatioSelect: document.getElementById('canvasRatioSelect'),
+    topBarResolutionBadge: document.getElementById('topBarResolutionBadge'),
+    ratioChips: document.querySelectorAll('.ratio-chip-btn'),
+
     // Floating Dock & Bottom Sheets
     floatingDock: document.getElementById('floatingDock'),
     dockItems: document.querySelectorAll('.dock-item'),
     dockInspectorBtn: document.getElementById('dockInspectorBtn'),
     sheetDrawer: document.getElementById('sheetDrawer'),
+    sheetHeader: document.getElementById('sheetHeader'),
+    sheetDragHandle: document.getElementById('sheetDragHandle'),
+    sheetBodyContent: document.getElementById('sheetBodyContent'),
     sheetBackdrop: document.getElementById('sheetBackdrop'),
     closeSheetBtn: document.getElementById('closeSheetBtn'),
     sheetTitle: document.getElementById('sheetTitle'),
@@ -4150,6 +4163,196 @@
   }
 
   /* ==========================================================================
+     GERENCIADOR DE PROPORÇÕES DE CANVAS (9:16, 4:3, 16:10, 21:9, 16:9, 1:1)
+     ========================================================================== */
+  const RATIO_CONFIGS = {
+    '9:16': { width: 1080, height: 1920, label: '1080×1920', cssRatio: '9 / 16', safeZoneSupported: true },
+    '4:3': { width: 1440, height: 1080, label: '1440×1080', cssRatio: '4 / 3', safeZoneSupported: false },
+    '16:10': { width: 1920, height: 1200, label: '1920×1200', cssRatio: '16 / 10', safeZoneSupported: false },
+    '21:9': { width: 2560, height: 1080, label: '2560×1080', cssRatio: '21 / 9', safeZoneSupported: false },
+    '16:9': { width: 1920, height: 1080, label: '1920×1080', cssRatio: '16 / 9', safeZoneSupported: false },
+    '1:1': { width: 1080, height: 1080, label: '1080×1080', cssRatio: '1 / 1', safeZoneSupported: false }
+  };
+
+  const CanvasRatioManager = {
+    init() {
+      // 1. Dropdown na Top Bar
+      if (DOM.canvasRatioSelect) {
+        DOM.canvasRatioSelect.addEventListener('change', (e) => {
+          this.setRatio(e.target.value);
+        });
+      }
+
+      // 2. Chips na aba de Fundo / Formato
+      if (DOM.ratioChips) {
+        DOM.ratioChips.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ratio = btn.getAttribute('data-ratio');
+            if (ratio) {
+              this.setRatio(ratio);
+            }
+          });
+        });
+      }
+
+      // Inicializa proporção
+      this.setRatio(AppState.canvasRatio || '9:16', false);
+    },
+
+    setRatio(ratioId, saveHistory = true) {
+      const config = RATIO_CONFIGS[ratioId] || RATIO_CONFIGS['9:16'];
+      
+      if (saveHistory && AppState.canvasRatio !== ratioId) {
+        ActionHistory.saveState();
+      }
+
+      AppState.canvasRatio = ratioId;
+      CONFIG.CANVAS_WIDTH = config.width;
+      CONFIG.CANVAS_HEIGHT = config.height;
+      CONFIG.ASPECT_RATIO = config.width / config.height;
+
+      // 1. Atualiza Select e Chips
+      if (DOM.canvasRatioSelect) {
+        DOM.canvasRatioSelect.value = ratioId;
+      }
+      if (DOM.topBarResolutionBadge) {
+        DOM.topBarResolutionBadge.textContent = config.label;
+      }
+      if (DOM.ratioChips) {
+        DOM.ratioChips.forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-ratio') === ratioId);
+        });
+      }
+
+      // 2. Atualiza variável CSS no Workspace e Containers
+      document.documentElement.style.setProperty('--canvas-aspect-ratio', config.cssRatio);
+      if (DOM.stageViewport) {
+        DOM.stageViewport.style.aspectRatio = config.cssRatio;
+      }
+      if (DOM.smartphoneFrame) {
+        DOM.smartphoneFrame.style.aspectRatio = config.cssRatio;
+      }
+      if (DOM.storyCanvasContainer) {
+        DOM.storyCanvasContainer.style.aspectRatio = config.cssRatio;
+      }
+
+      // 3. Redimensiona Canvas 2D
+      if (DOM.backgroundCanvas) {
+        DOM.backgroundCanvas.width = config.width;
+        DOM.backgroundCanvas.height = config.height;
+      }
+      if (DOM.exportCanvas) {
+        DOM.exportCanvas.width = config.width;
+        DOM.exportCanvas.height = config.height;
+      }
+
+      // 4. Safe Zones (habilitado apenas quando suportado, ex: 9:16)
+      if (DOM.safeZonesGuide) {
+        if (!config.safeZoneSupported) {
+          DOM.safeZonesGuide.classList.add('hidden');
+        } else if (AppState.showSafeZones) {
+          DOM.safeZonesGuide.classList.remove('hidden');
+        }
+      }
+
+      // 5. Redesenha fundo e camadas
+      BackgroundController.render();
+      TextLayerManager.renderLayers();
+
+      // 6. Sincroniza em background
+      if (typeof BackgroundSyncManager !== 'undefined') {
+        BackgroundSyncManager.triggerAutoSave();
+      }
+    }
+  };
+
+  /* ==========================================================================
+     GERENCIADOR DE GESTOS SWIPE-TO-CLOSE (ESTILO NATIVO iOS)
+     ========================================================================== */
+  const SwipeToCloseHandler = {
+    sheet: null,
+    header: null,
+    backdrop: null,
+    startY: 0,
+    currentY: 0,
+    deltaY: 0,
+    startTime: 0,
+    isSwiping: false,
+
+    init() {
+      this.sheet = document.getElementById('sheetDrawer');
+      this.header = document.getElementById('sheetHeader');
+      this.backdrop = document.getElementById('sheetBackdrop');
+
+      if (!this.sheet || !this.header) return;
+
+      const onTouchStart = (e) => {
+        if (!this.sheet.classList.contains('open')) return;
+        const touch = e.touches[0];
+        const content = document.getElementById('sheetBodyContent');
+
+        const isHeaderTouch = this.header.contains(e.target) || (e.target && e.target.classList.contains('sheet-drag-handle'));
+        const isAtTop = content ? content.scrollTop <= 0 : true;
+
+        if (!isHeaderTouch && !isAtTop) return;
+
+        this.startY = touch.clientY;
+        this.currentY = touch.clientY;
+        this.deltaY = 0;
+        this.startTime = Date.now();
+        this.isSwiping = true;
+      };
+
+      const onTouchMove = (e) => {
+        if (!this.isSwiping) return;
+        const touch = e.touches[0];
+        this.currentY = touch.clientY;
+        this.deltaY = this.currentY - this.startY;
+
+        if (this.deltaY > 0) {
+          if (e.cancelable) e.preventDefault();
+          this.sheet.classList.add('dragging');
+          this.sheet.style.transform = `translate(-50%, ${this.deltaY}px)`;
+          if (this.backdrop) {
+            const progress = Math.max(0, 1 - (this.deltaY / 300));
+            this.backdrop.style.opacity = `${progress}`;
+          }
+        } else {
+          this.sheet.style.transform = 'translate(-50%, 0)';
+        }
+      };
+
+      const onTouchEnd = (e) => {
+        if (!this.isSwiping) return;
+        this.isSwiping = false;
+        this.sheet.classList.remove('dragging');
+
+        const elapsed = Date.now() - this.startTime;
+        const velocity = this.deltaY / Math.max(1, elapsed);
+
+        if (this.deltaY > 80 || (velocity > 0.45 && this.deltaY > 20)) {
+          this.sheet.style.transform = '';
+          if (this.backdrop) this.backdrop.style.opacity = '';
+          closeSheet();
+        } else {
+          this.sheet.style.transform = 'translate(-50%, 0)';
+          if (this.backdrop) this.backdrop.style.opacity = '';
+          setTimeout(() => {
+            if (this.sheet.classList.contains('open')) {
+              this.sheet.style.transform = '';
+            }
+          }, 320);
+        }
+      };
+
+      this.header.addEventListener('touchstart', onTouchStart, { passive: true });
+      this.sheet.addEventListener('touchmove', onTouchMove, { passive: false });
+      this.sheet.addEventListener('touchend', onTouchEnd, { passive: true });
+      this.sheet.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    }
+  };
+
+  /* ==========================================================================
      11. GERENCIADOR DE WEB SHARE TARGET (PWA / COMPARTILHAMENTO DE IMAGENS)
      ========================================================================== */
   const WebShareTargetHandler = {
@@ -4305,7 +4508,13 @@
       sheetBackdrop.addEventListener('click', () => closeSheet());
     }
 
-    // 3. Alternador das Áreas Seguras do Instagram
+    // 3. Gestos Swipe-to-Close
+    SwipeToCloseHandler.init();
+
+    // 4. Proporções de Canvas
+    CanvasRatioManager.init();
+
+    // 5. Alternador das Áreas Seguras do Instagram
     const updateSafeZonesUI = () => {
       const guide = document.getElementById('safeZonesGuide');
       if (guide) {
@@ -4321,7 +4530,7 @@
       DOM.toggleSafeZoneBtn.addEventListener('click', updateSafeZonesUI);
     }
 
-    // 4. Botão de Desfazer (Undo)
+    // 6. Botão de Desfazer (Undo)
     if (DOM.btnUndo) {
       DOM.btnUndo.addEventListener('click', () => ActionHistory.undo());
     }
@@ -4341,7 +4550,7 @@
 
     ActionHistory.updateUI();
 
-    // 5. Limpar Canvas
+    // 7. Limpar Canvas
     if (DOM.resetCanvasBtn) {
       DOM.resetCanvasBtn.addEventListener('click', () => {
         if (confirm('Deseja limpar todos os elementos e recomeçar a arte?')) {
@@ -4359,21 +4568,21 @@
       });
     }
 
-    // 6. Exportar PNG
+    // 8. Exportar PNG
     if (DOM.exportStoryBtn) {
       DOM.exportStoryBtn.addEventListener('click', () => {
         CanvasExporter.exportAsPNG();
       });
     }
 
-    // 7. Renomear Projeto
+    // 9. Renomear Projeto
     if (DOM.projectTitleInput) {
       DOM.projectTitleInput.addEventListener('input', (e) => {
         AppState.projectTitle = e.target.value.trim();
       });
     }
 
-    // 8. Modal de Boas-Vindas Inicial
+    // 10. Modal de Boas-Vindas Inicial
     if (DOM.btnWelcomeOk && DOM.welcomeModal) {
       DOM.btnWelcomeOk.addEventListener('click', () => {
         DOM.welcomeModal.classList.add('closing');
@@ -4383,7 +4592,7 @@
       });
     }
 
-    // 9. Zoom do Canvas
+    // 11. Zoom do Canvas
     let currentWorkspaceZoom = 100;
     const updateWorkspaceZoom = (newZoom) => {
       currentWorkspaceZoom = Math.min(Math.max(50, newZoom), 180);
