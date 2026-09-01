@@ -1,0 +1,9 @@
+# Dependencias
+node_modules/
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Banco SQLite temporario
+*.db-journal
