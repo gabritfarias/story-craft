@@ -323,6 +323,21 @@ input, select, textarea {
   color: var(--text-muted);
 }
 
+/* Indicador de Camadas Ativas */
+.topbar-layers-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 /* 2. GRUPO CENTRO: Ferramentas de Ação Rápida (44px) */
 .topbar-group-center {
   display: flex;
@@ -2389,6 +2404,9 @@ input, select, textarea {
           </button>
         </div>
       </div>
+
+      <!-- Indicador de Camadas Ativas -->
+      <span id="activeLayersCount" class="topbar-layers-counter" title="Camadas de texto ativas">0 camadas</span>
     </div>
 
     <!-- 2. GRUPO CENTRO: Ferramentas (Grade Safe-Zone, Desfazer, Limpar, Preview) - Botões 44px Confortáveis -->
@@ -4465,16 +4483,22 @@ input, select, textarea {
     },
 
     renderProfilesList() {
-      DOM.profilesCountBadge.textContent = this.profiles.length;
+      if (DOM.profilesCountBadge) {
+        DOM.profilesCountBadge.textContent = this.profiles.length;
+      }
 
       if (this.profiles.length === 0) {
-        DOM.emptyProfilesMsg.style.display = 'block';
-        DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+        if (DOM.emptyProfilesMsg) DOM.emptyProfilesMsg.style.display = 'block';
+        if (DOM.profilesListContainer) {
+          DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+        }
         return;
       }
 
-      DOM.emptyProfilesMsg.style.display = 'none';
-      DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+      if (DOM.emptyProfilesMsg) DOM.emptyProfilesMsg.style.display = 'none';
+      if (DOM.profilesListContainer) {
+        DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+      }
 
       this.profiles.forEach(profile => {
         const item = document.createElement('div');
@@ -5826,8 +5850,8 @@ input, select, textarea {
     },
 
     renderLayers() {
-      DOM.textLayersOverlay.innerHTML = '';
-      DOM.activeLayersCount.textContent = `${AppState.textLayers.length} camadas`;
+      if (DOM.textLayersOverlay) DOM.textLayersOverlay.innerHTML = '';
+      if (DOM.activeLayersCount) DOM.activeLayersCount.textContent = `${AppState.textLayers.length} camadas`;
 
       AppState.textLayers.forEach(layer => {
         const el = document.createElement('div');

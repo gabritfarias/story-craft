@@ -1154,16 +1154,22 @@
     },
 
     renderProfilesList() {
-      DOM.profilesCountBadge.textContent = this.profiles.length;
+      if (DOM.profilesCountBadge) {
+        DOM.profilesCountBadge.textContent = this.profiles.length;
+      }
 
       if (this.profiles.length === 0) {
-        DOM.emptyProfilesMsg.style.display = 'block';
-        DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+        if (DOM.emptyProfilesMsg) DOM.emptyProfilesMsg.style.display = 'block';
+        if (DOM.profilesListContainer) {
+          DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+        }
         return;
       }
 
-      DOM.emptyProfilesMsg.style.display = 'none';
-      DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+      if (DOM.emptyProfilesMsg) DOM.emptyProfilesMsg.style.display = 'none';
+      if (DOM.profilesListContainer) {
+        DOM.profilesListContainer.querySelectorAll('.profile-card-item').forEach(el => el.remove());
+      }
 
       this.profiles.forEach(profile => {
         const item = document.createElement('div');
@@ -2515,8 +2521,8 @@
     },
 
     renderLayers() {
-      DOM.textLayersOverlay.innerHTML = '';
-      DOM.activeLayersCount.textContent = `${AppState.textLayers.length} camadas`;
+      if (DOM.textLayersOverlay) DOM.textLayersOverlay.innerHTML = '';
+      if (DOM.activeLayersCount) DOM.activeLayersCount.textContent = `${AppState.textLayers.length} camadas`;
 
       AppState.textLayers.forEach(layer => {
         const el = document.createElement('div');
