@@ -46,11 +46,11 @@ app.get("/api/health", async (req, res) => {
 });
 
 // ============================================================================
-// ROTAS DE HISTÓRICO DE STORIES (/api/stories)
+// ROTAS DE HISTÓRICO DE STORIES (/api/stories - storycraft.db)
 // ============================================================================
 
 /**
- * GET /api/stories — Retorna todas as artes salvas ordenadas da mais recente para a mais antiga
+ * GET /api/stories — Retorna todas as artes salvas no banco storycraft.db
  */
 app.get("/api/stories", async (req, res) => {
   try {
@@ -58,106 +58,116 @@ app.get("/api/stories", async (req, res) => {
       orderBy: { createdAt: "desc" }
     });
 
-    const formatted = stories.map((s) => ({
-      id: s.id,
-      title: s.title,
-      thumbnail: s.thumbnail,
-      state: typeof s.state === "string" ? JSON.parse(s.state) : s.state,
-      dateFormatted: s.dateFormatted,
-      createdAt: s.createdAt,
-      updatedAt: s.updatedAt
-    }));
+    const formatted = stories.map((s) => {
+      let parsedData = {};
+      try {
+        parsedData = typeof s.data === "string" ? JSON.parse(s.data) : (s.data || {});
+      } catch (e) {
+        parsedData = { raw: s.data };
+      }
+
+      return {
+        id: s.id,
+        title: s.title || "Meu Story",
+        thumbnail: parsedData.thumbnail || "",
+        state: parsedData.state || parsedData,
+        dateFormatted: parsedData.dateFormatted || s.createdAt.toLocaleString("pt-BR"),
+        data: parsedData,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt
+      };
+    });
 
     res.json({ success: true, data: formatted });
   } catch (err) {
-    console.error("[API] Erro ao buscar stories:", err);
+    console.error("[API] Erro ao buscar stories do arquivo storycraft.db:", err);
     res.status(500).json({ success: false, error: "Erro ao buscar histórico de artes." });
   }
 });
 
 /**
- * POST /api/stories — Salva ou atualiza uma arte/histórico no banco
+ * POST /api/stories — Insere um novo registro de forma persistente no banco relacional SQLite
  */
 app.post("/api/stories", async (req, res) => {
   try {
-    const { id, title, thumbnail, state, dateFormatted } = req.body;
+    const { title, data, thumbnail, state, dateFormatted } = req.body;
 
-    if (!title || !thumbnail || !state) {
+    if (!title && !data && !thumbnail && !state) {
       return res.status(400).json({
         success: false,
-        error: "Campos obrigatórios ausentes (title, thumbnail, state)."
+        error: "Campos obrigatórios ausentes. Envie dados do canvas para gravação."
       });
     }
 
-    const stateStr = typeof state === "string" ? state : JSON.stringify(state);
-    const dateStr = dateFormatted || new Date().toLocaleString("pt-BR");
+    const payloadData = data || {
+      thumbnail,
+      state,
+      dateFormatted: dateFormatted || new Date().toLocaleString("pt-BR")
+    };
 
-    let story;
-    if (id) {
-      // Upsert por ID fornecido
-      story = await prisma.story.upsert({
-        where: { id: String(id) },
-        update: {
-          title,
-          thumbnail,
-          state: stateStr,
-          dateFormatted: dateStr
-        },
-        create: {
-          id: String(id),
-          title,
-          thumbnail,
-          state: stateStr,
-          dateFormatted: dateStr
-        }
-      });
-    } else {
-      story = await prisma.story.create({
-        data: {
-          title,
-          thumbnail,
-          state: stateStr,
-          dateFormatted: dateStr
-        }
-      });
+    const dataStr = typeof payloadData === "string" ? payloadData : JSON.stringify(payloadData);
+    const storyTitle = title || (payloadData.state && payloadData.state.projectTitle) || "Meu Story";
+
+    const story = await prisma.story.create({
+      data: {
+        title: storyTitle,
+        data: dataStr
+      }
+    });
+
+    let parsedData = {};
+    try {
+      parsedData = JSON.parse(story.data);
+    } catch (e) {
+      parsedData = story.data;
     }
 
     res.status(201).json({
       success: true,
       data: {
-        ...story,
-        state: JSON.parse(story.state)
+        id: story.id,
+        title: story.title,
+        thumbnail: parsedData.thumbnail || "",
+        state: parsedData.state || parsedData,
+        dateFormatted: parsedData.dateFormatted || story.createdAt.toLocaleString("pt-BR"),
+        data: parsedData,
+        createdAt: story.createdAt,
+        updatedAt: story.updatedAt
       }
     });
   } catch (err) {
-    console.error("[API] Erro ao salvar story:", err);
-    res.status(500).json({ success: false, error: "Erro ao salvar arte no banco de dados." });
+    console.error("[API] Erro ao salvar story no storycraft.db:", err);
+    res.status(500).json({ success: false, error: "Erro ao salvar história no arquivo storycraft.db." });
   }
 });
 
 /**
- * DELETE /api/stories/:id — Remove uma arte do histórico
+ * DELETE /api/stories/:id — Remove o registro correspondente do banco pelo ID
  */
 app.delete("/api/stories/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const storyId = parseInt(req.params.id, 10);
+    if (isNaN(storyId)) {
+      return res.status(400).json({ success: false, error: "ID inválido (deve ser um número inteiro)." });
+    }
+
     await prisma.story.delete({
-      where: { id: String(id) }
+      where: { id: storyId }
     });
-    res.json({ success: true, message: "Arte excluída com sucesso." });
+    res.json({ success: true, message: `Story #${storyId} removida com sucesso de storycraft.db.` });
   } catch (err) {
-    console.error("[API] Erro ao excluir story:", err);
+    console.error("[API] Erro ao excluir story do storycraft.db:", err);
     res.status(500).json({ success: false, error: "Erro ao excluir arte do banco de dados." });
   }
 });
 
 /**
- * DELETE /api/stories — Limpa todo o histórico de artes
+ * DELETE /api/stories — Limpa todo o histórico de artes do storycraft.db
  */
 app.delete("/api/stories", async (req, res) => {
   try {
     await prisma.story.deleteMany({});
-    res.json({ success: true, message: "Todo o histórico de artes foi apagado." });
+    res.json({ success: true, message: "Todo o histórico de artes foi apagado de storycraft.db." });
   } catch (err) {
     console.error("[API] Erro ao limpar stories:", err);
     res.status(500).json({ success: false, error: "Erro ao limpar histórico de artes." });

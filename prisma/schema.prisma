@@ -1,30 +1,16 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./storycraft.db"
+}
+
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
 model Story {
-  id            String   @id @default(uuid())
-  title         String
-  thumbnail     String
-  state         String
-  dateFormatted String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("stories")
-}
-
-model Profile {
-  id         String   @id @default(uuid())
-  name       String
-  textLayers String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@map("profiles")
+  id        Int      @id @default(autoincrement())
+  title     String   @default("Meu Story")
+  data      String   // JSON stringificado com as camadas, textos e imagens do canvas
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
