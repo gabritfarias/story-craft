@@ -83,38 +83,64 @@
   const DB = {
     isServerActive: false,
 
-    async init() {
-      // 1. Testa conectividade com a API REST do SQLite Backend
+    async fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const res = await fetch('/api/health');
-        if (res.ok) {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          throw new Error('Timeout de conexão com o servidor (' + timeoutMs + 'ms).');
+        }
+        throw err;
+      }
+    },
+
+    async init() {
+      // 1. Testa conectividade com a API REST com Timeout de 3000ms (Fail-Fast)
+      try {
+        const res = await this.fetchWithTimeout('/api/health', {}, 3000);
+        if (res && res.ok) {
           this.isServerActive = true;
           console.log('[StoryCraft] Conectado à API REST do SQLite Backend.');
+        } else {
+          this.isServerActive = false;
         }
       } catch (e) {
-        console.warn('[StoryCraft] Servidor SQLite offline. Usando IndexedDB como fallback.');
+        console.warn('[StoryCraft] Servidor SQLite offline ou inacessível. Usando IndexedDB como fallback:', e.message);
         this.isServerActive = false;
       }
 
-      // 2. Se a API estiver ativa, executa migração automática de dados legados do IndexedDB
-      if (this.isServerActive) {
-        await this.migrateLegacyIndexedDB();
-      } else {
-        await this.initIndexedDBFallback();
+      // 2. Inicializa o armazenamento apropriado
+      try {
+        if (this.isServerActive) {
+          await this.migrateLegacyIndexedDB();
+        } else {
+          await this.initIndexedDBFallback();
+        }
+      } catch (storageErr) {
+        console.warn('[StoryCraft] Erro ao inicializar armazenamento, garantindo IndexedDB:', storageErr);
+        await this.initIndexedDBFallback().catch(() => {});
       }
     },
 
     async getAllStories() {
       if (this.isServerActive) {
         try {
-          const res = await fetch('/api/history');
+          const res = await this.fetchWithTimeout('/api/history', {}, 3000);
           if (!res.ok) throw new Error('Falha HTTP ' + res.status);
           const json = await res.json();
-          return json.success ? json.data : [];
+          return json.success ? (json.data || []) : [];
         } catch (err) {
-          console.error('[API] Erro ao buscar histórico:', err);
-          showToast('Erro ao carregar histórico do servidor.', 'error');
-          return [];
+          console.warn('[API] Falha ao buscar histórico no servidor, alternando para IndexedDB:', err.message);
+          this.isServerActive = false;
+          return this.getAllFromIndexedDB();
         }
       } else {
         return this.getAllFromIndexedDB();
@@ -124,7 +150,7 @@
     async saveStory(storyData) {
       if (this.isServerActive) {
         try {
-          const res = await fetch('/api/history', {
+          const res = await this.fetchWithTimeout('/api/history', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -133,7 +159,7 @@
               state: storyData.state,
               dateFormatted: storyData.dateFormatted
             })
-          });
+          }, 5000);
 
           if (!res.ok) {
             if (res.status === 413) {
@@ -147,12 +173,9 @@
           const json = await res.json();
           return json.data;
         } catch (err) {
-          console.error('[API] Erro ao salvar histórico no servidor:', err);
-          const errorMsg = (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')))
-            ? 'Erro de rede ao conectar com o servidor.'
-            : (err.message || 'Não foi possível gravar a arte no servidor.');
-          showToast(errorMsg, 'error');
-          throw err;
+          console.warn('[API] Erro ao salvar histórico no servidor, gravando localmente:', err.message);
+          // Fallback para gravação no IndexedDB local para não perder o trabalho do usuário
+          return this.saveToIndexedDB(storyData);
         }
       } else {
         return this.saveToIndexedDB(storyData);
@@ -162,13 +185,12 @@
     async deleteStory(id) {
       if (this.isServerActive) {
         try {
-          const res = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+          const res = await this.fetchWithTimeout(`/api/history/${id}`, { method: 'DELETE' }, 4000);
           if (!res.ok) throw new Error('Falha HTTP ' + res.status);
           return true;
         } catch (err) {
-          console.error('[API] Erro ao excluir do servidor:', err);
-          showToast('Não foi possível excluir o item do servidor.', 'error');
-          throw err;
+          console.warn('[API] Erro ao excluir no servidor, tentando localmente:', err.message);
+          return this.deleteFromIndexedDB(id);
         }
       } else {
         return this.deleteFromIndexedDB(id);
@@ -178,13 +200,12 @@
     async clearAll() {
       if (this.isServerActive) {
         try {
-          const res = await fetch('/api/history', { method: 'DELETE' });
+          const res = await this.fetchWithTimeout('/api/history', { method: 'DELETE' }, 4000);
           if (!res.ok) throw new Error('Falha HTTP ' + res.status);
           return true;
         } catch (err) {
-          console.error('[API] Erro ao limpar histórico no servidor:', err);
-          showToast('Não foi possível limpar o histórico.', 'error');
-          throw err;
+          console.warn('[API] Erro ao limpar no servidor, limpando localmente:', err.message);
+          return this.clearIndexedDB();
         }
       } else {
         return this.clearIndexedDB();
@@ -332,11 +353,16 @@
     profiles: [],
 
     async init() {
-      DOM.profilesLoadingIndicator.style.display = 'flex';
-      this.loadProfiles();
-      this.bindEvents();
-      this.renderProfilesList();
-      DOM.profilesLoadingIndicator.style.display = 'none';
+      try {
+        if (DOM.profilesLoadingIndicator) DOM.profilesLoadingIndicator.style.display = 'flex';
+        this.loadProfiles();
+        this.bindEvents();
+        this.renderProfilesList();
+      } catch (err) {
+        console.error('[ProfileManager] Erro ao carregar perfis:', err);
+      } finally {
+        if (DOM.profilesLoadingIndicator) DOM.profilesLoadingIndicator.style.display = 'none';
+      }
     },
 
     bindEvents() {
@@ -2754,26 +2780,33 @@
      ========================================================================== */
   const HistoryController = {
     async init() {
-      DOM.clearAllHistoryBtn.addEventListener('click', () => this.clearAll());
-      await this.refreshList();
+      try {
+        if (DOM.clearAllHistoryBtn) {
+          DOM.clearAllHistoryBtn.addEventListener('click', () => this.clearAll());
+        }
+        await this.refreshList();
+      } catch (err) {
+        console.error('[HistoryController] Erro no init:', err);
+      } finally {
+        if (DOM.historyLoadingIndicator) DOM.historyLoadingIndicator.style.display = 'none';
+      }
     },
 
     async refreshList() {
-      DOM.historyLoadingIndicator.style.display = 'flex';
+      if (DOM.historyLoadingIndicator) DOM.historyLoadingIndicator.style.display = 'flex';
 
       try {
         const stories = await DB.getAllStories();
-        DOM.historyCountBadge.textContent = stories.length;
+        if (DOM.historyCountBadge) DOM.historyCountBadge.textContent = stories.length;
 
-        if (stories.length === 0) {
-          DOM.emptyHistoryMsg.style.display = 'block';
-          DOM.historyListContainer.querySelectorAll('.history-card-item').forEach(el => el.remove());
-          DOM.historyLoadingIndicator.style.display = 'none';
+        if (!stories || stories.length === 0) {
+          if (DOM.emptyHistoryMsg) DOM.emptyHistoryMsg.style.display = 'block';
+          if (DOM.historyListContainer) DOM.historyListContainer.querySelectorAll('.history-card-item').forEach(el => el.remove());
           return;
         }
 
-        DOM.emptyHistoryMsg.style.display = 'none';
-        DOM.historyListContainer.querySelectorAll('.history-card-item').forEach(el => el.remove());
+        if (DOM.emptyHistoryMsg) DOM.emptyHistoryMsg.style.display = 'none';
+        if (DOM.historyListContainer) DOM.historyListContainer.querySelectorAll('.history-card-item').forEach(el => el.remove());
 
         stories.forEach(story => {
           const item = document.createElement('div');
@@ -3402,44 +3435,52 @@
       });
     }
 
-    DOM.toggleSafeZoneBtn.addEventListener('click', () => {
-      AppState.showSafeZones = !AppState.showSafeZones;
-      DOM.toggleSafeZoneBtn.classList.toggle('active', AppState.showSafeZones);
-      DOM.safeZonesGuide.classList.toggle('active', AppState.showSafeZones);
-    });
+    if (DOM.toggleSafeZoneBtn) {
+      DOM.toggleSafeZoneBtn.addEventListener('click', () => {
+        AppState.showSafeZones = !AppState.showSafeZones;
+        DOM.toggleSafeZoneBtn.classList.toggle('active', AppState.showSafeZones);
+        if (DOM.safeZonesGuide) DOM.safeZonesGuide.classList.toggle('active', AppState.showSafeZones);
+      });
+    }
 
-    DOM.resetCanvasBtn.addEventListener('click', () => {
-      if (confirm('Deseja limpar todos os elementos e recomeçar a arte?')) {
-        AppState.bgImage = null;
-        AppState.bgImageDataUrl = null;
-        AppState.textLayers = [];
-        AppState.selectedLayerId = null;
-        DOM.canvasEmptyState.classList.remove('hidden');
-        BackgroundController.resetTransform();
-        TextLayerManager.renderLayers();
-        InspectorController.update();
-        showToast('Canvas limpo com sucesso.');
-      }
-    });
+    if (DOM.resetCanvasBtn) {
+      DOM.resetCanvasBtn.addEventListener('click', () => {
+        if (confirm('Deseja limpar todos os elementos e recomeçar a arte?')) {
+          AppState.bgImage = null;
+          AppState.bgImageDataUrl = null;
+          AppState.textLayers = [];
+          AppState.selectedLayerId = null;
+          if (DOM.canvasEmptyState) DOM.canvasEmptyState.classList.remove('hidden');
+          BackgroundController.resetTransform();
+          TextLayerManager.renderLayers();
+          InspectorController.update();
+          showToast('Canvas limpo com sucesso.');
+        }
+      });
+    }
 
-    DOM.exportStoryBtn.addEventListener('click', () => {
-      CanvasExporter.exportAsPNG();
-    });
+    if (DOM.exportStoryBtn) {
+      DOM.exportStoryBtn.addEventListener('click', () => {
+        CanvasExporter.exportAsPNG();
+      });
+    }
 
-    DOM.projectTitleInput.addEventListener('input', (e) => {
-      AppState.projectTitle = e.target.value.trim();
-    });
+    if (DOM.projectTitleInput) {
+      DOM.projectTitleInput.addEventListener('input', (e) => {
+        AppState.projectTitle = e.target.value.trim();
+      });
+    }
 
     let currentWorkspaceZoom = 100;
     const updateWorkspaceZoom = (newZoom) => {
       currentWorkspaceZoom = Math.min(Math.max(50, newZoom), 180);
-      DOM.smartphoneFrame.style.transform = `scale(${currentWorkspaceZoom / 100})`;
-      DOM.workspaceZoomPercent.textContent = `${currentWorkspaceZoom}%`;
+      if (DOM.smartphoneFrame) DOM.smartphoneFrame.style.transform = `scale(${currentWorkspaceZoom / 100})`;
+      if (DOM.workspaceZoomPercent) DOM.workspaceZoomPercent.textContent = `${currentWorkspaceZoom}%`;
     };
 
-    DOM.zoomInWorkspaceBtn.addEventListener('click', () => updateWorkspaceZoom(currentWorkspaceZoom + 10));
-    DOM.zoomOutWorkspaceBtn.addEventListener('click', () => updateWorkspaceZoom(currentWorkspaceZoom - 10));
-    DOM.fitScreenBtn.addEventListener('click', () => updateWorkspaceZoom(100));
+    if (DOM.zoomInWorkspaceBtn) DOM.zoomInWorkspaceBtn.addEventListener('click', () => updateWorkspaceZoom(currentWorkspaceZoom + 10));
+    if (DOM.zoomOutWorkspaceBtn) DOM.zoomOutWorkspaceBtn.addEventListener('click', () => updateWorkspaceZoom(currentWorkspaceZoom - 10));
+    if (DOM.fitScreenBtn) DOM.fitScreenBtn.addEventListener('click', () => updateWorkspaceZoom(100));
   }
 
   // --- CAPTURA GLOBAL DE ERROS E REJEIÇÕES NÃO TRATADAS ---
@@ -3453,24 +3494,52 @@
     showToast('Falha em uma operação assíncrona.', 'error');
   });
 
-  // --- BOOTSTRAP ---
+  // --- BOOTSTRAP RESILIENTE ---
   window.addEventListener('DOMContentLoaded', async () => {
     try {
-      await DB.init();
-      await ProfileManager.init();
+      // 1. Inicializa subsistemas essenciais com isolamento individual
+      try {
+        await DB.init();
+      } catch (dbErr) {
+        console.warn('[Bootstrap] DB.init falhou, continuando em fallback:', dbErr);
+      }
+
+      try {
+        await ProfileManager.init();
+      } catch (profErr) {
+        console.warn('[Bootstrap] ProfileManager.init falhou:', profErr);
+      }
+
       BackgroundController.init();
       TextLayerManager.init();
       InspectorController.init();
       PreviewController.init();
-      await HistoryController.init();
+
+      try {
+        await HistoryController.init();
+      } catch (histErr) {
+        console.warn('[Bootstrap] HistoryController.init falhou:', histErr);
+      }
+
       setupGeneralUI();
 
-      BackgroundController.loadSampleProduct('smartphone');
+      // Carrega o produto de amostra padrão inicial
+      try {
+        BackgroundController.loadSampleProduct('smartphone');
+      } catch (sampleErr) {
+        console.warn('[Bootstrap] loadSampleProduct falhou:', sampleErr);
+      }
 
-      console.log('StoryCraft inicializado com sucesso (Modo Resiliente, Contido & Acessível).');
+      console.log('StoryCraft inicializado com sucesso (Modo Resiliente & Mobile-Ready).');
     } catch (err) {
       console.error('Erro crítico na inicialização do StoryCraft:', err);
-      showToast('Erro ao carregar a aplicação. Tente recarregar a página.', 'error');
+    } finally {
+      // 4. Proteção na Inicialização Geral: Garante que os spinners sumam e a tela fique destravada
+      if (DOM.profilesLoadingIndicator) DOM.profilesLoadingIndicator.style.display = 'none';
+      if (DOM.historyLoadingIndicator) DOM.historyLoadingIndicator.style.display = 'none';
+      if (DOM.canvasEmptyState && !AppState.bgImage && (!AppState.textLayers || AppState.textLayers.length === 0)) {
+        DOM.canvasEmptyState.classList.remove('hidden');
+      }
     }
   });
 
