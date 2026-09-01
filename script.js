@@ -135,12 +135,23 @@
             })
           });
 
-          if (!res.ok) throw new Error('Falha HTTP ' + res.status);
+          if (!res.ok) {
+            if (res.status === 413) {
+              throw new Error('Payload muito grande para o servidor (Erro 413).');
+            } else if (res.status >= 500) {
+              throw new Error(`Erro no servidor ao salvar histórico (HTTP ${res.status}).`);
+            } else {
+              throw new Error(`Falha ao salvar arte no servidor (HTTP ${res.status}).`);
+            }
+          }
           const json = await res.json();
           return json.data;
         } catch (err) {
           console.error('[API] Erro ao salvar histórico no servidor:', err);
-          showToast('Não foi possível gravar a arte no servidor.', 'error');
+          const errorMsg = (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')))
+            ? 'Erro de rede ao conectar com o servidor.'
+            : (err.message || 'Não foi possível gravar a arte no servidor.');
+          showToast(errorMsg, 'error');
           throw err;
         }
       } else {
@@ -652,7 +663,7 @@
 
           const baseFontSize = Math.max(9, Math.round(layer.fontSize * thumbScale));
 
-          let maxAllowedWidth = 180 * 0.88;
+          let maxAllowedWidth = 180 * 0.90;
           if (layer.customWidth) {
             maxAllowedWidth = layer.customWidth * thumbScale;
           }
@@ -668,7 +679,9 @@
             layer.hasBg,
             layer.bgPadding * thumbScale,
             layer.bgRadius * thumbScale,
-            8
+            8,
+            (layer.letterSpacing || 0) * thumbScale,
+            layer.lineHeight || 1.25
           );
 
           ctx.translate(realX, realY);
@@ -804,6 +817,10 @@
     fontFamilySelect: document.getElementById('fontFamilySelect'),
     fontSizeSlider: document.getElementById('fontSizeSlider'),
     fontSizeValue: document.getElementById('fontSizeValue'),
+    letterSpacingSlider: document.getElementById('letterSpacingSlider'),
+    letterSpacingValue: document.getElementById('letterSpacingValue'),
+    lineHeightSlider: document.getElementById('lineHeightSlider'),
+    lineHeightValue: document.getElementById('lineHeightValue'),
     toggleBoldBtn: document.getElementById('toggleBoldBtn'),
     toggleItalicBtn: document.getElementById('toggleItalicBtn'),
     toggleUppercaseBtn: document.getElementById('toggleUppercaseBtn'),
@@ -1702,6 +1719,8 @@
         hasShadow: true,
         hasStroke: false,
         strokeColor: '#000000',
+        letterSpacing: 0,
+        lineHeight: 1.25,
         rotation: 0,
         zIndex: AppState.textLayers.length + 10
       };
@@ -1863,6 +1882,8 @@
           el.style.textTransform = layer.textTransform;
           el.style.textAlign = layer.textAlign;
           el.style.color = layer.color;
+          el.style.letterSpacing = `${layer.letterSpacing || 0}px`;
+          el.style.lineHeight = `${layer.lineHeight || 1.25}`;
 
           if (layer.hasBg) {
             el.style.backgroundColor = layer.bgColor;
@@ -2155,6 +2176,30 @@
         if (el) el.style.fontSize = `${layer.fontSize}px`;
       });
 
+      // Espaçamento de Letras (Letter Spacing)
+      if (DOM.letterSpacingSlider) {
+        DOM.letterSpacingSlider.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.letterSpacing = parseFloat(e.target.value);
+          if (DOM.letterSpacingValue) DOM.letterSpacingValue.textContent = `${layer.letterSpacing}px`;
+          const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
+          if (el) el.style.letterSpacing = `${layer.letterSpacing}px`;
+        });
+      }
+
+      // Altura da Linha (Line Height)
+      if (DOM.lineHeightSlider) {
+        DOM.lineHeightSlider.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.lineHeight = parseFloat(e.target.value);
+          if (DOM.lineHeightValue) DOM.lineHeightValue.textContent = `${layer.lineHeight}x`;
+          const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
+          if (el) el.style.lineHeight = `${layer.lineHeight}`;
+        });
+      }
+
       // Formatações
       DOM.toggleBoldBtn.addEventListener('click', () => {
         const layer = getActiveLayer();
@@ -2324,6 +2369,16 @@
       DOM.fontSizeSlider.value = layer.fontSize;
       DOM.fontSizeValue.textContent = `${layer.fontSize}px`;
 
+      if (DOM.letterSpacingSlider) {
+        DOM.letterSpacingSlider.value = layer.letterSpacing !== undefined ? layer.letterSpacing : 0;
+        if (DOM.letterSpacingValue) DOM.letterSpacingValue.textContent = `${DOM.letterSpacingSlider.value}px`;
+      }
+
+      if (DOM.lineHeightSlider) {
+        DOM.lineHeightSlider.value = layer.lineHeight !== undefined ? layer.lineHeight : 1.25;
+        if (DOM.lineHeightValue) DOM.lineHeightValue.textContent = `${DOM.lineHeightSlider.value}x`;
+      }
+
       DOM.toggleBoldBtn.classList.toggle('active', layer.fontWeight === '800' || layer.fontWeight === 'bold');
       DOM.toggleItalicBtn.classList.toggle('active', layer.fontStyle === 'italic');
       DOM.toggleUppercaseBtn.classList.toggle('active', layer.textTransform === 'uppercase');
@@ -2453,8 +2508,9 @@
 
         const targetFontSize = Math.round(layer.fontSize * exportScale);
 
-        // Calcula a largura máxima permitida para o bloco de texto (respeita margens seguras, bordas e redimensionamento customizado)
-        let maxAllowedWidth = Math.min(w * CONFIG.MAX_TEXT_LAYER_WIDTH_RATIO, 980);
+        // 2. Fim do Esmagamento Vertical:
+        // A largura máxima automática é fixada em w * 0.90 ou layer.customWidth
+        let maxAllowedWidth = w * 0.90;
         if (layer.customWidth) {
           maxAllowedWidth = layer.customWidth * exportScale;
         }
@@ -2472,21 +2528,10 @@
           layer.hasBg,
           layer.bgPadding * exportScale,
           layer.bgRadius * exportScale,
-          16
+          14,
+          (layer.letterSpacing || 0) * exportScale,
+          layer.lineHeight || 1.25
         );
-
-        // Clamping das coordenadas para garantir que o badge/texto nunca ultrapasse as bordas do Canvas
-        const halfBadgeW = layout.badgeW / 2;
-        const halfBadgeH = layout.badgeH / 2;
-        const safePaddingX = 30;
-        const safePaddingY = 40;
-
-        if (halfBadgeW * 2 < w - (safePaddingX * 2)) {
-          realX = Math.max(halfBadgeW + safePaddingX, Math.min(w - halfBadgeW - safePaddingX, realX));
-        }
-        if (halfBadgeH * 2 < h - (safePaddingY * 2)) {
-          realY = Math.max(halfBadgeH + safePaddingY, Math.min(h - halfBadgeH - safePaddingY, realY));
-        }
 
         ctx.translate(realX, realY);
         ctx.rotate((layer.rotation * Math.PI) / 180);
@@ -2506,6 +2551,9 @@
         }
 
         ctx.font = `${layer.fontStyle} ${layer.fontWeight} ${layout.fontSize}px ${layer.fontFamily.replace(/"/g, '')}`;
+        if ('letterSpacing' in ctx) {
+          ctx.letterSpacing = `${(layer.letterSpacing || 0) * exportScale}px`;
+        }
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -2544,7 +2592,15 @@
       });
 
       try {
-        const canvas = this.renderFullResolution();
+        let canvas;
+        try {
+          canvas = this.renderFullResolution();
+        } catch (renderErr) {
+          console.error('Erro de renderização/memória ao gerar Canvas 1080x1920:', renderErr);
+          showToast('Memória insuficiente no dispositivo para exportar em 1080x1920.', 'error');
+          this.resetExportButtons(exportButtons);
+          return;
+        }
 
         canvas.toBlob(async (blob) => {
           try {
@@ -2555,38 +2611,81 @@
             const fileName = sanitizeFileName(AppState.projectTitle);
             await this.saveCurrentStoryToHistory(canvas);
 
-            const file = new File([blob], fileName, { type: 'image/png' });
-
-            // 5. Integração com Web Share API (WhatsApp / Instagram / Compartilhamento nativo)
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            // 1. Prioridade: Web Share API nativa para Mobile (iOS Safari / Android Chrome / WhatsApp)
+            if (navigator.canShare && navigator.share) {
               try {
-                await navigator.share({
-                  title: AppState.projectTitle || 'Story do Instagram',
-                  text: 'Story criado no StoryCraft 9:16',
-                  files: [file]
-                });
-                showToast('Arte compartilhada com sucesso!');
-                return;
+                const file = new File([blob], fileName, { type: 'image/png' });
+                if (navigator.canShare({ files: [file] })) {
+                  await navigator.share({
+                    title: AppState.projectTitle || 'Story do Instagram',
+                    text: 'Story criado no StoryCraft 9:16',
+                    files: [file]
+                  });
+                  showToast('Arte compartilhada com sucesso!');
+                  return;
+                }
               } catch (shareErr) {
                 if (shareErr.name === 'AbortError') {
                   showToast('Compartilhamento cancelado.');
                   return;
                 }
-                console.warn('Web Share falhou ou foi dispensado, prosseguindo com download direto:', shareErr);
+                console.warn('Web Share falhou ou foi dispensado, prosseguindo com fallback Base64:', shareErr);
               }
             }
 
-            // Fallback para download direto via tag <a>
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = fileName;
-            link.href = url;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            // 2. Fallback: Converte Blob para Base64 (FileReader) e tenta abrir em nova aba ou link de download
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64Data = reader.result;
+              try {
+                // Tenta abrir em nova aba no mobile para salvar segurando o dedo
+                if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                  const newWindow = window.open();
+                  if (newWindow) {
+                    newWindow.document.write(`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <title>${fileName}</title>
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        </head>
+                        <body style="margin:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;color:#fff;font-family:sans-serif;">
+                          <p style="padding:12px 16px;text-align:center;font-size:14px;color:#94a3b8;">Toque e segure na imagem abaixo para <strong>Salvar no Rolo de Fotos</strong>.</p>
+                          <img src="${base64Data}" style="max-width:90vw;max-height:82vh;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.8);" alt="Story Exportado">
+                        </body>
+                      </html>
+                    `);
+                    showToast('Imagem pronta! Segure na foto para salvar.');
+                    return;
+                  }
+                }
 
-            showToast('Story 1080x1920 exportado com sucesso!');
+                // Fallback padrão via tag <a>
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = base64Data;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Story 1080x1920 exportado com sucesso!');
+              } catch (fallbackErr) {
+                console.warn('Fallback Base64 falhou, usando blob url:', fallbackErr);
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                showToast('Story 1080x1920 exportado com sucesso!');
+              }
+            };
+            reader.onerror = () => {
+              throw new Error('Falha ao processar arquivo para download.');
+            };
+            reader.readAsDataURL(blob);
+
           } catch (err) {
             console.error('Erro no download:', err);
             showToast('Não foi possível concluir o download da imagem.', 'error');
@@ -2623,28 +2722,29 @@
         tctx.drawImage(canvas, 0, 0, 200, 355);
         const thumbnail = thumbCanvas.toDataURL('image/jpeg', 0.85);
 
+        // 5. Otimização de Payload para Mobile: Removemos bgImageDataUrl pesado do state
+        const lightweightState = {
+          projectTitle: AppState.projectTitle,
+          imageTransform: { ...AppState.imageTransform },
+          backgroundColor: AppState.backgroundColor,
+          backgroundGradient: AppState.backgroundGradient,
+          overlayDarkness: AppState.overlayDarkness,
+          textLayers: JSON.parse(JSON.stringify(AppState.textLayers))
+        };
+
         const storyRecord = {
           id: 'story_' + Date.now(),
           timestamp: Date.now(),
           title: AppState.projectTitle,
           dateFormatted: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date()),
           thumbnail: thumbnail,
-          state: {
-            projectTitle: AppState.projectTitle,
-            bgImageDataUrl: AppState.bgImageDataUrl,
-            imageTransform: { ...AppState.imageTransform },
-            backgroundColor: AppState.backgroundColor,
-            backgroundGradient: AppState.backgroundGradient,
-            overlayDarkness: AppState.overlayDarkness,
-            textLayers: JSON.parse(JSON.stringify(AppState.textLayers))
-          }
+          state: lightweightState
         };
 
         await DB.saveStory(storyRecord);
         HistoryController.refreshList();
       } catch (err) {
-        console.error('Erro ao salvar no histórico:', err);
-        showToast('Não foi possível registrar a arte no histórico.', 'error');
+        console.warn('Não foi possível salvar no histórico automático:', err);
       }
     }
   };
@@ -2967,7 +3067,9 @@
     hasBg,
     bgPadding,
     bgRadius,
-    minFontSize = 14
+    minFontSize = 14,
+    letterSpacing = 0,
+    lineHeightMultiplier = 1.25
   ) {
     let displayText = text || '';
     displayText = displayText.replace(/↻/g, '').trim();
@@ -2977,14 +3079,22 @@
 
     const padX = hasBg ? bgPadding * 1.5 : 0;
     const padY = hasBg ? bgPadding : 0;
-    const effectiveMaxTextWidth = Math.max(100, maxAllowedWidth - (padX * 2));
+    const effectiveMaxTextWidth = Math.max(80, maxAllowedWidth - (padX * 2));
 
     let currentFontSize = initialFontSize;
     let lines = [];
     let longestLineWidth = 0;
 
+    // Aplica letterSpacing no contexto do Canvas se suportado pelo navegador
+    if ('letterSpacing' in ctx) {
+      ctx.letterSpacing = `${letterSpacing || 0}px`;
+    }
+
     const computeLines = (fSize) => {
       ctx.font = `${fontStyle} ${fontWeight} ${fSize}px ${fontFamily.replace(/"/g, '')}`;
+      if ('letterSpacing' in ctx) {
+        ctx.letterSpacing = `${letterSpacing || 0}px`;
+      }
       const rawParagraphs = displayText.split('\n');
       const resultLines = [];
 
@@ -3039,7 +3149,7 @@
       attempts++;
     }
 
-    const lineHeight = currentFontSize * 1.25;
+    const lineHeight = currentFontSize * (lineHeightMultiplier || 1.25);
     const totalHeight = lines.length * lineHeight;
     const badgeW = longestLineWidth + (padX * 2);
     const badgeH = totalHeight + (padY * 2);

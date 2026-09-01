@@ -735,6 +735,14 @@
                 <option value="'Pacifico', cursive" style="font-family: 'Pacifico';">Pacifico (Retro/Verão)</option>
                 <option value="'Dancing Script', cursive" style="font-family: 'Dancing Script';">Dancing Script (Fluida)</option>
               </optgroup>
+
+              <optgroup label="🖥️ Padrões do Sistema">
+                <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                <option value="Helvetica, sans-serif" style="font-family: Helvetica, sans-serif;">Helvetica</option>
+                <option value="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</option>
+                <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
+                <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+              </optgroup>
             </select>
           </div>
 
@@ -745,6 +753,24 @@
               <span id="fontSizeValue" class="slider-val">36px</span>
             </div>
             <input type="range" id="fontSizeSlider" min="14" max="140" value="36" class="custom-range" aria-label="Tamanho da fonte em pixels">
+          </div>
+
+          <!-- Espaçamento de Letras (Letter Spacing) -->
+          <div class="slider-control">
+            <div class="slider-header">
+              <label for="letterSpacingSlider">Espaçamento de Letras</label>
+              <span id="letterSpacingValue" class="slider-val">0px</span>
+            </div>
+            <input type="range" id="letterSpacingSlider" min="-2" max="25" step="0.5" value="0" class="custom-range" aria-label="Espaçamento entre letras em pixels">
+          </div>
+
+          <!-- Altura da Linha (Line Height) -->
+          <div class="slider-control">
+            <div class="slider-header">
+              <label for="lineHeightSlider">Altura da Linha</label>
+              <span id="lineHeightValue" class="slider-val">1.25x</span>
+            </div>
+            <input type="range" id="lineHeightSlider" min="0.8" max="2.5" step="0.05" value="1.25" class="custom-range" aria-label="Altura da linha / entrelinha">
           </div>
 
           <!-- Formatações: Negrito, Itálico, Maiúsculas, Alinhamento -->

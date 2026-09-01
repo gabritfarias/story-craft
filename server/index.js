@@ -13,10 +13,10 @@ const DB = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração de Middlewares
-app.use(cors());
-app.use(express.json({ limit: '35mb' }));
-app.use(express.urlencoded({ limit: '35mb', extended: true }));
+// Configuração de Middlewares (CORS total para acesso multi-dispositivo na LAN)
+app.use(cors({ origin: '*' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Servir arquivos estáticos do front-end (index.html, style.css, script.js)
 const publicPath = path.join(__dirname, '..');
@@ -102,10 +102,11 @@ app.use((req, res) => {
   res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-// Inicia o servidor HTTP
-app.listen(PORT, () => {
+// Inicia o servidor HTTP escutando em todas as interfaces de rede (0.0.0.0)
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
   console.log(`🚀 StoryCraft Server rodando em http://localhost:${PORT}`);
+  console.log(`🌐 Acesso na rede local disponível em http://0.0.0.0:${PORT}`);
   console.log(`📂 Banco de Dados SQLite em disco: ${path.join(__dirname, 'storycraft.db')}`);
   console.log(`=======================================================`);
 });
