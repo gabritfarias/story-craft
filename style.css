@@ -1410,14 +1410,18 @@ html, body {
   display: block;
 }
 
+.safe-zones-guide.hidden {
+  display: none !important;
+}
+
 .safe-zone-top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 13%;
-  background: rgba(239, 68, 68, 0.12);
-  border-bottom: 1.5px dashed rgba(239, 68, 68, 0.7);
+  background: rgba(255, 50, 50, 0.2);
+  border-bottom: 2px dashed rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1430,8 +1434,8 @@ html, body {
   left: 0;
   right: 0;
   height: 13%;
-  background: rgba(239, 68, 68, 0.12);
-  border-top: 1.5px dashed rgba(239, 68, 68, 0.7);
+  background: rgba(255, 50, 50, 0.2);
+  border-top: 2px dashed rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -2352,21 +2356,26 @@ html, body {
     height: calc(100dvh - 60px);
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 10px;
-    overflow: hidden;
+    padding-bottom: 120px;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
   }
 
   .stage-viewport {
     width: 100%;
-    height: 100%;
-    padding: 0;
+    min-height: auto;
+    height: auto;
+    padding: 10px 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .smartphone-frame {
@@ -2595,6 +2604,7 @@ html, body {
     display: none;
   }
 
+  .btn-pill,
   .quick-pill-btn {
     display: inline-flex;
     align-items: center;
@@ -2612,6 +2622,7 @@ html, body {
     user-select: none;
   }
 
+  .btn-pill:active,
   .quick-pill-btn:active {
     transform: scale(0.96);
     background: var(--bg-hover);

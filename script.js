@@ -784,6 +784,7 @@
     // Header & Títulos
     projectTitleInput: document.getElementById('projectTitleInput'),
     toggleSafeZoneBtn: document.getElementById('toggleSafeZoneBtn'),
+    btnToggleSafeZone: document.getElementById('btnToggleSafeZone'),
     resetCanvasBtn: document.getElementById('resetCanvasBtn'),
     openPreviewModalBtn: document.getElementById('openPreviewModalBtn'),
     saveProfileHeaderBtn: document.getElementById('saveProfileHeaderBtn'),
@@ -1449,6 +1450,9 @@
     resizeStartX: 0,
     resizeStartWidth: 0,
     resizeDir: 1,
+    initialPinchDistance: 0,
+    initialFontSize: 0,
+    isPinching: false,
 
     init() {
       this.bindEvents();
@@ -1818,7 +1822,7 @@
       ];
 
       this.renderLayers();
-      this.selectLayer(AppState.textLayers[1].id);
+      this.selectLayer(AppState.textLayers[1]?.id || null, false);
     },
 
     addLayer(customProps = {}) {
@@ -2098,6 +2102,19 @@
       });
 
       el.addEventListener('touchstart', (e) => {
+        // Gesto de Pinça (Pinch-to-Zoom): se houver 2 dedos sobre o texto
+        if (e.touches && e.touches.length === 2) {
+          e.preventDefault();
+          this.isPinching = true;
+          this.initialPinchDistance = Math.hypot(
+            e.touches[0].pageX - e.touches[1].pageX,
+            e.touches[0].pageY - e.touches[1].pageY
+          );
+          this.initialFontSize = layer.fontSize || 26;
+          this.selectLayer(layer.id, false);
+          return;
+        }
+
         if (e.touches.length !== 1) return;
         hasMoved = false;
         const touch = e.touches[0];
@@ -2125,6 +2142,13 @@
       });
 
       el.addEventListener('touchend', (e) => {
+        if (this.isPinching || (e.touches && e.touches.length > 0)) {
+          if (!e.touches || e.touches.length < 2) {
+            this.isPinching = false;
+            this.initialPinchDistance = 0;
+          }
+          return;
+        }
         if (!hasMoved && !e.target.classList.contains('layer-handle') && !e.target.classList.contains('layer-rotate-handle')) {
           if (window.innerWidth <= 860) {
             openRightDrawer();
@@ -2173,6 +2197,31 @@
     },
 
     handleDragMove(e) {
+      // 1. Gesto de Pinça (Pinch-to-Zoom) para Redimensionar Texto com 2 dedos no Mobile
+      if (e.touches && e.touches.length === 2) {
+        const layer = AppState.textLayers.find(l => l.id === (this.draggedLayerId || AppState.selectedLayerId));
+        if (layer && this.initialPinchDistance > 0) {
+          e.preventDefault();
+          const currentDistance = Math.hypot(
+            e.touches[0].pageX - e.touches[1].pageX,
+            e.touches[0].pageY - e.touches[1].pageY
+          );
+          const scale = currentDistance / this.initialPinchDistance;
+          const newFontSize = Math.max(10, Math.min(140, Math.round(this.initialFontSize * scale)));
+          layer.fontSize = newFontSize;
+
+          const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
+          if (el) {
+            el.style.fontSize = `${newFontSize}px`;
+          }
+          if (DOM.fontSizeSlider && AppState.selectedLayerId === layer.id) {
+            DOM.fontSizeSlider.value = newFontSize;
+            if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = `${newFontSize}px`;
+          }
+          return;
+        }
+      }
+
       const clientX = e.clientX || (e.touches && e.touches[0].clientX);
       const clientY = e.clientY || (e.touches && e.touches[0].clientY);
       if (clientX === undefined || clientY === undefined) return;
@@ -2217,6 +2266,9 @@
     handleDragEnd() {
       this.draggedLayerId = null;
       this.resizingLayerId = null;
+      this.isPinching = false;
+      this.initialPinchDistance = 0;
+      this.initialFontSize = 0;
     },
 
     applyGlobalTypographyStyle(style) {
@@ -3582,11 +3634,31 @@
       });
     }
 
+    // 6. Alternador das Áreas Seguras do Instagram (Desktop e Mobile)
+    const btnToggleSafeZone = document.getElementById('btnToggleSafeZone');
+    const updateSafeZonesUI = (show) => {
+      AppState.showSafeZones = show;
+      if (DOM.safeZonesGuide) {
+        DOM.safeZonesGuide.classList.toggle('active', show);
+        DOM.safeZonesGuide.classList.toggle('hidden', !show);
+      }
+      if (DOM.toggleSafeZoneBtn) {
+        DOM.toggleSafeZoneBtn.classList.toggle('active', show);
+      }
+      if (btnToggleSafeZone) {
+        btnToggleSafeZone.innerHTML = show ? '<span>Ocultar Guias</span>' : '<span>Mostrar Guias</span>';
+      }
+    };
+
+    if (btnToggleSafeZone) {
+      btnToggleSafeZone.addEventListener('click', () => {
+        updateSafeZonesUI(!AppState.showSafeZones);
+      });
+    }
+
     if (DOM.toggleSafeZoneBtn) {
       DOM.toggleSafeZoneBtn.addEventListener('click', () => {
-        AppState.showSafeZones = !AppState.showSafeZones;
-        DOM.toggleSafeZoneBtn.classList.toggle('active', AppState.showSafeZones);
-        if (DOM.safeZonesGuide) DOM.safeZonesGuide.classList.toggle('active', AppState.showSafeZones);
+        updateSafeZonesUI(!AppState.showSafeZones);
       });
     }
 
@@ -3714,6 +3786,8 @@
       }
 
       console.log('StoryCraft inicializado com sucesso (Safe Boot Ativo).');
+      showToast('Bem-vindo de volta! Pronto para criar?', 'success');
+      closeAllDrawers();
     } catch (err) {
       alert('Erro na inicialização: ' + (err && err.message ? err.message : err));
       console.error('Erro crítico na inicialização do StoryCraft:', err);
