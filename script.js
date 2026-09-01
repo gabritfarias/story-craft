@@ -2747,8 +2747,12 @@
             const fileName = sanitizeFileName(AppState.projectTitle);
             await this.saveCurrentStoryToHistory(canvas);
 
-            // 1. Prioridade: Web Share API nativa para Mobile (iOS Safari / Android Chrome / WhatsApp)
-            if (navigator.canShare && navigator.share) {
+            // 1. Prioridade: Web Share API nativa para Mobile (Blindagem Estrita de Tipo para Contexto Inseguro)
+            if (
+              typeof navigator !== 'undefined' &&
+              typeof navigator.share === 'function' &&
+              typeof navigator.canShare === 'function'
+            ) {
               try {
                 const file = new File([blob], fileName, { type: 'image/png' });
                 if (navigator.canShare({ files: [file] })) {
@@ -3612,22 +3616,22 @@
     showToast('Falha em uma operação assíncrona.', 'error');
   });
 
-  // --- BOOTSTRAP RESILIENTE ---
+  // --- BOOTSTRAP RESILIENTE (SAFE BOOT PROTOCOL) ---
   window.addEventListener('DOMContentLoaded', async () => {
+    // 2. Destravamento Forçado (Safe Boot Timeout - Kill Switch de 2.5s)
+    setTimeout(() => {
+      const histEl = document.getElementById('historyLoadingIndicator');
+      const profEl = document.getElementById('profilesLoadingIndicator');
+      const emptyEl = document.getElementById('canvasEmptyState');
+      if (histEl) histEl.style.display = 'none';
+      if (profEl) profEl.style.display = 'none';
+      if (emptyEl && !AppState.bgImage && (!AppState.textLayers || AppState.textLayers.length === 0)) {
+        emptyEl.classList.remove('hidden');
+      }
+    }, 2500);
+
     try {
-      // 1. Inicializa cada subsistema com isolamento estrito de falhas
-      try {
-        await DB.init();
-      } catch (dbErr) {
-        console.warn('[Bootstrap] DB.init:', dbErr);
-      }
-
-      try {
-        await ProfileManager.init();
-      } catch (profErr) {
-        console.warn('[Bootstrap] ProfileManager.init:', profErr);
-      }
-
+      // 1. Inicialização UI-First (Canvas e Controles imediatos sem bloqueio de rede)
       try {
         BackgroundController.init();
       } catch (bgErr) {
@@ -3653,12 +3657,6 @@
       }
 
       try {
-        await HistoryController.init();
-      } catch (histErr) {
-        console.warn('[Bootstrap] HistoryController.init:', histErr);
-      }
-
-      try {
         setupGeneralUI();
       } catch (uiErr) {
         console.error('[Bootstrap] setupGeneralUI:', uiErr);
@@ -3671,15 +3669,38 @@
         console.warn('[Bootstrap] loadSampleProduct:', sampleErr);
       }
 
-      console.log('StoryCraft inicializado com sucesso (Modo Resiliente & Mobile-Ready).');
+      // 2. Inicialização dos Subsistemas Assíncronos / Storage
+      try {
+        await ProfileManager.init();
+      } catch (profErr) {
+        console.warn('[Bootstrap] ProfileManager.init:', profErr);
+      }
+
+      try {
+        await DB.init();
+      } catch (dbErr) {
+        console.warn('[Bootstrap] DB.init:', dbErr);
+      }
+
+      try {
+        await HistoryController.init();
+      } catch (histErr) {
+        console.warn('[Bootstrap] HistoryController.init:', histErr);
+      }
+
+      console.log('StoryCraft inicializado com sucesso (Safe Boot Ativo).');
     } catch (err) {
+      alert('Erro na inicialização: ' + (err && err.message ? err.message : err));
       console.error('Erro crítico na inicialização do StoryCraft:', err);
     } finally {
-      // 4. Proteção na Inicialização Geral: Garante que os spinners sumam e a tela fique destravada
-      if (DOM.profilesLoadingIndicator) DOM.profilesLoadingIndicator.style.display = 'none';
-      if (DOM.historyLoadingIndicator) DOM.historyLoadingIndicator.style.display = 'none';
-      if (DOM.canvasEmptyState && !AppState.bgImage && (!AppState.textLayers || AppState.textLayers.length === 0)) {
-        DOM.canvasEmptyState.classList.remove('hidden');
+      // 3. Destravamento Imediato no final do bootstrap
+      const histEl = document.getElementById('historyLoadingIndicator');
+      const profEl = document.getElementById('profilesLoadingIndicator');
+      const emptyEl = document.getElementById('canvasEmptyState');
+      if (histEl) histEl.style.display = 'none';
+      if (profEl) profEl.style.display = 'none';
+      if (emptyEl && !AppState.bgImage && (!AppState.textLayers || AppState.textLayers.length === 0)) {
+        emptyEl.classList.remove('hidden');
       }
     }
   });
