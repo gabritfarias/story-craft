@@ -1395,7 +1395,8 @@ html, body {
 }
 
 /* Guias de Margem do Instagram (Safe Zones) */
-.safe-zones-guide {
+.safe-zones-guide,
+.safe-zone-guides {
   position: absolute;
   top: 0;
   left: 0;
@@ -1406,36 +1407,48 @@ html, body {
   display: none;
 }
 
-.safe-zones-guide.active {
+.safe-zones-guide.active,
+.safe-zone-guides.active {
   display: block;
 }
 
-.safe-zones-guide.hidden {
+.safe-zones-guide.hidden,
+.safe-zone-guides.hidden {
   display: none !important;
 }
 
-.safe-zone-top {
+.safe-zone-top,
+.instagram-top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 13%;
-  background: rgba(255, 50, 50, 0.2);
-  border-bottom: 2px dashed rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 50, 50, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  pointer-events: none;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 4px;
 }
 
-.safe-zone-bottom {
+.safe-zone-bottom,
+.instagram-bottom {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 13%;
-  background: rgba(255, 50, 50, 0.2);
-  border-top: 2px dashed rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 50, 50, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  pointer-events: none;
   display: flex;
   align-items: flex-start;
   justify-content: center;

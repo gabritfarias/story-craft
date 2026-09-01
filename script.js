@@ -1450,9 +1450,8 @@
     resizeStartX: 0,
     resizeStartWidth: 0,
     resizeDir: 1,
-    initialPinchDistance: 0,
-    initialFontSize: 0,
-    isPinching: false,
+    initialPinchDist: 0,
+    initialPinchSize: 0,
 
     init() {
       this.bindEvents();
@@ -2105,12 +2104,11 @@
         // Gesto de Pinça (Pinch-to-Zoom): se houver 2 dedos sobre o texto
         if (e.touches && e.touches.length === 2) {
           e.preventDefault();
-          this.isPinching = true;
-          this.initialPinchDistance = Math.hypot(
+          this.initialPinchDist = Math.hypot(
             e.touches[0].pageX - e.touches[1].pageX,
             e.touches[0].pageY - e.touches[1].pageY
           );
-          this.initialFontSize = layer.fontSize || 26;
+          this.initialPinchSize = layer.fontSize || 26;
           this.selectLayer(layer.id, false);
           return;
         }
@@ -2142,10 +2140,10 @@
       });
 
       el.addEventListener('touchend', (e) => {
-        if (this.isPinching || (e.touches && e.touches.length > 0)) {
+        if (this.initialPinchDist > 0 || (e.touches && e.touches.length > 0)) {
           if (!e.touches || e.touches.length < 2) {
-            this.isPinching = false;
-            this.initialPinchDistance = 0;
+            this.initialPinchDist = 0;
+            this.initialPinchSize = 0;
           }
           return;
         }
@@ -2198,28 +2196,28 @@
 
     handleDragMove(e) {
       // 1. Gesto de Pinça (Pinch-to-Zoom) para Redimensionar Texto com 2 dedos no Mobile
-      if (e.touches && e.touches.length === 2) {
-        const layer = AppState.textLayers.find(l => l.id === (this.draggedLayerId || AppState.selectedLayerId));
-        if (layer && this.initialPinchDistance > 0) {
-          e.preventDefault();
+      if (e.touches && e.touches.length === 2 && this.initialPinchDist > 0) {
+        e.preventDefault();
+        const targetLayer = AppState.textLayers.find(l => l.id === (this.draggedLayerId || AppState.selectedLayerId));
+        if (targetLayer) {
           const currentDistance = Math.hypot(
             e.touches[0].pageX - e.touches[1].pageX,
             e.touches[0].pageY - e.touches[1].pageY
           );
-          const scale = currentDistance / this.initialPinchDistance;
-          const newFontSize = Math.max(10, Math.min(140, Math.round(this.initialFontSize * scale)));
-          layer.fontSize = newFontSize;
+          const scale = currentDistance / this.initialPinchDist;
+          const newFontSize = Math.max(10, Math.min(140, Math.round(this.initialPinchSize * scale)));
+          targetLayer.fontSize = newFontSize;
 
-          const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
+          const el = document.querySelector(`.text-layer-item[data-id="${targetLayer.id}"]`);
           if (el) {
             el.style.fontSize = `${newFontSize}px`;
           }
-          if (DOM.fontSizeSlider && AppState.selectedLayerId === layer.id) {
+          if (DOM.fontSizeSlider && AppState.selectedLayerId === targetLayer.id) {
             DOM.fontSizeSlider.value = newFontSize;
             if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = `${newFontSize}px`;
           }
-          return;
         }
+        return;
       }
 
       const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -2266,9 +2264,8 @@
     handleDragEnd() {
       this.draggedLayerId = null;
       this.resizingLayerId = null;
-      this.isPinching = false;
-      this.initialPinchDistance = 0;
-      this.initialFontSize = 0;
+      this.initialPinchDist = 0;
+      this.initialPinchSize = 0;
     },
 
     applyGlobalTypographyStyle(style) {
@@ -3636,30 +3633,26 @@
 
     // 6. Alternador das Áreas Seguras do Instagram (Desktop e Mobile)
     const btnToggleSafeZone = document.getElementById('btnToggleSafeZone');
-    const updateSafeZonesUI = (show) => {
-      AppState.showSafeZones = show;
-      if (DOM.safeZonesGuide) {
-        DOM.safeZonesGuide.classList.toggle('active', show);
-        DOM.safeZonesGuide.classList.toggle('hidden', !show);
-      }
-      if (DOM.toggleSafeZoneBtn) {
-        DOM.toggleSafeZoneBtn.classList.toggle('active', show);
-      }
-      if (btnToggleSafeZone) {
-        btnToggleSafeZone.innerHTML = show ? '<span>Ocultar Guias</span>' : '<span>Mostrar Guias</span>';
+    const updateSafeZonesUI = () => {
+      const guide = document.getElementById('safeZonesGuide') || document.querySelector('.safe-zones-guide') || document.querySelector('.safe-zone-guides');
+      if (guide) {
+        const isHidden = guide.classList.toggle('hidden');
+        if (btnToggleSafeZone) {
+          btnToggleSafeZone.textContent = isHidden ? 'Mostrar Guias' : 'Ocultar Guias';
+        }
+        AppState.showSafeZones = !isHidden;
+        if (DOM.toggleSafeZoneBtn) {
+          DOM.toggleSafeZoneBtn.classList.toggle('active', !isHidden);
+        }
       }
     };
 
     if (btnToggleSafeZone) {
-      btnToggleSafeZone.addEventListener('click', () => {
-        updateSafeZonesUI(!AppState.showSafeZones);
-      });
+      btnToggleSafeZone.addEventListener('click', updateSafeZonesUI);
     }
 
     if (DOM.toggleSafeZoneBtn) {
-      DOM.toggleSafeZoneBtn.addEventListener('click', () => {
-        updateSafeZonesUI(!AppState.showSafeZones);
-      });
+      DOM.toggleSafeZoneBtn.addEventListener('click', updateSafeZonesUI);
     }
 
     if (DOM.resetCanvasBtn) {
@@ -3786,7 +3779,7 @@
       }
 
       console.log('StoryCraft inicializado com sucesso (Safe Boot Ativo).');
-      showToast('Bem-vindo de volta! Pronto para criar?', 'success');
+      showToast('Bem-vindo de volta, João! Pronto para criar?', 'success');
       closeAllDrawers();
     } catch (err) {
       alert('Erro na inicialização: ' + (err && err.message ? err.message : err));
