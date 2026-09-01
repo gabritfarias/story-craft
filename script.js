@@ -4098,6 +4098,139 @@
     });
   }
 
+  /* ==========================================================================
+     11. GERENCIADOR DE WEB SHARE TARGET (PWA / COMPARTILHAMENTO DE IMAGENS)
+     ========================================================================== */
+  const WebShareTargetHandler = {
+    async init() {
+      // 1. Processa parâmetros de URL (GET share_target: ?url=..., ?title=..., ?text=..., ?sharedImage=...)
+      await this.processUrlShareParams();
+
+      // 2. Processa Web File Handling API / PWA Share Target Files (launchQueue)
+      this.setupLaunchQueue();
+
+      // 3. Processa compartilhamento via Cache Storage (se houver SW / cache pendente)
+      await this.checkCacheStorageShare();
+    },
+
+    async processUrlShareParams() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedUrl = urlParams.get('url') || urlParams.get('image') || urlParams.get('sharedImage');
+        const sharedTitle = urlParams.get('title');
+        const sharedText = urlParams.get('text');
+
+        let handled = false;
+
+        // Se houver texto ou título compartilhado
+        if (sharedTitle && sharedTitle.trim()) {
+          AppState.projectTitle = sharedTitle.trim();
+          if (DOM.projectTitleInput) DOM.projectTitleInput.value = AppState.projectTitle;
+        }
+
+        if (sharedText && sharedText.trim()) {
+          TextLayerManager.addLayer(sharedText.trim(), { fontSize: 28, color: '#ffffff', hasBg: true, bgColor: '#6366f1' });
+          handled = true;
+        }
+
+        // Se houver URL de imagem compartilhada
+        if (sharedUrl && sharedUrl.trim()) {
+          const imgUrl = sharedUrl.trim();
+          await this.loadImageFromUrl(imgUrl);
+          handled = true;
+        }
+
+        // Se tratamos parâmetros de compartilhamento, limpa a URL e pula o modal de boas-vindas
+        if (handled || sharedUrl || sharedTitle || sharedText) {
+          this.dismissWelcomeModal();
+          window.history.replaceState({}, document.title, window.location.pathname);
+          showToast('Foto recebida via compartilhamento!', 'success');
+        }
+      } catch (err) {
+        console.warn('[WebShareTarget] Erro ao processar parâmetros de URL:', err);
+      }
+    },
+
+    setupLaunchQueue() {
+      if ('launchQueue' in window && 'files' in window.LaunchParams.prototype) {
+        try {
+          window.launchQueue.setConsumer(async (launchParams) => {
+            if (launchParams.files && launchParams.files.length > 0) {
+              for (const fileHandle of launchParams.files) {
+                const file = await fileHandle.getFile();
+                if (file && file.type && file.type.startsWith('image/')) {
+                  BackgroundController.validateAndLoadImageFile(file);
+                  this.dismissWelcomeModal();
+                  showToast('Foto aberta direto do compartilhamento!', 'success');
+                  break;
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.warn('[WebShareTarget] LaunchQueue error:', err);
+        }
+      }
+    },
+
+    async checkCacheStorageShare() {
+      if ('caches' in window) {
+        try {
+          const cache = await caches.open('storycraft-share-target');
+          const response = await cache.match('/shared-image');
+          if (response) {
+            const blob = await response.blob();
+            const file = new File([blob], 'shared-photo.png', { type: blob.type || 'image/png' });
+            BackgroundController.validateAndLoadImageFile(file);
+            await cache.delete('/shared-image');
+            this.dismissWelcomeModal();
+            showToast('Foto recebida via compartilhamento!', 'success');
+          }
+        } catch (e) {
+          // Silent fallback
+        }
+      }
+    },
+
+    async loadImageFromUrl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+            BackgroundController.setImageFromDataUrl(dataUrl, 'Foto Compartilhada');
+            resolve(true);
+          } catch (e) {
+            AppState.bgImage = img;
+            AppState.bgImageDataUrl = url;
+            if (DOM.canvasEmptyState) DOM.canvasEmptyState.classList.add('hidden');
+            BackgroundController.render();
+            resolve(true);
+          }
+        };
+        img.onerror = (err) => {
+          console.warn('[WebShareTarget] Não foi possível carregar imagem por URL:', url);
+          reject(err);
+        };
+        img.src = url;
+      });
+    },
+
+    dismissWelcomeModal() {
+      const welcome = document.getElementById('welcomeModal');
+      if (welcome) {
+        welcome.classList.add('closing');
+        welcome.style.display = 'none';
+      }
+    }
+  };
+
   function setupGeneralUI() {
     DOM.navTabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -4474,6 +4607,13 @@
         }
       } catch (ghErr) {
         console.warn('[Bootstrap] GitHubSync.init:', ghErr);
+      }
+
+      // 4. Captura de Compartilhamento Nativo / Web Share Target API
+      try {
+        await WebShareTargetHandler.init();
+      } catch (shareErr) {
+        console.warn('[Bootstrap] WebShareTargetHandler.init:', shareErr);
       }
 
       console.log('StoryCraft inicializado com sucesso (Safe Boot Ativo).');
