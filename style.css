@@ -1324,6 +1324,20 @@ html, body {
   pointer-events: none;
 }
 
+/* Otimização de Performance Gráfica (Hardware Acceleration & Anti-Aliasing para iOS / Safari / Mobile) */
+.text-layer,
+.text-layers-overlay,
+.text-layer-item,
+.canvas-workspace,
+.story-canvas-container,
+.stage-viewport,
+.smartphone-frame {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Elemento de Texto Móvel */
 .text-layer-item {
   position: absolute;

@@ -3340,7 +3340,8 @@
     'Quicksand': 'Quicksand:wght@600;700',
     'Caveat': 'Caveat:wght@700',
     'Pacifico': 'Pacifico',
-    'Dancing Script': 'Dancing+Script:wght@700'
+    'Dancing Script': 'Dancing+Script:wght@700',
+    'Great Vibes': 'Great+Vibes'
   };
 
   const dynamicallyLoadedFonts = new Set(['Montserrat']);
