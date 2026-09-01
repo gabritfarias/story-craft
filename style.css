@@ -305,6 +305,17 @@ html, body {
   border-color: rgba(99, 102, 241, 0.4);
 }
 
+#btnUndo:disabled,
+#mobileUndoBtn:disabled,
+.btn:disabled,
+.btn-pill:disabled,
+.quick-pill-btn:disabled,
+.btn-icon-toggle:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .btn-icon-sm {
   width: 28px;
   height: 28px;

@@ -86,6 +86,96 @@
   };
 
   /* ==========================================================================
+     2.1 GERENCIADOR DE HISTÓRICO DE AÇÕES (Undo / Desfazer)
+     ========================================================================== */
+  const ActionHistory = {
+    stack: [],
+    MAX_HISTORY: 20,
+    isApplyingState: false,
+
+    captureSnapshot() {
+      return {
+        textLayers: JSON.parse(JSON.stringify(AppState.textLayers || [])),
+        selectedLayerId: AppState.selectedLayerId,
+        imageTransform: { ...(AppState.imageTransform || {}) },
+        bgImageDataUrl: AppState.bgImageDataUrl,
+        backgroundColor: AppState.backgroundColor,
+        backgroundGradient: AppState.backgroundGradient,
+        overlayDarkness: AppState.overlayDarkness,
+        currentFitMode: AppState.currentFitMode,
+        projectTitle: AppState.projectTitle
+      };
+    },
+
+    saveState() {
+      if (this.isApplyingState) return;
+      const snapshot = this.captureSnapshot();
+      this.stack.push(snapshot);
+      if (this.stack.length > this.MAX_HISTORY) {
+        this.stack.shift();
+      }
+      this.updateUI();
+    },
+
+    undo() {
+      if (this.stack.length === 0) return;
+      this.isApplyingState = true;
+
+      const previousState = this.stack.pop();
+
+      AppState.textLayers = JSON.parse(JSON.stringify(previousState.textLayers || []));
+      AppState.selectedLayerId = previousState.selectedLayerId;
+      AppState.imageTransform = { ...(previousState.imageTransform || {}) };
+      AppState.backgroundColor = previousState.backgroundColor;
+      AppState.backgroundGradient = previousState.backgroundGradient;
+      AppState.overlayDarkness = previousState.overlayDarkness;
+      AppState.currentFitMode = previousState.currentFitMode;
+      if (previousState.projectTitle !== undefined) {
+        AppState.projectTitle = previousState.projectTitle;
+        if (DOM.projectTitleInput) DOM.projectTitleInput.value = previousState.projectTitle;
+      }
+
+      if (previousState.bgImageDataUrl !== AppState.bgImageDataUrl) {
+        AppState.bgImageDataUrl = previousState.bgImageDataUrl;
+        if (previousState.bgImageDataUrl) {
+          const img = new Image();
+          img.onload = () => {
+            AppState.bgImage = img;
+            BackgroundController.render();
+            if (DOM.canvasEmptyState) DOM.canvasEmptyState.classList.add('hidden');
+          };
+          img.src = previousState.bgImageDataUrl;
+        } else {
+          AppState.bgImage = null;
+          BackgroundController.render();
+          if (DOM.canvasEmptyState && AppState.textLayers.length === 0) {
+            DOM.canvasEmptyState.classList.remove('hidden');
+          }
+        }
+      } else {
+        BackgroundController.render();
+      }
+
+      TextLayerManager.renderLayers();
+      InspectorController.update();
+
+      this.isApplyingState = false;
+      this.updateUI();
+      showToast('Ação desfeita!');
+    },
+
+    updateUI() {
+      const canUndo = this.stack.length > 0;
+      if (DOM.btnUndo) {
+        DOM.btnUndo.disabled = !canUndo;
+      }
+      if (DOM.mobileUndoBtn) {
+        DOM.mobileUndoBtn.disabled = !canUndo;
+      }
+    }
+  };
+
+  /* ==========================================================================
      3. GERENCIADOR DE BANCO DE DADOS (SQLite Server API com Migração IndexedDB)
      ========================================================================== */
   const DB = {
@@ -785,6 +875,8 @@
     projectTitleInput: document.getElementById('projectTitleInput'),
     toggleSafeZoneBtn: document.getElementById('toggleSafeZoneBtn'),
     btnToggleSafeZone: document.getElementById('btnToggleSafeZone'),
+    btnUndo: document.getElementById('btnUndo'),
+    mobileUndoBtn: document.getElementById('mobileUndoBtn'),
     resetCanvasBtn: document.getElementById('resetCanvasBtn'),
     openPreviewModalBtn: document.getElementById('openPreviewModalBtn'),
     saveProfileHeaderBtn: document.getElementById('saveProfileHeaderBtn'),
@@ -1011,6 +1103,7 @@
       if (DOM.backgroundCanvas) {
         DOM.backgroundCanvas.addEventListener('mousedown', (e) => {
           if (!AppState.bgImage) return;
+          ActionHistory.saveState();
           AppState.isDraggingImage = true;
           AppState.dragStartPos = { x: e.clientX, y: e.clientY };
           AppState.imageStartPan = { ...AppState.imageTransform };
@@ -1019,6 +1112,7 @@
         // Touch para celulares
         DOM.backgroundCanvas.addEventListener('touchstart', (e) => {
           if (!AppState.bgImage || e.touches.length !== 1) return;
+          ActionHistory.saveState();
           AppState.isDraggingImage = true;
           AppState.dragStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
           AppState.imageStartPan = { ...AppState.imageTransform };
@@ -1057,18 +1151,21 @@
       // Botões Funcionais de Zoom (+ e -)
       if (DOM.zoomOutPhotoBtn) {
         DOM.zoomOutPhotoBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           this.setZoom(AppState.imageTransform.zoom - CONFIG.ZOOM_STEP);
         });
       }
 
       if (DOM.zoomInPhotoBtn) {
         DOM.zoomInPhotoBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           this.setZoom(AppState.imageTransform.zoom + CONFIG.ZOOM_STEP);
         });
       }
 
       // Zoom Slider Sincronizado
       if (DOM.imageZoomSlider) {
+        DOM.imageZoomSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.imageZoomSlider.addEventListener('input', (e) => {
           const val = parseInt(e.target.value, 10);
           this.setZoom(val / 100, false);
@@ -1076,10 +1173,11 @@
       }
 
       // Botões de Enquadramento
-      if (DOM.fitCoverBtn) DOM.fitCoverBtn.addEventListener('click', () => this.fitImage('cover'));
-      if (DOM.fitContainBtn) DOM.fitContainBtn.addEventListener('click', () => this.fitImage('contain'));
+      if (DOM.fitCoverBtn) DOM.fitCoverBtn.addEventListener('click', () => { ActionHistory.saveState(); this.fitImage('cover'); });
+      if (DOM.fitContainBtn) DOM.fitContainBtn.addEventListener('click', () => { ActionHistory.saveState(); this.fitImage('contain'); });
       if (DOM.centerImageBtn) {
         DOM.centerImageBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           AppState.imageTransform.panX = 0;
           AppState.imageTransform.panY = 0;
           this.updateFitModeUI('center');
@@ -1087,12 +1185,13 @@
         });
       }
 
-      if (DOM.resetImageTransformBtn) DOM.resetImageTransformBtn.addEventListener('click', () => this.resetTransform());
+      if (DOM.resetImageTransformBtn) DOM.resetImageTransformBtn.addEventListener('click', () => { ActionHistory.saveState(); this.resetTransform(); });
 
       // Filtros de Imagem com Debounce
       const debouncedRender = debounce(() => this.render(), CONFIG.FILTER_DEBOUNCE_MS);
 
       if (DOM.brightnessSlider) {
+        DOM.brightnessSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.brightnessSlider.addEventListener('input', (e) => {
           AppState.imageTransform.brightness = parseInt(e.target.value, 10);
           if (DOM.brightnessValue) DOM.brightnessValue.textContent = `${AppState.imageTransform.brightness}%`;
@@ -1101,6 +1200,7 @@
       }
 
       if (DOM.contrastSlider) {
+        DOM.contrastSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.contrastSlider.addEventListener('input', (e) => {
           AppState.imageTransform.contrast = parseInt(e.target.value, 10);
           if (DOM.contrastValue) DOM.contrastValue.textContent = `${AppState.imageTransform.contrast}%`;
@@ -1109,6 +1209,7 @@
       }
 
       if (DOM.saturationSlider) {
+        DOM.saturationSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.saturationSlider.addEventListener('input', (e) => {
           AppState.imageTransform.saturation = parseInt(e.target.value, 10);
           if (DOM.saturationValue) DOM.saturationValue.textContent = `${AppState.imageTransform.saturation}%`;
@@ -1120,6 +1221,7 @@
       if (DOM.sampleChips) {
         DOM.sampleChips.forEach(chip => {
           chip.addEventListener('click', () => {
+            ActionHistory.saveState();
             const sample = chip.getAttribute('data-sample');
             this.loadSampleProduct(sample);
           });
@@ -1130,6 +1232,7 @@
       if (DOM.colorSwatches) {
         DOM.colorSwatches.forEach(swatch => {
           swatch.addEventListener('click', () => {
+            ActionHistory.saveState();
             DOM.colorSwatches.forEach(s => s.classList.remove('active'));
             swatch.classList.add('active');
             const color = swatch.getAttribute('data-color');
@@ -1143,6 +1246,7 @@
       }
 
       if (DOM.customBgColorInput) {
+        DOM.customBgColorInput.addEventListener('change', () => ActionHistory.saveState());
         DOM.customBgColorInput.addEventListener('input', (e) => {
           AppState.backgroundColor = e.target.value;
           AppState.backgroundGradient = null;
@@ -1154,6 +1258,7 @@
       if (DOM.gradientSwatches) {
         DOM.gradientSwatches.forEach(swatch => {
           swatch.addEventListener('click', () => {
+            ActionHistory.saveState();
             AppState.backgroundGradient = swatch.getAttribute('data-gradient');
             this.render();
           });
@@ -1161,6 +1266,7 @@
       }
 
       if (DOM.overlayDarknessSlider) {
+        DOM.overlayDarknessSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.overlayDarknessSlider.addEventListener('input', (e) => {
           AppState.overlayDarkness = parseInt(e.target.value, 10);
           if (DOM.overlayDarknessValue) DOM.overlayDarknessValue.textContent = `${AppState.overlayDarkness}%`;
@@ -1826,6 +1932,7 @@
     },
 
     addLayer(customProps = {}) {
+      ActionHistory.saveState();
       const defaultLayer = {
         id: 'layer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
         text: 'Novo Texto',
@@ -1870,6 +1977,7 @@
         const dataUrl = e.target.result;
         const img = new Image();
         img.onload = () => {
+          ActionHistory.saveState();
           const defaultW = Math.min(130, Math.round(img.width / 2));
           const aspect = img.height / img.width;
           const defaultH = Math.round(defaultW * aspect);
@@ -1908,6 +2016,7 @@
       const layer = AppState.textLayers.find(l => l.id === id);
       if (!layer) return;
 
+      ActionHistory.saveState();
       const duplicated = {
         ...layer,
         id: 'layer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -1929,6 +2038,7 @@
     },
 
     deleteLayer(id) {
+      ActionHistory.saveState();
       AppState.textLayers = AppState.textLayers.filter(l => l.id !== id);
       if (AppState.selectedLayerId === id) {
         AppState.selectedLayerId = null;
@@ -2103,6 +2213,7 @@
 
       el.addEventListener('mousedown', (e) => {
         hasMoved = false;
+        ActionHistory.saveState();
         startDragOrResize(e, e.clientX, e.clientY);
         if (!e.target.classList.contains('layer-handle')) {
           e.stopPropagation();
@@ -2113,6 +2224,7 @@
         // Gesto de Pinça Universal (Pinch-to-Zoom): se houver 2 dedos sobre o texto
         if (e.touches && e.touches.length === 2) {
           e.preventDefault();
+          ActionHistory.saveState();
           this.initialPinchDist = Math.hypot(
             e.touches[0].pageX - e.touches[1].pageX,
             e.touches[0].pageY - e.touches[1].pageY
@@ -2125,6 +2237,7 @@
 
         if (e.touches.length !== 1) return;
         hasMoved = false;
+        ActionHistory.saveState();
         const touch = e.touches[0];
         startDragOrResize(e, touch.clientX, touch.clientY);
         if (!e.target.classList.contains('layer-handle')) {
@@ -2173,6 +2286,7 @@
       el.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !el.classList.contains('editing')) {
           e.preventDefault();
+          ActionHistory.saveState();
           el.contentEditable = 'true';
           el.classList.add('editing');
           el.focus();
@@ -2183,6 +2297,7 @@
       // Duplo clique: Edição in-line
       el.addEventListener('dblclick', (e) => {
         e.stopPropagation();
+        ActionHistory.saveState();
         el.contentEditable = 'true';
         el.classList.add('editing');
         el.focus();
@@ -2289,6 +2404,7 @@
     },
 
     applyGlobalTypographyStyle(style) {
+      ActionHistory.saveState();
       AppState.textLayers.forEach(l => {
         if (style === 'modern') {
           l.fontFamily = "'Montserrat', sans-serif";
@@ -2339,6 +2455,7 @@
       // Fonte Tipográfica (Carregamento Dinâmico Google Fonts)
       if (DOM.fontFamilySelect) {
         DOM.fontFamilySelect.addEventListener('change', async (e) => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.fontFamily = e.target.value;
@@ -2355,6 +2472,7 @@
       if (DOM.customFontFileInput) {
         DOM.customFontFileInput.addEventListener('change', async (e) => {
           if (e.target.files && e.target.files.length > 0) {
+            ActionHistory.saveState();
             await loadCustomFontFile(e.target.files[0]);
             e.target.value = '';
           }
@@ -2363,6 +2481,7 @@
 
       // Tamanho da Fonte
       if (DOM.fontSizeSlider) {
+        DOM.fontSizeSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.fontSizeSlider.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2375,6 +2494,7 @@
 
       // Espaçamento de Letras (Letter Spacing)
       if (DOM.letterSpacingSlider) {
+        DOM.letterSpacingSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.letterSpacingSlider.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2387,6 +2507,7 @@
 
       // Altura da Linha (Line Height)
       if (DOM.lineHeightSlider) {
+        DOM.lineHeightSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.lineHeightSlider.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2400,6 +2521,7 @@
       // Formatações
       if (DOM.toggleBoldBtn) {
         DOM.toggleBoldBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.fontWeight = (layer.fontWeight === '800' || layer.fontWeight === 'bold') ? 'normal' : '800';
@@ -2410,6 +2532,7 @@
 
       if (DOM.toggleItalicBtn) {
         DOM.toggleItalicBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.fontStyle = layer.fontStyle === 'italic' ? 'normal' : 'italic';
@@ -2420,6 +2543,7 @@
 
       if (DOM.toggleUppercaseBtn) {
         DOM.toggleUppercaseBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.textTransform = layer.textTransform === 'uppercase' ? 'none' : 'uppercase';
@@ -2432,6 +2556,7 @@
       [DOM.alignLeftBtn, DOM.alignCenterBtn, DOM.alignRightBtn].forEach((btn) => {
         if (!btn) return;
         btn.addEventListener('click', () => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           if (btn === DOM.alignLeftBtn) layer.textAlign = 'left';
@@ -2444,6 +2569,7 @@
 
       // Cor do Texto
       if (DOM.textColorPicker) {
+        DOM.textColorPicker.addEventListener('change', () => ActionHistory.saveState());
         DOM.textColorPicker.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2456,6 +2582,7 @@
       if (DOM.quickColorDots) {
         DOM.quickColorDots.forEach(dot => {
           dot.addEventListener('click', () => {
+            ActionHistory.saveState();
             const layer = getActiveLayer();
             if (!layer) return;
             const color = dot.getAttribute('data-color');
@@ -2470,6 +2597,7 @@
       // Badge / Fundo
       if (DOM.enableBadgeCheck) {
         DOM.enableBadgeCheck.addEventListener('change', (e) => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.hasBg = e.target.checked;
@@ -2479,6 +2607,7 @@
       }
 
       if (DOM.badgeColorPicker) {
+        DOM.badgeColorPicker.addEventListener('change', () => ActionHistory.saveState());
         DOM.badgeColorPicker.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2489,6 +2618,7 @@
       }
 
       if (DOM.badgeRadiusSlider) {
+        DOM.badgeRadiusSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.badgeRadiusSlider.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2499,6 +2629,7 @@
       }
 
       if (DOM.badgePaddingSlider) {
+        DOM.badgePaddingSlider.addEventListener('change', () => ActionHistory.saveState());
         DOM.badgePaddingSlider.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2511,6 +2642,7 @@
       // Sombra e Contorno
       if (DOM.enableShadowCheck) {
         DOM.enableShadowCheck.addEventListener('change', (e) => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.hasShadow = e.target.checked;
@@ -2520,6 +2652,7 @@
 
       if (DOM.enableStrokeCheck) {
         DOM.enableStrokeCheck.addEventListener('change', (e) => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (!layer) return;
           layer.hasStroke = e.target.checked;
@@ -2529,6 +2662,7 @@
       }
 
       if (DOM.strokeColorPicker) {
+        DOM.strokeColorPicker.addEventListener('change', () => ActionHistory.saveState());
         DOM.strokeColorPicker.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2539,16 +2673,17 @@
       }
 
       // Alinhamento na Tela
-      if (DOM.alignCanvasLeftBtn) DOM.alignCanvasLeftBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 20; TextLayerManager.renderLayers(); } });
-      if (DOM.alignCanvasCenterHBtn) DOM.alignCanvasCenterHBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 50; TextLayerManager.renderLayers(); } });
-      if (DOM.alignCanvasRightBtn) DOM.alignCanvasRightBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 80; TextLayerManager.renderLayers(); } });
-      if (DOM.alignCanvasTopBtn) DOM.alignCanvasTopBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 20; TextLayerManager.renderLayers(); } });
-      if (DOM.alignCanvasCenterVBtn) DOM.alignCanvasCenterVBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 50; TextLayerManager.renderLayers(); } });
-      if (DOM.alignCanvasBottomBtn) DOM.alignCanvasBottomBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 80; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasLeftBtn) DOM.alignCanvasLeftBtn.addEventListener('click', () => { ActionHistory.saveState(); const l = getActiveLayer(); if (l) { l.x = 20; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasCenterHBtn) DOM.alignCanvasCenterHBtn.addEventListener('click', () => { ActionHistory.saveState(); const l = getActiveLayer(); if (l) { l.x = 50; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasRightBtn) DOM.alignCanvasRightBtn.addEventListener('click', () => { ActionHistory.saveState(); const l = getActiveLayer(); if (l) { l.x = 80; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasTopBtn) DOM.alignCanvasTopBtn.addEventListener('click', () => { ActionHistory.saveState(); const l = getActiveLayer(); if (l) { l.y = 20; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasCenterVBtn) DOM.alignCanvasCenterVBtn.addEventListener('click', () => { ActionHistory.saveState(); const l = getActiveLayer(); if (l) { l.y = 50; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasBottomBtn) DOM.alignCanvasBottomBtn.addEventListener('click', () => { ActionHistory.saveState(); const l = getActiveLayer(); if (l) { l.y = 80; TextLayerManager.renderLayers(); } });
 
       // Ordem de Camada
       if (DOM.bringForwardBtn) {
         DOM.bringForwardBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (layer) { layer.zIndex += 1; TextLayerManager.renderLayers(); }
         });
@@ -2556,6 +2691,7 @@
 
       if (DOM.sendBackwardBtn) {
         DOM.sendBackwardBtn.addEventListener('click', () => {
+          ActionHistory.saveState();
           const layer = getActiveLayer();
           if (layer && layer.zIndex > 1) { layer.zIndex -= 1; TextLayerManager.renderLayers(); }
         });
@@ -3675,9 +3811,30 @@
       DOM.toggleSafeZoneBtn.addEventListener('click', updateSafeZonesUI);
     }
 
+    // 7. Botão de Desfazer (Undo)
+    if (DOM.btnUndo) {
+      DOM.btnUndo.addEventListener('click', () => ActionHistory.undo());
+    }
+    if (DOM.mobileUndoBtn) {
+      DOM.mobileUndoBtn.addEventListener('click', () => ActionHistory.undo());
+    }
+
+    // Atalho global de teclado para Desfazer (Ctrl+Z ou Cmd+Z)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !document.activeElement.isContentEditable) {
+          e.preventDefault();
+          ActionHistory.undo();
+        }
+      }
+    });
+
+    ActionHistory.updateUI();
+
     if (DOM.resetCanvasBtn) {
       DOM.resetCanvasBtn.addEventListener('click', () => {
         if (confirm('Deseja limpar todos os elementos e recomeçar a arte?')) {
+          ActionHistory.saveState();
           AppState.bgImage = null;
           AppState.bgImageDataUrl = null;
           AppState.textLayers = [];
