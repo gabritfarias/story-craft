@@ -1452,6 +1452,7 @@
     resizeDir: 1,
     initialPinchDist: 0,
     initialPinchSize: 0,
+    initialPinchWidth: 0,
 
     init() {
       this.bindEvents();
@@ -2035,8 +2036,16 @@
           el.innerText = layer.text;
         }
 
-        if (layer.customWidth) {
-          el.style.width = `${layer.customWidth}px`;
+        if (layer.customWidth || layer.width) {
+          const wVal = layer.customWidth || layer.width;
+          el.style.width = `${wVal}px`;
+          el.style.maxWidth = 'none';
+          el.style.whiteSpace = 'pre-wrap';
+          el.style.overflowWrap = 'break-word';
+        } else {
+          el.style.width = 'max-content';
+          el.style.maxWidth = 'none';
+          el.style.whiteSpace = 'pre-wrap';
         }
 
         if (layer.id === AppState.selectedLayerId) {
@@ -2101,7 +2110,7 @@
       });
 
       el.addEventListener('touchstart', (e) => {
-        // Gesto de Pinça (Pinch-to-Zoom): se houver 2 dedos sobre o texto
+        // Gesto de Pinça Universal (Pinch-to-Zoom): se houver 2 dedos sobre o texto
         if (e.touches && e.touches.length === 2) {
           e.preventDefault();
           this.initialPinchDist = Math.hypot(
@@ -2109,6 +2118,7 @@
             e.touches[0].pageY - e.touches[1].pageY
           );
           this.initialPinchSize = layer.fontSize || 26;
+          this.initialPinchWidth = layer.customWidth || layer.width || el.offsetWidth || 260;
           this.selectLayer(layer.id, false);
           return;
         }
@@ -2144,6 +2154,7 @@
           if (!e.touches || e.touches.length < 2) {
             this.initialPinchDist = 0;
             this.initialPinchSize = 0;
+            this.initialPinchWidth = 0;
           }
           return;
         }
@@ -2195,7 +2206,7 @@
     },
 
     handleDragMove(e) {
-      // 1. Gesto de Pinça (Pinch-to-Zoom) para Redimensionar Texto com 2 dedos no Mobile
+      // 1. Gesto de Pinça Universal Proporcional (Pinch-to-Zoom para Fonte e Largura)
       if (e.touches && e.touches.length === 2 && this.initialPinchDist > 0) {
         e.preventDefault();
         const targetLayer = AppState.textLayers.find(l => l.id === (this.draggedLayerId || AppState.selectedLayerId));
@@ -2205,12 +2216,18 @@
             e.touches[0].pageY - e.touches[1].pageY
           );
           const scale = currentDistance / this.initialPinchDist;
-          const newFontSize = Math.max(10, Math.min(140, Math.round(this.initialPinchSize * scale)));
+          const newFontSize = Math.max(10, Math.min(160, Math.round(this.initialPinchSize * scale)));
+          const newWidth = Math.max(60, Math.min(1200, Math.round(this.initialPinchWidth * scale)));
+
           targetLayer.fontSize = newFontSize;
+          targetLayer.customWidth = newWidth;
+          targetLayer.width = newWidth;
 
           const el = document.querySelector(`.text-layer-item[data-id="${targetLayer.id}"]`);
           if (el) {
             el.style.fontSize = `${newFontSize}px`;
+            el.style.width = `${newWidth}px`;
+            el.style.maxWidth = 'none';
           }
           if (DOM.fontSizeSlider && AppState.selectedLayerId === targetLayer.id) {
             DOM.fontSizeSlider.value = newFontSize;
@@ -2231,10 +2248,12 @@
         const layer = AppState.textLayers.find(l => l.id === this.resizingLayerId);
         if (layer) {
           layer.customWidth = Math.round(newWidth);
+          layer.width = Math.round(newWidth);
         }
         const el = document.querySelector(`.text-layer-item[data-id="${this.resizingLayerId}"]`);
         if (el) {
           el.style.width = `${Math.round(newWidth)}px`;
+          el.style.maxWidth = 'none';
         }
         return;
       }
@@ -2251,8 +2270,8 @@
       const pctX = Math.round((newPxX / containerRect.width) * 100);
       const pctY = Math.round((newPxY / containerRect.height) * 100);
 
-      layer.x = Math.max(5, Math.min(95, pctX));
-      layer.y = Math.max(5, Math.min(95, pctY));
+      layer.x = Math.max(0, Math.min(100, pctX));
+      layer.y = Math.max(0, Math.min(100, pctY));
 
       const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
       if (el) {
@@ -2266,6 +2285,7 @@
       this.resizingLayerId = null;
       this.initialPinchDist = 0;
       this.initialPinchSize = 0;
+      this.initialPinchWidth = 0;
     },
 
     applyGlobalTypographyStyle(style) {
