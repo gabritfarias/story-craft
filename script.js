@@ -42,7 +42,7 @@
     MAX_IMAGE_SIZE_BYTES: 15 * 1024 * 1024, // 15MB
     MAX_HISTORY_ITEMS: 50,
     DB_NAME: 'StoryCraftDB_v1',
-    DB_VERSION: 1,
+    DB_VERSION: 2,
     STORE_NAME: 'saved_stories',
     PROFILES_STORAGE_KEY: 'story_editor_profiles_v1',
     FILTER_DEBOUNCE_MS: 120,
@@ -125,16 +125,14 @@
         this.isServerActive = false;
       }
 
-      // 2. Inicializa o armazenamento apropriado
+      // 2. Inicializa o IndexedDB incondicionalmente para que a estrutura local (saved_stories) esteja sempre pronta
       try {
+        await this.initIndexedDBFallback();
         if (this.isServerActive) {
           await this.migrateLegacyIndexedDB();
-        } else {
-          await this.initIndexedDBFallback();
         }
       } catch (storageErr) {
-        console.warn('[StoryCraft] Erro ao inicializar armazenamento, garantindo IndexedDB:', storageErr);
-        await this.initIndexedDBFallback().catch(() => {});
+        console.warn('[StoryCraft] Erro ao inicializar armazenamento local:', storageErr);
       }
     },
 
@@ -278,6 +276,12 @@
       return new Promise((resolve) => {
         try {
           const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) {
+              db.createObjectStore(CONFIG.STORE_NAME, { keyPath: 'id' });
+            }
+          };
           request.onsuccess = (event) => {
             const db = event.target.result;
             if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) return resolve([]);
@@ -298,8 +302,17 @@
       return new Promise((resolve, reject) => {
         try {
           const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) {
+              db.createObjectStore(CONFIG.STORE_NAME, { keyPath: 'id' });
+            }
+          };
           request.onsuccess = (event) => {
             const db = event.target.result;
+            if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) {
+              return reject(new Error('Tabela não existe'));
+            }
             const tx = db.transaction([CONFIG.STORE_NAME], 'readwrite');
             const store = tx.objectStore(CONFIG.STORE_NAME);
             const req = store.put(storyData);
@@ -317,6 +330,12 @@
       return new Promise((resolve) => {
         try {
           const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) {
+              db.createObjectStore(CONFIG.STORE_NAME, { keyPath: 'id' });
+            }
+          };
           request.onsuccess = (event) => {
             const db = event.target.result;
             if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) return resolve();
@@ -337,6 +356,12 @@
       return new Promise((resolve) => {
         try {
           const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) {
+              db.createObjectStore(CONFIG.STORE_NAME, { keyPath: 'id' });
+            }
+          };
           request.onsuccess = (event) => {
             const db = event.target.result;
             if (!db.objectStoreNames.contains(CONFIG.STORE_NAME)) return resolve();
