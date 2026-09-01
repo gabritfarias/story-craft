@@ -115,6 +115,11 @@
         this.stack.shift();
       }
       this.updateUI();
+
+      // Automação de Salvamento e Sincronização em Segundo Plano (Debounced Background Sync)
+      if (typeof BackgroundSyncManager !== 'undefined') {
+        BackgroundSyncManager.triggerAutoSave();
+      }
     },
 
     undo() {
@@ -162,6 +167,11 @@
       this.isApplyingState = false;
       this.updateUI();
       showToast('Ação desfeita!');
+
+      // Dispara salvamento em segundo plano também após desfazer
+      if (typeof BackgroundSyncManager !== 'undefined') {
+        BackgroundSyncManager.triggerAutoSave();
+      }
     },
 
     updateUI() {
@@ -171,6 +181,38 @@
       }
       if (DOM.mobileUndoBtn) {
         DOM.mobileUndoBtn.disabled = !canUndo;
+      }
+    }
+  };
+
+  /* ==========================================================================
+     2.2 GERENCIADOR DE AUTOMAÇÃO E SINCRONIZAÇÃO EM SEGUNDO PLANO (BackgroundSyncManager)
+     ========================================================================== */
+  const BackgroundSyncManager = {
+    autoSaveTimer: null,
+    DEBOUNCE_DELAY_MS: 1500,
+
+    triggerAutoSave() {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = setTimeout(() => {
+        this.executeBackgroundSync();
+      }, this.DEBOUNCE_DELAY_MS);
+    },
+
+    async executeBackgroundSync() {
+      try {
+        // 1. Salva snapshot do projeto atual no cache local
+        if (typeof ActionHistory !== 'undefined') {
+          const currentSnapshot = ActionHistory.captureSnapshot();
+          localStorage.setItem('storycraft_active_project_snapshot', JSON.stringify(currentSnapshot));
+        }
+
+        // 2. Se houver integração na nuvem configurada, dispara sincronização silenciosa
+        if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+          GitHubSync.syncUp('Auto-save snapshot via StoryCraft [skip ci]').catch(() => {});
+        }
+      } catch (err) {
+        console.warn('[BackgroundSync] Falha silenciosa no salvamento em segundo plano:', err);
       }
     }
   };
@@ -1385,27 +1427,6 @@
     instagramUiOverlay: document.getElementById('instagramUiOverlay'),
     toggleIgUiCheck: document.getElementById('toggleIgUiCheck'),
     downloadFromPreviewBtn: document.getElementById('downloadFromPreviewBtn'),
-
-    // Modal de Configuração do GitHub
-    btnOpenGitHubModal: document.getElementById('btnOpenGitHubModal'),
-    githubHeaderStatusText: document.getElementById('githubHeaderStatusText'),
-    githubSyncCard: document.getElementById('githubSyncCard'),
-    githubStatusDot: document.getElementById('githubStatusDot'),
-    githubStatusTitle: document.getElementById('githubStatusTitle'),
-    githubStatusBadge: document.getElementById('githubStatusBadge'),
-    githubStatusDesc: document.getElementById('githubStatusDesc'),
-    btnConnectGitHubTab: document.getElementById('btnConnectGitHubTab'),
-    btnSyncNowTab: document.getElementById('btnSyncNowTab'),
-    githubModal: document.getElementById('githubModal'),
-    closeGitHubBackdrop: document.getElementById('closeGitHubBackdrop'),
-    closeGitHubModalBtn: document.getElementById('closeGitHubModalBtn'),
-    btnCancelGitHubModal: document.getElementById('btnCancelGitHubModal'),
-    githubTokenInput: document.getElementById('githubTokenInput'),
-    githubRepoInput: document.getElementById('githubRepoInput'),
-    githubConnectionFeedback: document.getElementById('githubConnectionFeedback'),
-    btnDisconnectGitHub: document.getElementById('btnDisconnectGitHub'),
-    btnSaveGitHubConfig: document.getElementById('btnSaveGitHubConfig'),
-    btnSaveGitHubText: document.getElementById('btnSaveGitHubText'),
 
     // Modal de Boas-Vindas Inicial
     welcomeModal: document.getElementById('welcomeModal'),
@@ -4396,108 +4417,6 @@
         }, 360);
       });
     }
-
-    // 9. Modal de Sincronização com o GitHub (Cloud Sync)
-    const openGitHubModal = () => {
-      const config = GitHubSync.getConfig();
-      if (DOM.githubTokenInput) DOM.githubTokenInput.value = config.token;
-      if (DOM.githubRepoInput) DOM.githubRepoInput.value = config.repo;
-      if (DOM.githubConnectionFeedback) {
-        DOM.githubConnectionFeedback.style.display = 'none';
-        DOM.githubConnectionFeedback.className = 'github-feedback-box';
-      }
-      if (DOM.btnDisconnectGitHub) {
-        DOM.btnDisconnectGitHub.style.display = GitHubSync.isConnected() ? 'inline-block' : 'none';
-      }
-      if (DOM.githubModal) DOM.githubModal.style.display = 'flex';
-    };
-
-    const closeGitHubModal = () => {
-      if (DOM.githubModal) DOM.githubModal.style.display = 'none';
-    };
-
-    if (DOM.btnOpenGitHubModal) {
-      DOM.btnOpenGitHubModal.addEventListener('click', openGitHubModal);
-    }
-    if (DOM.btnConnectGitHubTab) {
-      DOM.btnConnectGitHubTab.addEventListener('click', openGitHubModal);
-    }
-    if (DOM.closeGitHubModalBtn) {
-      DOM.closeGitHubModalBtn.addEventListener('click', closeGitHubModal);
-    }
-    if (DOM.closeGitHubBackdrop) {
-      DOM.closeGitHubBackdrop.addEventListener('click', closeGitHubModal);
-    }
-    if (DOM.btnCancelGitHubModal) {
-      DOM.btnCancelGitHubModal.addEventListener('click', closeGitHubModal);
-    }
-
-    if (DOM.btnSaveGitHubConfig) {
-      DOM.btnSaveGitHubConfig.addEventListener('click', async () => {
-        const token = (DOM.githubTokenInput ? DOM.githubTokenInput.value : '').trim();
-        const repo = (DOM.githubRepoInput ? DOM.githubRepoInput.value : '').trim();
-
-        if (!token) {
-          showGitHubFeedback('Por favor, informe seu Personal Access Token do GitHub.', 'error');
-          return;
-        }
-        if (!repo || !repo.includes('/')) {
-          showGitHubFeedback('Por favor, informe o repositório no formato "usuario/repositorio".', 'error');
-          return;
-        }
-
-        showGitHubFeedback('⏳ Testando conexão com o repositório GitHub...', 'loading');
-        if (DOM.btnSaveGitHubConfig) DOM.btnSaveGitHubConfig.disabled = true;
-
-        try {
-          await GitHubSync.testConnection(token, repo);
-          GitHubSync.saveConfig(token, repo);
-          showGitHubFeedback('✅ Conectado com sucesso! Sincronizando dados...', 'success');
-
-          // Executa sincronização inicial
-          await GitHubSync.syncDown();
-          await GitHubSync.syncUp('Initial sync from StoryCraft');
-
-          setTimeout(() => {
-            closeGitHubModal();
-            showToast(`Conectado ao GitHub: ${repo}`, 'success');
-          }, 1000);
-        } catch (err) {
-          showGitHubFeedback(`❌ ${err.message || 'Falha ao conectar com o GitHub'}`, 'error');
-        } finally {
-          if (DOM.btnSaveGitHubConfig) DOM.btnSaveGitHubConfig.disabled = false;
-        }
-      });
-    }
-
-    if (DOM.btnDisconnectGitHub) {
-      DOM.btnDisconnectGitHub.addEventListener('click', () => {
-        if (confirm('Deseja desconectar a sua conta do GitHub? Seus dados locais permanecerão salvos no navegador.')) {
-          GitHubSync.disconnect();
-          if (DOM.githubTokenInput) DOM.githubTokenInput.value = '';
-          if (DOM.githubRepoInput) DOM.githubRepoInput.value = '';
-          closeGitHubModal();
-        }
-      });
-    }
-
-    if (DOM.btnSyncNowTab) {
-      DOM.btnSyncNowTab.addEventListener('click', async () => {
-        showToast('Sincronizando com o GitHub...', 'info');
-        await GitHubSync.syncDown();
-        await GitHubSync.syncUp('Manual sync via StoryCraft');
-        showToast('Sincronização concluída com sucesso!', 'success');
-      });
-    }
-
-    function showGitHubFeedback(msg, type) {
-      if (!DOM.githubConnectionFeedback) return;
-      DOM.githubConnectionFeedback.textContent = msg;
-      DOM.githubConnectionFeedback.className = `github-feedback-box ${type}`;
-      DOM.githubConnectionFeedback.style.display = 'flex';
-    }
-
-    GitHubSync.updateUI();
 
     let currentWorkspaceZoom = 100;
     const updateWorkspaceZoom = (newZoom) => {
