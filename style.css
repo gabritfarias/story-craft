@@ -2868,3 +2868,191 @@ html, body {
 .btn-welcome-ok:active {
   transform: translateY(0);
 }
+
+/* ==========================================================================
+   SINCRONIZAÇÃO NA NUVEM VIA GITHUB (CLOUD SYNC UI)
+   ========================================================================== */
+.github-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-color: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.github-header-btn.connected {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.github-header-btn.connected:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+}
+
+.github-sync-card {
+  background: linear-gradient(145deg, rgba(30, 35, 48, 0.8), rgba(20, 24, 34, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.github-sync-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.github-sync-status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: #64748b;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2);
+  transition: all 0.3s ease;
+}
+
+.github-sync-status-indicator.connected {
+  background-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3), 0 0 8px #10b981;
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.github-sync-status-indicator.syncing {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3), 0 0 8px #f59e0b;
+  animation: pulse-dot 1s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.github-sync-text-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.github-sync-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.github-sync-title-row strong {
+  font-size: 0.92rem;
+  color: var(--text-main);
+}
+
+.github-status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(100, 116, 139, 0.2);
+  color: var(--text-muted);
+}
+
+.github-status-badge.connected {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.github-sync-desc {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.github-sync-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.github-sync-dialog {
+  max-width: 520px;
+  width: 95vw;
+}
+
+.github-modal-body {
+  padding: 20px 24px;
+}
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 0.88rem !important;
+}
+
+.link-external-hint {
+  font-size: 0.78rem;
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: auto;
+  transition: color 0.15s ease;
+}
+
+.link-external-hint:hover {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.field-hint code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: #cbd5e1;
+}
+
+.github-feedback-box {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.github-feedback-box.success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.github-feedback-box.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.github-feedback-box.loading {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+}

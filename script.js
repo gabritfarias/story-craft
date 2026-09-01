@@ -317,6 +317,9 @@
       if (!saved) {
         saved = this.saveToLocalStorage(storyData);
       }
+      if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+        GitHubSync.syncUp('Save story: ' + (storyData.title || 'Story')).catch(() => {});
+      }
       return saved;
     },
 
@@ -327,6 +330,9 @@
           if (res.ok) {
             this.deleteFromIndexedDB(id).catch(() => {});
             this.deleteFromLocalStorage(id);
+            if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+              GitHubSync.syncUp('Delete story #' + id).catch(() => {});
+            }
             return true;
           }
         } catch (err) {
@@ -343,6 +349,9 @@
         }
       }
       this.deleteFromLocalStorage(id);
+      if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+        GitHubSync.syncUp('Delete story #' + id).catch(() => {});
+      }
       return true;
     },
 
@@ -512,6 +521,251 @@
         localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(stories));
       } catch (e) {
         console.warn('[DB] Erro ao deletar do LocalStorage:', e);
+      }
+    }
+  };
+
+  /* ==========================================================================
+     3.1 GERENCIADOR DE SINCRONIZAÇÃO NA NUVEM VIA GITHUB API (data/perfis_e_projetos.json)
+     ========================================================================== */
+  const GitHubSync = {
+    TOKEN_KEY: 'storycraft_gh_token',
+    REPO_KEY: 'storycraft_gh_repo',
+    API_BASE: 'https://api.github.com',
+    FILE_PATH: 'data/perfis_e_projetos.json',
+    isSyncing: false,
+
+    getConfig() {
+      return {
+        token: (localStorage.getItem(this.TOKEN_KEY) || '').trim(),
+        repo: (localStorage.getItem(this.REPO_KEY) || '').trim()
+      };
+    },
+
+    saveConfig(token, repo) {
+      const cleanRepo = repo.trim().replace(/^https:\/\/github\.com\//i, '').replace(/\.git$/i, '');
+      localStorage.setItem(this.TOKEN_KEY, token.trim());
+      localStorage.setItem(this.REPO_KEY, cleanRepo);
+      this.updateUI();
+    },
+
+    disconnect() {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.REPO_KEY);
+      this.updateUI();
+      showToast('Desconectado do GitHub.');
+    },
+
+    isConnected() {
+      const { token, repo } = this.getConfig();
+      return Boolean(token && repo && repo.includes('/'));
+    },
+
+    // Codificação / Decodificação Base64 UTF-8 segura
+    encodeBase64Utf8(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    },
+
+    decodeBase64Utf8(base64) {
+      return decodeURIComponent(escape(atob(base64.replace(/\s/g, ''))));
+    },
+
+    async testConnection(token, repo) {
+      const cleanRepo = repo.trim().replace(/^https:\/\/github\.com\//i, '').replace(/\.git$/i, '');
+      const res = await fetch(`${this.API_BASE}/repos/${cleanRepo}`, {
+        headers: {
+          'Authorization': `Bearer ${token.trim()}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+      if (!res.ok) {
+        if (res.status === 401) throw new Error('Token de Acesso inválido ou sem autorização (HTTP 401).');
+        if (res.status === 404) throw new Error(`Repositório "${cleanRepo}" não encontrado ou sem permissão de acesso (HTTP 404).`);
+        throw new Error(`Falha na conexão com GitHub (HTTP ${res.status}).`);
+      }
+      return await res.json();
+    },
+
+    async syncDown() {
+      if (!this.isConnected()) return false;
+      const { token, repo } = this.getConfig();
+
+      try {
+        this.setSyncingState(true);
+        const res = await fetch(`${this.API_BASE}/repos/${repo}/contents/${this.FILE_PATH}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
+        });
+
+        if (res.status === 404) {
+          console.log('[GitHubSync] Arquivo data/perfis_e_projetos.json não existe no repo. Será criado no primeiro salvamento.');
+          return false;
+        }
+
+        if (!res.ok) throw new Error(`Falha HTTP ${res.status} ao baixar dados do GitHub`);
+
+        const fileData = await res.json();
+        if (fileData && fileData.content) {
+          const jsonStr = this.decodeBase64Utf8(fileData.content);
+          const parsed = JSON.parse(jsonStr);
+
+          // 1. Hidrata Perfis
+          if (Array.isArray(parsed.profiles) && parsed.profiles.length > 0) {
+            ProfileManager.profiles = parsed.profiles;
+            ProfileManager.saveToStorage();
+            ProfileManager.renderProfilesList();
+          }
+
+          // 2. Hidrata Stories no DB / Cache local
+          if (Array.isArray(parsed.stories) && parsed.stories.length > 0) {
+            for (const story of parsed.stories) {
+              await DB.saveStory(story);
+            }
+            if (typeof HistoryController !== 'undefined' && HistoryController.refreshList) {
+              HistoryController.refreshList();
+            }
+          }
+
+          console.log('[GitHubSync] Sincronização concluída com sucesso!');
+          showToast('Perfis e projetos sincronizados com o GitHub!', 'success');
+          return true;
+        }
+      } catch (err) {
+        console.warn('[GitHubSync] Falha no syncDown:', err.message);
+      } finally {
+        this.setSyncingState(false);
+      }
+      return false;
+    },
+
+    async syncUp(customMessage = 'Update profiles and projects via StoryCraft [skip ci]') {
+      if (!this.isConnected()) return false;
+      if (this.isSyncing) return false;
+
+      const { token, repo } = this.getConfig();
+
+      try {
+        this.setSyncingState(true);
+
+        // 1. Obtém o SHA atual do arquivo no repositório (se existir)
+        let currentSha = null;
+        try {
+          const getRes = await fetch(`${this.API_BASE}/repos/${repo}/contents/${this.FILE_PATH}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28'
+            }
+          });
+          if (getRes.ok) {
+            const fileInfo = await getRes.json();
+            currentSha = fileInfo.sha;
+          }
+        } catch (e) {
+          console.warn('[GitHubSync] Erro ao verificar SHA existente:', e);
+        }
+
+        // 2. Prepara o payload JSON com perfis e projetos
+        const storiesList = await DB.getAllStories();
+        const payloadData = {
+          version: 1,
+          appName: 'StoryCraft',
+          updatedAt: new Date().toISOString(),
+          profiles: ProfileManager.profiles || [],
+          stories: (storiesList || []).slice(0, 30)
+        };
+
+        const jsonStr = JSON.stringify(payloadData, null, 2);
+        const base64Content = this.encodeBase64Utf8(jsonStr);
+
+        const body = {
+          message: customMessage,
+          content: base64Content
+        };
+        if (currentSha) {
+          body.sha = currentSha;
+        }
+
+        const putRes = await fetch(`${this.API_BASE}/repos/${repo}/contents/${this.FILE_PATH}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+            'X-GitHub-Api-Version': '2022-11-28'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!putRes.ok) {
+          const errorJson = await putRes.json().catch(() => ({}));
+          throw new Error(errorJson.message || `HTTP ${putRes.status}`);
+        }
+
+        console.log('[GitHubSync] Backup salvo com sucesso no repositório GitHub!');
+        this.updateUI();
+        return true;
+      } catch (err) {
+        console.warn('[GitHubSync] Erro ao enviar backup para o GitHub (salvo localmente no IndexedDB):', err.message);
+      } finally {
+        this.setSyncingState(false);
+      }
+      return false;
+    },
+
+    setSyncingState(isSyncing) {
+      this.isSyncing = isSyncing;
+      const dot = document.getElementById('githubStatusDot');
+      if (dot) {
+        if (isSyncing) {
+          dot.className = 'github-sync-status-indicator syncing';
+        } else {
+          dot.className = this.isConnected() ? 'github-sync-status-indicator connected' : 'github-sync-status-indicator disconnected';
+        }
+      }
+    },
+
+    updateUI() {
+      const isConn = this.isConnected();
+      const { repo } = this.getConfig();
+
+      const headerBtn = document.getElementById('btnOpenGitHubModal');
+      const headerText = document.getElementById('githubHeaderStatusText');
+      const dot = document.getElementById('githubStatusDot');
+      const badge = document.getElementById('githubStatusBadge');
+      const desc = document.getElementById('githubStatusDesc');
+      const btnSyncNow = document.getElementById('btnSyncNowTab');
+      const btnConnectTab = document.getElementById('btnConnectGitHubTab');
+      const btnDisconnect = document.getElementById('btnDisconnectGitHub');
+
+      if (headerBtn) {
+        headerBtn.classList.toggle('connected', isConn);
+      }
+      if (headerText) {
+        headerText.textContent = isConn ? (repo.split('/')[1] || 'GitHub Conectado') : 'Nuvem GitHub';
+      }
+      if (dot) {
+        dot.className = isConn ? 'github-sync-status-indicator connected' : 'github-sync-status-indicator disconnected';
+      }
+      if (badge) {
+        badge.textContent = isConn ? 'Conectado' : 'Desconectado';
+        badge.className = isConn ? 'github-status-badge connected' : 'github-status-badge';
+      }
+      if (desc) {
+        desc.textContent = isConn ? `Repo: ${repo}` : 'Sincronize perfis em qualquer dispositivo';
+      }
+      if (btnSyncNow) {
+        btnSyncNow.style.display = isConn ? 'inline-flex' : 'none';
+      }
+      if (btnConnectTab) {
+        btnConnectTab.textContent = isConn ? 'Configurações' : 'Conectar GitHub';
+      }
+      if (btnDisconnect) {
+        btnDisconnect.style.display = isConn ? 'inline-block' : 'none';
       }
     }
   };
@@ -761,6 +1015,10 @@
         this.saveToStorage();
         this.renderProfilesList();
 
+        if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+          GitHubSync.syncUp('Create profile: ' + name).catch(() => {});
+        }
+
         switchToTab('tab-profiles');
         showToast(`Perfil "${name}" salvo com sucesso!`);
       } catch (err) {
@@ -808,6 +1066,11 @@
 
           this.saveToStorage();
           this.renderProfilesList();
+
+          if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+            GitHubSync.syncUp('Rename profile: ' + profile.name).catch(() => {});
+          }
+
           showToast('Perfil renomeado com sucesso!');
         }
       } catch (err) {
@@ -830,6 +1093,11 @@
           this.profiles = this.profiles.filter(p => p.id !== profileId);
           this.saveToStorage();
           this.renderProfilesList();
+
+          if (typeof GitHubSync !== 'undefined' && GitHubSync.isConnected()) {
+            GitHubSync.syncUp('Delete profile').catch(() => {});
+          }
+
           showToast('Perfil excluído com sucesso.');
         }
       } catch (err) {
@@ -1117,6 +1385,27 @@
     instagramUiOverlay: document.getElementById('instagramUiOverlay'),
     toggleIgUiCheck: document.getElementById('toggleIgUiCheck'),
     downloadFromPreviewBtn: document.getElementById('downloadFromPreviewBtn'),
+
+    // Modal de Configuração do GitHub
+    btnOpenGitHubModal: document.getElementById('btnOpenGitHubModal'),
+    githubHeaderStatusText: document.getElementById('githubHeaderStatusText'),
+    githubSyncCard: document.getElementById('githubSyncCard'),
+    githubStatusDot: document.getElementById('githubStatusDot'),
+    githubStatusTitle: document.getElementById('githubStatusTitle'),
+    githubStatusBadge: document.getElementById('githubStatusBadge'),
+    githubStatusDesc: document.getElementById('githubStatusDesc'),
+    btnConnectGitHubTab: document.getElementById('btnConnectGitHubTab'),
+    btnSyncNowTab: document.getElementById('btnSyncNowTab'),
+    githubModal: document.getElementById('githubModal'),
+    closeGitHubBackdrop: document.getElementById('closeGitHubBackdrop'),
+    closeGitHubModalBtn: document.getElementById('closeGitHubModalBtn'),
+    btnCancelGitHubModal: document.getElementById('btnCancelGitHubModal'),
+    githubTokenInput: document.getElementById('githubTokenInput'),
+    githubRepoInput: document.getElementById('githubRepoInput'),
+    githubConnectionFeedback: document.getElementById('githubConnectionFeedback'),
+    btnDisconnectGitHub: document.getElementById('btnDisconnectGitHub'),
+    btnSaveGitHubConfig: document.getElementById('btnSaveGitHubConfig'),
+    btnSaveGitHubText: document.getElementById('btnSaveGitHubText'),
 
     // Modal de Boas-Vindas Inicial
     welcomeModal: document.getElementById('welcomeModal'),
@@ -3975,6 +4264,108 @@
       });
     }
 
+    // 9. Modal de Sincronização com o GitHub (Cloud Sync)
+    const openGitHubModal = () => {
+      const config = GitHubSync.getConfig();
+      if (DOM.githubTokenInput) DOM.githubTokenInput.value = config.token;
+      if (DOM.githubRepoInput) DOM.githubRepoInput.value = config.repo;
+      if (DOM.githubConnectionFeedback) {
+        DOM.githubConnectionFeedback.style.display = 'none';
+        DOM.githubConnectionFeedback.className = 'github-feedback-box';
+      }
+      if (DOM.btnDisconnectGitHub) {
+        DOM.btnDisconnectGitHub.style.display = GitHubSync.isConnected() ? 'inline-block' : 'none';
+      }
+      if (DOM.githubModal) DOM.githubModal.style.display = 'flex';
+    };
+
+    const closeGitHubModal = () => {
+      if (DOM.githubModal) DOM.githubModal.style.display = 'none';
+    };
+
+    if (DOM.btnOpenGitHubModal) {
+      DOM.btnOpenGitHubModal.addEventListener('click', openGitHubModal);
+    }
+    if (DOM.btnConnectGitHubTab) {
+      DOM.btnConnectGitHubTab.addEventListener('click', openGitHubModal);
+    }
+    if (DOM.closeGitHubModalBtn) {
+      DOM.closeGitHubModalBtn.addEventListener('click', closeGitHubModal);
+    }
+    if (DOM.closeGitHubBackdrop) {
+      DOM.closeGitHubBackdrop.addEventListener('click', closeGitHubModal);
+    }
+    if (DOM.btnCancelGitHubModal) {
+      DOM.btnCancelGitHubModal.addEventListener('click', closeGitHubModal);
+    }
+
+    if (DOM.btnSaveGitHubConfig) {
+      DOM.btnSaveGitHubConfig.addEventListener('click', async () => {
+        const token = (DOM.githubTokenInput ? DOM.githubTokenInput.value : '').trim();
+        const repo = (DOM.githubRepoInput ? DOM.githubRepoInput.value : '').trim();
+
+        if (!token) {
+          showGitHubFeedback('Por favor, informe seu Personal Access Token do GitHub.', 'error');
+          return;
+        }
+        if (!repo || !repo.includes('/')) {
+          showGitHubFeedback('Por favor, informe o repositório no formato "usuario/repositorio".', 'error');
+          return;
+        }
+
+        showGitHubFeedback('⏳ Testando conexão com o repositório GitHub...', 'loading');
+        if (DOM.btnSaveGitHubConfig) DOM.btnSaveGitHubConfig.disabled = true;
+
+        try {
+          await GitHubSync.testConnection(token, repo);
+          GitHubSync.saveConfig(token, repo);
+          showGitHubFeedback('✅ Conectado com sucesso! Sincronizando dados...', 'success');
+
+          // Executa sincronização inicial
+          await GitHubSync.syncDown();
+          await GitHubSync.syncUp('Initial sync from StoryCraft');
+
+          setTimeout(() => {
+            closeGitHubModal();
+            showToast(`Conectado ao GitHub: ${repo}`, 'success');
+          }, 1000);
+        } catch (err) {
+          showGitHubFeedback(`❌ ${err.message || 'Falha ao conectar com o GitHub'}`, 'error');
+        } finally {
+          if (DOM.btnSaveGitHubConfig) DOM.btnSaveGitHubConfig.disabled = false;
+        }
+      });
+    }
+
+    if (DOM.btnDisconnectGitHub) {
+      DOM.btnDisconnectGitHub.addEventListener('click', () => {
+        if (confirm('Deseja desconectar a sua conta do GitHub? Seus dados locais permanecerão salvos no navegador.')) {
+          GitHubSync.disconnect();
+          if (DOM.githubTokenInput) DOM.githubTokenInput.value = '';
+          if (DOM.githubRepoInput) DOM.githubRepoInput.value = '';
+          closeGitHubModal();
+        }
+      });
+    }
+
+    if (DOM.btnSyncNowTab) {
+      DOM.btnSyncNowTab.addEventListener('click', async () => {
+        showToast('Sincronizando com o GitHub...', 'info');
+        await GitHubSync.syncDown();
+        await GitHubSync.syncUp('Manual sync via StoryCraft');
+        showToast('Sincronização concluída com sucesso!', 'success');
+      });
+    }
+
+    function showGitHubFeedback(msg, type) {
+      if (!DOM.githubConnectionFeedback) return;
+      DOM.githubConnectionFeedback.textContent = msg;
+      DOM.githubConnectionFeedback.className = `github-feedback-box ${type}`;
+      DOM.githubConnectionFeedback.style.display = 'flex';
+    }
+
+    GitHubSync.updateUI();
+
     let currentWorkspaceZoom = 100;
     const updateWorkspaceZoom = (newZoom) => {
       currentWorkspaceZoom = Math.min(Math.max(50, newZoom), 180);
@@ -4075,13 +4466,23 @@
         console.warn('[Bootstrap] HistoryController.init:', histErr);
       }
 
+      // 3. Inicialização e Sincronização Nuvem GitHub
+      try {
+        GitHubSync.updateUI();
+        if (GitHubSync.isConnected()) {
+          GitHubSync.syncDown().catch((e) => console.warn('[Bootstrap] GitHub syncDown background error:', e));
+        }
+      } catch (ghErr) {
+        console.warn('[Bootstrap] GitHubSync.init:', ghErr);
+      }
+
       console.log('StoryCraft inicializado com sucesso (Safe Boot Ativo).');
       closeAllDrawers();
     } catch (err) {
       alert('Erro na inicialização: ' + (err && err.message ? err.message : err));
       console.error('Erro crítico na inicialização do StoryCraft:', err);
     } finally {
-      // 3. Destravamento Imediato no final do bootstrap
+      // 4. Destravamento Imediato no final do bootstrap
       const histEl = document.getElementById('historyLoadingIndicator');
       const profEl = document.getElementById('profilesLoadingIndicator');
       const emptyEl = document.getElementById('canvasEmptyState');
