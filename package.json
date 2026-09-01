@@ -1,10 +1,13 @@
 {
   "name": "story-craft",
   "version": "1.0.0",
-  "description": "Editor profissional de Stories para Instagram (9:16 / 1080x1920) 100% Client-Side",
-  "main": "index.html",
+  "description": "Editor profissional de Stories para Instagram (9:16 / 1080x1920) com Backend Node.js e Prisma ORM",
+  "main": "server.js",
   "scripts": {
-    "dev": "npx serve ."
+    "start": "node server.js",
+    "dev": "node server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
   },
   "keywords": [
     "instagram",
@@ -12,8 +15,22 @@
     "editor",
     "pwa",
     "canvas",
-    "ecommerce"
+    "ecommerce",
+    "nodejs",
+    "express",
+    "prisma",
+    "sqlite",
+    "postgresql"
   ],
   "author": "João Gabriel Farias",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
 }

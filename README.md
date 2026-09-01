@@ -28,47 +28,84 @@
   - Renderização acelerada por hardware via CSS (`transform: translateZ(0)` e `will-change: transform`).
   - Suavização anti-serrilhado (*subpixel antialiasing*) para 60 FPS fluidos no mobile.
 
-- **💾 Armazenamento 100% Client-Side (IndexedDB & LocalStorage)**:
-  - Sistema de banco de dados no navegador com IndexedDB (e fallback em LocalStorage).
-  - Sem necessidade de backend, sem latência e funcionamento offline garantido.
+- **🗄️ Backend Node.js com Prisma ORM (SQLite / PostgreSQL)**:
+  - Servidor Express estruturado com rotas REST completas (`/api/stories`, `/api/profiles`, `/api/health`).
+  - Suporte nativo a SQLite em disco com transição transparente para PostgreSQL (Supabase, Neon, Railway) via `DATABASE_URL`.
+  - Resiliência offline: Fallback automático e transparente para IndexedDB/LocalStorage caso o cliente esteja offline.
 
 - **🛡️ Guias de Margem Segura do Instagram (Safe Zones)**:
   - Marcadores de topo (stories/perfil) e rodapé (área de resposta e mensagens) com botão de alternância rápida.
 
 ---
 
-## 🚀 Como Rodar Localmente / Deploy
+## 🚀 Como Rodar Localmente
 
-### Deploy na Vercel (1 Clique):
-A aplicação é 100% estática (SPA). Basta conectar o repositório no dashboard da [Vercel](https://vercel.com) e o deploy será realizado instantaneamente.
-
-### Rodar Localmente:
 1. **Clone o repositório**:
    ```bash
    git clone https://github.com/gabritfarias/story-craft.git
    cd story-craft
    ```
 
-2. **Inicie qualquer servidor estático** (ou use `npx serve`):
+2. **Instale as dependências**:
    ```bash
-   npx serve .
+   npm install
    ```
 
-3. **Abra no seu navegador**:
-   - Computador: `http://localhost:3000` (ou a porta indicada pelo serve)
+3. **Configure as variáveis de ambiente** (opcional, já vem com `.env.example` pronto):
+   ```bash
+   cp .env.example .env
+   ```
+   > Padrão: `PORT=3000` e `DATABASE_URL="file:./dev.db"`
+
+4. **Gere e sincronize o banco de dados Prisma**:
+   ```bash
+   npx prisma db push
+   ```
+
+5. **Inicie o servidor**:
+   ```bash
+   npm start
+   ```
+
+6. **Abra no seu navegador**:
+   - Computador: `http://localhost:3000`
    - Celular (na mesma rede Wi-Fi): `http://SEU_IP_LOCAL:3000`
+
+---
+
+## 🌐 Endpoints da API REST
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/api/health` | Status de integridade do servidor e conexão com o banco |
+| `GET` | `/api/stories` | Lista todas as artes salvas (mais recentes primeiro) |
+| `POST` | `/api/stories` | Cria ou atualiza uma arte no banco de dados |
+| `DELETE` | `/api/stories/:id` | Remove uma arte pelo ID |
+| `DELETE` | `/api/stories` | Limpa todo o histórico de artes |
+| `GET` | `/api/profiles` | Lista todos os perfis de texto e estilização |
+| `POST` | `/api/profiles` | Salva um novo perfil de blocos de texto |
+| `PUT` | `/api/profiles/:id` | Atualiza/renomeia um perfil existente |
+| `DELETE` | `/api/profiles/:id` | Remove um perfil pelo ID |
 
 ---
 
 ## 📂 Estrutura do Projeto
 
 ```text
-├── index.html          # Ponto de entrada da aplicação (PWA & Desktop)
-├── style.css           # Estilos Glassmorphism, animações e aceleração gráfica
-├── script.js           # Lógica do Canvas, Camadas, Touch/Pinch, Undo e IndexedDB
-├── manifest.json       # Manifesto PWA (Tela Cheia, Ícones e Tema)
-├── icon-192.png        # Ícone PWA 192x192
-├── icon-512.png        # Ícone PWA 512x512
-├── vercel.json         # Configuração de rotas estáticas e cache da Vercel
-└── package.json        # Metadados do projeto
+story-craft/
+├── server.js             # Servidor Node.js / Express & API REST
+├── lib/
+│   └── prisma.js         # Singleton de conexão do Prisma Client
+├── prisma/
+│   └── schema.prisma     # Modelos do banco de dados (Story, Profile)
+├── index.html            # Interface SPA (PWA & Desktop)
+├── style.css             # Glassmorphism, aceleração de GPU e responsividade
+├── script.js             # Lógica do Canvas, Camadas, Touch/Pinch, Undo e API Client
+├── manifest.json         # Manifesto PWA (Tela Cheia, Ícones e Tema)
+├── icon-192.png          # Ícone PWA (192x192 px)
+├── icon-512.png          # Ícone PWA (512x512 px)
+├── .env.example          # Exemplo de variáveis de ambiente
+├── package.json          # Dependências do projeto (Express, Prisma, CORS, Dotenv)
+├── .gitignore            # Regras de exclusão do git
+└── README.md             # Documentação completa do projeto
 ```

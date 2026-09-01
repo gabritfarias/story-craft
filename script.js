@@ -176,18 +176,49 @@
   };
 
   /* ==========================================================================
-     3. GERENCIADOR DE BANCO DE DADOS LOCAL (100% Client-Side IndexedDB / LocalStorage)
+     3. GERENCIADOR DE BANCO DE DADOS (REST API Server com Resiliência Offline)
      ========================================================================== */
   const DB = {
+    isServerActive: false,
     indexedDBInstance: null,
     LOCAL_STORAGE_KEY: 'storycraft_history_backup',
 
+    async fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    },
+
     async init() {
+      // 1. Testa conectividade com a API REST do servidor
+      try {
+        const res = await this.fetchWithTimeout('/api/health', {}, 2500);
+        if (res && res.ok) {
+          this.isServerActive = true;
+          console.log('[StoryCraft] Conectado à API REST do Backend Node.js (Prisma).');
+        } else {
+          this.isServerActive = false;
+        }
+      } catch (e) {
+        console.warn('[StoryCraft] Backend offline ou operando standalone. Usando IndexedDB/LocalStorage como fallback.');
+        this.isServerActive = false;
+      }
+
+      // 2. Inicializa o IndexedDB local para contingência e cache
       try {
         await this.initIndexedDB();
-        console.log('[StoryCraft] Banco de dados IndexedDB local inicializado.');
-      } catch (err) {
-        console.warn('[StoryCraft] IndexedDB indisponível, usando LocalStorage:', err);
+      } catch (storageErr) {
+        console.warn('[StoryCraft] Erro ao inicializar IndexedDB local:', storageErr);
       }
     },
 
@@ -214,6 +245,21 @@
     },
 
     async getAllStories() {
+      if (this.isServerActive) {
+        try {
+          const res = await this.fetchWithTimeout('/api/stories', {}, 3500);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data)) {
+              return json.data;
+            }
+          }
+        } catch (err) {
+          console.warn('[DB] Falha ao buscar stories do servidor, alternando para local:', err.message);
+          this.isServerActive = false;
+        }
+      }
+
       if (this.indexedDBInstance || window.indexedDB) {
         try {
           const items = await this.getAllFromIndexedDB();
@@ -233,6 +279,33 @@
       }
       storyData.timestamp = storyData.timestamp || Date.now();
 
+      if (this.isServerActive) {
+        try {
+          const res = await this.fetchWithTimeout('/api/stories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: storyData.id,
+              title: storyData.title,
+              thumbnail: storyData.thumbnail,
+              state: storyData.state,
+              dateFormatted: storyData.dateFormatted
+            })
+          }, 5000);
+
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              this.saveToIndexedDB(storyData).catch(() => {});
+              return json.data;
+            }
+          }
+        } catch (err) {
+          console.warn('[DB] Falha ao salvar no servidor, gravando localmente:', err.message);
+          this.isServerActive = false;
+        }
+      }
+
       let saved = null;
       if (this.indexedDBInstance || window.indexedDB) {
         try {
@@ -248,6 +321,20 @@
     },
 
     async deleteStory(id) {
+      if (this.isServerActive) {
+        try {
+          const res = await this.fetchWithTimeout(`/api/stories/${id}`, { method: 'DELETE' }, 4000);
+          if (res.ok) {
+            this.deleteFromIndexedDB(id).catch(() => {});
+            this.deleteFromLocalStorage(id);
+            return true;
+          }
+        } catch (err) {
+          console.warn('[DB] Falha ao excluir no servidor, tentando localmente:', err.message);
+          this.isServerActive = false;
+        }
+      }
+
       if (this.indexedDBInstance || window.indexedDB) {
         try {
           await this.deleteFromIndexedDB(id);
@@ -260,6 +347,20 @@
     },
 
     async clearAll() {
+      if (this.isServerActive) {
+        try {
+          const res = await this.fetchWithTimeout('/api/stories', { method: 'DELETE' }, 4000);
+          if (res.ok) {
+            this.clearIndexedDB().catch(() => {});
+            localStorage.removeItem(this.LOCAL_STORAGE_KEY);
+            return true;
+          }
+        } catch (err) {
+          console.warn('[DB] Falha ao limpar no servidor, limpando localmente:', err.message);
+          this.isServerActive = false;
+        }
+      }
+
       if (this.indexedDBInstance || window.indexedDB) {
         try {
           await this.clearIndexedDB();
@@ -416,7 +517,7 @@
   };
 
   /* ==========================================================================
-     4. GERENCIADOR DE PERFIS DE ESTILIZAÇÃO (LocalStorage - PERFIS)
+     4. GERENCIADOR DE PERFIS DE ESTILIZAÇÃO (REST API + LocalStorage)
      ========================================================================== */
   const ProfileManager = {
     profiles: [],
@@ -424,7 +525,7 @@
     async init() {
       try {
         if (DOM.profilesLoadingIndicator) DOM.profilesLoadingIndicator.style.display = 'flex';
-        this.loadProfiles();
+        await this.loadProfiles();
         this.bindEvents();
         this.renderProfilesList();
       } catch (err) {
@@ -448,16 +549,32 @@
       }
     },
 
-    loadProfiles() {
+    async loadProfiles() {
+      // 1. Tenta carregar da REST API
+      if (DB.isServerActive) {
+        try {
+          const res = await DB.fetchWithTimeout('/api/profiles', {}, 3000);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              this.profiles = json.data;
+              this.saveToStorage();
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('[ProfileManager] Falha ao carregar do servidor, usando LocalStorage:', e);
+        }
+      }
+
+      // 2. Fallback para LocalStorage
       try {
         const stored = localStorage.getItem(CONFIG.PROFILES_STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
+          if (Array.isArray(parsed) && parsed.length > 0) {
             this.profiles = parsed;
           } else {
-            console.warn('Formato inválido de perfis no localStorage. Restaurando padrões.');
-            showToast('Dados de perfis restaurados para o padrão.', 'error');
             this.profiles = this.getDefaultFactoryProfiles();
             this.saveToStorage();
           }
@@ -467,7 +584,6 @@
         }
       } catch (err) {
         console.error('Erro ao carregar perfis do localStorage:', err);
-        showToast('Não foi possível ler os perfis salvos. Restaurando padrões.', 'error');
         this.profiles = this.getDefaultFactoryProfiles();
         this.saveToStorage();
       }
@@ -478,7 +594,6 @@
         localStorage.setItem(CONFIG.PROFILES_STORAGE_KEY, JSON.stringify(this.profiles));
       } catch (err) {
         console.error('Erro ao salvar perfis no localStorage:', err);
-        showToast('Não foi possível salvar o perfil. O armazenamento pode estar cheio.', 'error');
       }
     },
 
@@ -521,7 +636,7 @@
         },
         {
           id: 'profile_default_2',
-          name: 'Queima de Estoque / Impacto',
+          name: 'Super Promoção Varejo',
           createdAt: Date.now() - 1000,
           textLayers: [
             {
@@ -613,7 +728,7 @@
       }
     },
 
-    createProfileFromCurrentLayers(name) {
+    async createProfileFromCurrentLayers(name) {
       try {
         const cleanLayers = JSON.parse(JSON.stringify(AppState.textLayers));
 
@@ -623,6 +738,24 @@
           createdAt: Date.now(),
           textLayers: cleanLayers
         };
+
+        if (DB.isServerActive) {
+          try {
+            const res = await DB.fetchWithTimeout('/api/profiles', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newProfile)
+            }, 4000);
+            if (res.ok) {
+              const json = await res.json();
+              if (json.success && json.data) {
+                newProfile.id = json.data.id;
+              }
+            }
+          } catch (e) {
+            console.warn('[ProfileManager] Falha ao salvar perfil no servidor, salvo localmente:', e);
+          }
+        }
 
         this.profiles.unshift(newProfile);
         this.saveToStorage();
@@ -655,11 +788,24 @@
       }
     },
 
-    renameProfile(profile) {
+    async renameProfile(profile) {
       try {
         const newName = prompt('Digite o novo nome para o perfil:', profile.name);
         if (newName && newName.trim()) {
           profile.name = newName.trim();
+
+          if (DB.isServerActive) {
+            try {
+              await DB.fetchWithTimeout(`/api/profiles/${profile.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: profile.name })
+              }, 4000);
+            } catch (e) {
+              console.warn('[ProfileManager] Falha ao renomear no servidor:', e);
+            }
+          }
+
           this.saveToStorage();
           this.renderProfilesList();
           showToast('Perfil renomeado com sucesso!');
@@ -670,9 +816,17 @@
       }
     },
 
-    deleteProfile(profileId) {
+    async deleteProfile(profileId) {
       try {
         if (confirm('Tem certeza de que deseja excluir este perfil?')) {
+          if (DB.isServerActive) {
+            try {
+              await DB.fetchWithTimeout(`/api/profiles/${profileId}`, { method: 'DELETE' }, 4000);
+            } catch (e) {
+              console.warn('[ProfileManager] Falha ao excluir no servidor:', e);
+            }
+          }
+
           this.profiles = this.profiles.filter(p => p.id !== profileId);
           this.saveToStorage();
           this.renderProfilesList();

@@ -5,5 +5,13 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Banco SQLite temporario
+# Ambiente local
+.env
+
+# Banco de dados local SQLite
+*.db
 *.db-journal
+prisma/*.db
+prisma/*.db-journal
+dev.db
+
