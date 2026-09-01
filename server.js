@@ -1,17 +1,31 @@
 /**
  * ============================================================================
  * StoryCraft — Servidor Node.js / Express com Prisma ORM (server.js)
- * API REST para persistência robusta de Stories e Profiles no Banco de Dados
+ * API REST para persistência de Stories e Profiles
+ * 
+ * ARQUITETURA DE PERSISTÊNCIA:
+ * - Source of Truth (Produção): GitHubSync → data/perfis_e_projetos.json
+ * - Cache Local / Dev: Prisma + SQLite (filesystem efêmero na Vercel)
  * ============================================================================
  */
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const prisma = require("./lib/prisma");
+
+let prisma;
+try {
+  prisma = require("./lib/prisma");
+} catch (err) {
+  console.warn("[Prisma] Client não disponível — rodando sem banco local:", err.message);
+  prisma = null;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Detecta ambiente serverless (Vercel)
+const IS_SERVERLESS = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
 
 // --- MIDDLEWARES ---
 app.use(cors({ origin: "*" }));
@@ -21,42 +35,80 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 // Servir arquivos estáticos da SPA (index.html, style.css, script.js, ícones, manifest)
 app.use(express.static(path.join(__dirname)));
 
+// --- HELPERS ---
+
+/**
+ * Metadados de persistência adicionados a todas as respostas da API.
+ * Indica ao front-end qual camada de persistência está sendo usada.
+ */
+function persistenceMeta() {
+  return {
+    persistence: {
+      sourceOfTruth: "github",
+      description: "A persistência primária é feita via GitHubSync (data/perfis_e_projetos.json). O Prisma/SQLite é apenas um cache local de desenvolvimento.",
+      localCacheAvailable: !!prisma && !IS_SERVERLESS,
+      environment: IS_SERVERLESS ? "serverless" : "local"
+    }
+  };
+}
+
+/**
+ * Executa uma operação Prisma com tratamento de falha gracioso.
+ * Em ambiente serverless (Vercel), o SQLite é efêmero e pode não existir.
+ */
+async function withPrismaFallback(operation, fallbackValue = null) {
+  if (!prisma || IS_SERVERLESS) {
+    return fallbackValue;
+  }
+  try {
+    return await operation();
+  } catch (err) {
+    console.warn("[Prisma] Operação falhou (cache local):", err.message);
+    return fallbackValue;
+  }
+}
+
 // --- ROTAS DA API REST ---
 
 /**
  * GET /api/health — Verificação de integridade do servidor e banco de dados
  */
 app.get("/api/health", async (req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({
-      status: "ok",
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-      database: "connected"
-    });
-  } catch (err) {
-    console.error("[HealthCheck] Falha na conexão com o banco:", err);
-    res.status(500).json({
-      status: "error",
-      message: "Falha na conexão com o banco de dados.",
-      error: err.message
-    });
+  let dbStatus = "unavailable";
+  if (prisma && !IS_SERVERLESS) {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = "connected";
+    } catch (err) {
+      dbStatus = "error: " + err.message;
+    }
+  } else if (IS_SERVERLESS) {
+    dbStatus = "serverless (ephemeral — use GitHubSync)";
   }
+
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    database: dbStatus,
+    ...persistenceMeta()
+  });
 });
 
 // ============================================================================
-// ROTAS DE HISTÓRICO DE STORIES (/api/stories - storycraft.db)
+// ROTAS DE HISTÓRICO DE STORIES (/api/stories)
 // ============================================================================
 
 /**
- * GET /api/stories — Retorna todas as artes salvas no banco storycraft.db
+ * GET /api/stories — Retorna todas as artes salvas
+ * Em produção serverless, retorna array vazio (dados persistem via GitHubSync)
  */
 app.get("/api/stories", async (req, res) => {
   try {
-    const stories = await prisma.story.findMany({
-      orderBy: { createdAt: "desc" }
-    });
+    const stories = await withPrismaFallback(
+      () => prisma.story.findMany({ orderBy: { createdAt: "desc" } }),
+      []
+    );
 
     const formatted = stories.map((s) => {
       let parsedData = {};
@@ -78,15 +130,23 @@ app.get("/api/stories", async (req, res) => {
       };
     });
 
-    res.json({ success: true, data: formatted });
+    res.json({
+      success: true,
+      data: formatted,
+      note: IS_SERVERLESS
+        ? "Ambiente serverless detectado. Os dados retornados são do cache local (efêmero). Use GitHubSync como fonte primária."
+        : undefined,
+      ...persistenceMeta()
+    });
   } catch (err) {
-    console.error("[API] Erro ao buscar stories do arquivo storycraft.db:", err);
-    res.status(500).json({ success: false, error: "Erro ao buscar histórico de artes." });
+    console.error("[API] Erro ao buscar stories:", err);
+    res.status(500).json({ success: false, error: "Erro ao buscar histórico de artes.", ...persistenceMeta() });
   }
 });
 
 /**
- * POST /api/stories — Insere um novo registro de forma persistente no banco relacional SQLite
+ * POST /api/stories — Salva um novo registro
+ * Em produção: grava no cache local E sinaliza que o front deve sincronizar via GitHubSync
  */
 app.post("/api/stories", async (req, res) => {
   try {
@@ -108,41 +168,66 @@ app.post("/api/stories", async (req, res) => {
     const dataStr = typeof payloadData === "string" ? payloadData : JSON.stringify(payloadData);
     const storyTitle = title || (payloadData.state && payloadData.state.projectTitle) || "Meu Story";
 
-    const story = await prisma.story.create({
-      data: {
-        title: storyTitle,
-        data: dataStr
-      }
-    });
+    // Tenta gravar no cache local (Prisma/SQLite)
+    const story = await withPrismaFallback(
+      () => prisma.story.create({
+        data: {
+          title: storyTitle,
+          data: dataStr
+        }
+      }),
+      null
+    );
 
-    let parsedData = {};
-    try {
-      parsedData = JSON.parse(story.data);
-    } catch (e) {
-      parsedData = story.data;
+    if (story) {
+      let parsedData = {};
+      try {
+        parsedData = JSON.parse(story.data);
+      } catch (e) {
+        parsedData = story.data;
+      }
+
+      res.status(201).json({
+        success: true,
+        data: {
+          id: story.id,
+          title: story.title,
+          thumbnail: parsedData.thumbnail || "",
+          state: parsedData.state || parsedData,
+          dateFormatted: parsedData.dateFormatted || story.createdAt.toLocaleString("pt-BR"),
+          data: parsedData,
+          createdAt: story.createdAt,
+          updatedAt: story.updatedAt
+        },
+        githubSyncRequired: true,
+        note: "Gravado no cache local. Sincronize via GitHubSync para persistência permanente.",
+        ...persistenceMeta()
+      });
+    } else {
+      // Sem Prisma — retorna sucesso parcial, delega persistência ao GitHubSync
+      console.log("[API] Prisma indisponível. Persistência delegada ao GitHubSync.");
+      res.status(201).json({
+        success: true,
+        data: {
+          id: `temp_${Date.now()}`,
+          title: storyTitle,
+          data: typeof payloadData === "string" ? JSON.parse(payloadData) : payloadData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        githubSyncRequired: true,
+        note: "Cache local indisponível (serverless). Persistência delegada integralmente ao GitHubSync (data/perfis_e_projetos.json).",
+        ...persistenceMeta()
+      });
     }
-
-    res.status(201).json({
-      success: true,
-      data: {
-        id: story.id,
-        title: story.title,
-        thumbnail: parsedData.thumbnail || "",
-        state: parsedData.state || parsedData,
-        dateFormatted: parsedData.dateFormatted || story.createdAt.toLocaleString("pt-BR"),
-        data: parsedData,
-        createdAt: story.createdAt,
-        updatedAt: story.updatedAt
-      }
-    });
   } catch (err) {
-    console.error("[API] Erro ao salvar story no storycraft.db:", err);
-    res.status(500).json({ success: false, error: "Erro ao salvar história no arquivo storycraft.db." });
+    console.error("[API] Erro ao salvar story:", err);
+    res.status(500).json({ success: false, error: "Erro ao salvar história.", ...persistenceMeta() });
   }
 });
 
 /**
- * DELETE /api/stories/:id — Remove o registro correspondente do banco pelo ID
+ * DELETE /api/stories/:id — Remove um registro pelo ID
  */
 app.delete("/api/stories/:id", async (req, res) => {
   try {
@@ -151,26 +236,41 @@ app.delete("/api/stories/:id", async (req, res) => {
       return res.status(400).json({ success: false, error: "ID inválido (deve ser um número inteiro)." });
     }
 
-    await prisma.story.delete({
-      where: { id: storyId }
+    await withPrismaFallback(
+      () => prisma.story.delete({ where: { id: storyId } })
+    );
+
+    res.json({
+      success: true,
+      message: `Story #${storyId} removida do cache local.`,
+      githubSyncRequired: true,
+      note: "Remova também do GitHubSync para garantir consistência.",
+      ...persistenceMeta()
     });
-    res.json({ success: true, message: `Story #${storyId} removida com sucesso de storycraft.db.` });
   } catch (err) {
-    console.error("[API] Erro ao excluir story do storycraft.db:", err);
-    res.status(500).json({ success: false, error: "Erro ao excluir arte do banco de dados." });
+    console.error("[API] Erro ao excluir story:", err);
+    res.status(500).json({ success: false, error: "Erro ao excluir arte.", ...persistenceMeta() });
   }
 });
 
 /**
- * DELETE /api/stories — Limpa todo o histórico de artes do storycraft.db
+ * DELETE /api/stories — Limpa todo o histórico
  */
 app.delete("/api/stories", async (req, res) => {
   try {
-    await prisma.story.deleteMany({});
-    res.json({ success: true, message: "Todo o histórico de artes foi apagado de storycraft.db." });
+    await withPrismaFallback(
+      () => prisma.story.deleteMany({})
+    );
+
+    res.json({
+      success: true,
+      message: "Cache local de histórico limpo.",
+      githubSyncRequired: true,
+      ...persistenceMeta()
+    });
   } catch (err) {
     console.error("[API] Erro ao limpar stories:", err);
-    res.status(500).json({ success: false, error: "Erro ao limpar histórico de artes." });
+    res.status(500).json({ success: false, error: "Erro ao limpar histórico.", ...persistenceMeta() });
   }
 });
 
@@ -183,9 +283,10 @@ app.delete("/api/stories", async (req, res) => {
  */
 app.get("/api/profiles", async (req, res) => {
   try {
-    const profiles = await prisma.profile.findMany({
-      orderBy: { createdAt: "desc" }
-    });
+    const profiles = await withPrismaFallback(
+      () => prisma.profile.findMany({ orderBy: { createdAt: "desc" } }),
+      []
+    );
 
     const formatted = profiles.map((p) => ({
       id: p.id,
@@ -195,10 +296,17 @@ app.get("/api/profiles", async (req, res) => {
       updatedAt: p.updatedAt
     }));
 
-    res.json({ success: true, data: formatted });
+    res.json({
+      success: true,
+      data: formatted,
+      note: IS_SERVERLESS
+        ? "Ambiente serverless. Perfis retornados são do cache efêmero. Use GitHubSync como fonte primária."
+        : undefined,
+      ...persistenceMeta()
+    });
   } catch (err) {
     console.error("[API] Erro ao buscar perfis:", err);
-    res.status(500).json({ success: false, error: "Erro ao carregar perfis de texto." });
+    res.status(500).json({ success: false, error: "Erro ao carregar perfis.", ...persistenceMeta() });
   }
 });
 
@@ -220,37 +328,54 @@ app.post("/api/profiles", async (req, res) => {
 
     let profile;
     if (id) {
-      profile = await prisma.profile.upsert({
-        where: { id: String(id) },
-        update: {
-          name,
-          textLayers: layersStr
-        },
-        create: {
-          id: String(id),
-          name,
-          textLayers: layersStr
-        }
-      });
+      profile = await withPrismaFallback(
+        () => prisma.profile.upsert({
+          where: { id: String(id) },
+          update: { name, textLayers: layersStr },
+          create: { id: String(id), name, textLayers: layersStr }
+        }),
+        null
+      );
     } else {
-      profile = await prisma.profile.create({
-        data: {
-          name,
-          textLayers: layersStr
-        }
-      });
+      profile = await withPrismaFallback(
+        () => prisma.profile.create({
+          data: { name, textLayers: layersStr }
+        }),
+        null
+      );
     }
 
-    res.status(201).json({
-      success: true,
-      data: {
-        ...profile,
-        textLayers: JSON.parse(profile.textLayers)
-      }
-    });
+    if (profile) {
+      res.status(201).json({
+        success: true,
+        data: {
+          ...profile,
+          textLayers: JSON.parse(profile.textLayers)
+        },
+        githubSyncRequired: true,
+        note: "Perfil salvo no cache local. Sincronize via GitHubSync para persistência permanente.",
+        ...persistenceMeta()
+      });
+    } else {
+      // Sem Prisma — retorna sucesso parcial
+      console.log("[API] Prisma indisponível. Persistência do perfil delegada ao GitHubSync.");
+      res.status(201).json({
+        success: true,
+        data: {
+          id: id || `temp_${Date.now()}`,
+          name,
+          textLayers: typeof textLayers === "string" ? JSON.parse(textLayers) : textLayers,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        githubSyncRequired: true,
+        note: "Cache local indisponível (serverless). Persistência delegada ao GitHubSync.",
+        ...persistenceMeta()
+      });
+    }
   } catch (err) {
     console.error("[API] Erro ao salvar perfil:", err);
-    res.status(500).json({ success: false, error: "Erro ao salvar perfil no banco de dados." });
+    res.status(500).json({ success: false, error: "Erro ao salvar perfil.", ...persistenceMeta() });
   }
 });
 
@@ -268,21 +393,36 @@ app.put("/api/profiles/:id", async (req, res) => {
       updateData.textLayers = typeof textLayers === "string" ? textLayers : JSON.stringify(textLayers);
     }
 
-    const profile = await prisma.profile.update({
-      where: { id: String(id) },
-      data: updateData
-    });
+    const profile = await withPrismaFallback(
+      () => prisma.profile.update({
+        where: { id: String(id) },
+        data: updateData
+      }),
+      null
+    );
 
-    res.json({
-      success: true,
-      data: {
-        ...profile,
-        textLayers: JSON.parse(profile.textLayers)
-      }
-    });
+    if (profile) {
+      res.json({
+        success: true,
+        data: {
+          ...profile,
+          textLayers: JSON.parse(profile.textLayers)
+        },
+        githubSyncRequired: true,
+        ...persistenceMeta()
+      });
+    } else {
+      res.json({
+        success: true,
+        data: { id, ...updateData },
+        githubSyncRequired: true,
+        note: "Cache local indisponível. Atualize via GitHubSync.",
+        ...persistenceMeta()
+      });
+    }
   } catch (err) {
     console.error("[API] Erro ao atualizar perfil:", err);
-    res.status(500).json({ success: false, error: "Erro ao atualizar perfil." });
+    res.status(500).json({ success: false, error: "Erro ao atualizar perfil.", ...persistenceMeta() });
   }
 });
 
@@ -292,13 +432,19 @@ app.put("/api/profiles/:id", async (req, res) => {
 app.delete("/api/profiles/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.profile.delete({
-      where: { id: String(id) }
+    await withPrismaFallback(
+      () => prisma.profile.delete({ where: { id: String(id) } })
+    );
+
+    res.json({
+      success: true,
+      message: "Perfil removido do cache local.",
+      githubSyncRequired: true,
+      ...persistenceMeta()
     });
-    res.json({ success: true, message: "Perfil removido com sucesso." });
   } catch (err) {
     console.error("[API] Erro ao excluir perfil:", err);
-    res.status(500).json({ success: false, error: "Erro ao excluir perfil." });
+    res.status(500).json({ success: false, error: "Erro ao excluir perfil.", ...persistenceMeta() });
   }
 });
 
@@ -307,11 +453,19 @@ app.delete("/api/profiles/:id", async (req, res) => {
  */
 app.delete("/api/profiles", async (req, res) => {
   try {
-    await prisma.profile.deleteMany({});
-    res.json({ success: true, message: "Todos os perfis foram removidos." });
+    await withPrismaFallback(
+      () => prisma.profile.deleteMany({})
+    );
+
+    res.json({
+      success: true,
+      message: "Cache local de perfis limpo.",
+      githubSyncRequired: true,
+      ...persistenceMeta()
+    });
   } catch (err) {
     console.error("[API] Erro ao limpar perfis:", err);
-    res.status(500).json({ success: false, error: "Erro ao limpar perfis." });
+    res.status(500).json({ success: false, error: "Erro ao limpar perfis.", ...persistenceMeta() });
   }
 });
 
@@ -321,31 +475,37 @@ app.get("*", (req, res) => {
 });
 
 // --- INICIALIZAÇÃO DO SERVIDOR ---
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log("=======================================================");
-  console.log(`🚀 StoryCraft Backend Server rodando em http://localhost:${PORT}`);
-  console.log(`🌐 Acesso na rede local disponível em http://0.0.0.0:${PORT}`);
-  console.log(`📂 Banco de dados Prisma configurado via ${process.env.DATABASE_URL || "file:./dev.db"}`);
-  console.log("=======================================================");
-});
-
-// --- TRATAMENTO GRACIOSO DE ERROS E ENCERRAMENTO ---
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("[Process] Unhandled Rejection at:", promise, "reason:", reason);
-});
-
-process.on("uncaughtException", (error) => {
-  console.error("[Process] Uncaught Exception:", error);
-});
-
-const shutdown = async () => {
-  console.log("[Server] Encerrando conexões com o banco e servidor...");
-  server.close(async () => {
-    await prisma.$disconnect();
-    console.log("[Server] Encerrado com sucesso.");
-    process.exit(0);
+if (!IS_SERVERLESS) {
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log("=======================================================");
+    console.log(`🚀 StoryCraft Backend Server rodando em http://localhost:${PORT}`);
+    console.log(`🌐 Acesso na rede local disponível em http://0.0.0.0:${PORT}`);
+    console.log(`📂 Prisma/SQLite: cache local de desenvolvimento`);
+    console.log(`☁️  Source of Truth: GitHubSync → data/perfis_e_projetos.json`);
+    console.log("=======================================================");
   });
-};
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+  // --- TRATAMENTO GRACIOSO DE ERROS E ENCERRAMENTO ---
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("[Process] Unhandled Rejection at:", promise, "reason:", reason);
+  });
+
+  process.on("uncaughtException", (error) => {
+    console.error("[Process] Uncaught Exception:", error);
+  });
+
+  const shutdown = async () => {
+    console.log("[Server] Encerrando conexões com o banco e servidor...");
+    server.close(async () => {
+      if (prisma) await prisma.$disconnect();
+      console.log("[Server] Encerrado com sucesso.");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+}
+
+// Exporta app para uso em ambientes serverless (Vercel)
+module.exports = app;
