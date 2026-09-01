@@ -21,6 +21,14 @@
 (function () {
   'use strict';
 
+  // --- DEBUGGER DE TELA PARA MOBILE (ALERTA NATIVO PARA ERROS JS SILENCIOSOS) ---
+  window.addEventListener('error', function (e) {
+    alert('Erro JS: ' + (e.message || e) + ' na linha ' + (e.lineno || '?'));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    alert('Erro Async: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+
   /* ==========================================================================
      1. CONFIGURAÇÕES GLOBAIS E CONSTANTES (CONFIG)
      ========================================================================== */
@@ -366,13 +374,17 @@
     },
 
     bindEvents() {
-      DOM.saveProfileHeaderBtn.addEventListener('click', () => {
-        this.promptCreateProfile();
-      });
+      if (DOM.saveProfileHeaderBtn) {
+        DOM.saveProfileHeaderBtn.addEventListener('click', () => {
+          this.promptCreateProfile();
+        });
+      }
 
-      DOM.createProfileFromTabBtn.addEventListener('click', () => {
-        this.promptCreateProfile();
-      });
+      if (DOM.createProfileFromTabBtn) {
+        DOM.createProfileFromTabBtn.addEventListener('click', () => {
+          this.promptCreateProfile();
+        });
+      }
     },
 
     loadProfiles() {
@@ -899,73 +911,100 @@
      6. CONTROLADOR DE IMAGEM DE FUNDO & CANVAS 2D
      ========================================================================== */
   const BackgroundController = {
-    ctx: DOM.backgroundCanvas.getContext('2d'),
+    ctx: null,
 
     init() {
+      if (DOM.backgroundCanvas) {
+        this.ctx = DOM.backgroundCanvas.getContext('2d');
+      }
       this.bindEvents();
       this.render();
     },
 
     bindEvents() {
       // Upload seguro por input file com validação
-      DOM.imageFileInput.addEventListener('change', (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (file) {
-          this.validateAndLoadImageFile(file);
-        }
-      });
+      if (DOM.imageFileInput) {
+        DOM.imageFileInput.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            this.validateAndLoadImageFile(file);
+          }
+        });
+      }
 
       // Drag and Drop na dropzone
-      ['dragenter', 'dragover'].forEach(eventName => {
-        DOM.imageDropzone.addEventListener(eventName, (e) => {
-          e.preventDefault();
-          DOM.imageDropzone.classList.add('dragover');
+      if (DOM.imageDropzone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+          DOM.imageDropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            DOM.imageDropzone.classList.add('dragover');
+          });
         });
-      });
 
-      ['dragleave', 'drop'].forEach(eventName => {
-        DOM.imageDropzone.addEventListener(eventName, (e) => {
-          e.preventDefault();
-          DOM.imageDropzone.classList.remove('dragover');
+        ['dragleave', 'drop'].forEach(eventName => {
+          DOM.imageDropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            DOM.imageDropzone.classList.remove('dragover');
+          });
         });
-      });
 
-      DOM.imageDropzone.addEventListener('drop', (e) => {
-        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (file) {
-          this.validateAndLoadImageFile(file);
-        }
-      });
+        DOM.imageDropzone.addEventListener('drop', (e) => {
+          const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) {
+            this.validateAndLoadImageFile(file);
+          }
+        });
+      }
 
       // Drag and Drop direto no Canvas
-      ['dragenter', 'dragover'].forEach(eventName => {
-        DOM.storyCanvasContainer.addEventListener(eventName, (e) => {
-          e.preventDefault();
+      if (DOM.storyCanvasContainer) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+          DOM.storyCanvasContainer.addEventListener(eventName, (e) => {
+            e.preventDefault();
+          });
         });
-      });
 
-      DOM.storyCanvasContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (file) {
-          this.validateAndLoadImageFile(file);
-        }
-      });
+        DOM.storyCanvasContainer.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) {
+            this.validateAndLoadImageFile(file);
+          }
+        });
+
+        // Zoom via Scroll do Mouse no Canvas
+        DOM.storyCanvasContainer.addEventListener('wheel', (e) => {
+          if (!AppState.bgImage) return;
+          e.preventDefault();
+          const delta = e.deltaY < 0 ? 0.08 : -0.08;
+          this.setZoom(AppState.imageTransform.zoom + delta);
+        }, { passive: false });
+      }
 
       // Pan da Imagem de Fundo (Mouse e Touch no Canvas)
-      DOM.backgroundCanvas.addEventListener('mousedown', (e) => {
-        if (!AppState.bgImage) return;
-        AppState.isDraggingImage = true;
-        AppState.dragStartPos = { x: e.clientX, y: e.clientY };
-        AppState.imageStartPan = { ...AppState.imageTransform };
-      });
+      if (DOM.backgroundCanvas) {
+        DOM.backgroundCanvas.addEventListener('mousedown', (e) => {
+          if (!AppState.bgImage) return;
+          AppState.isDraggingImage = true;
+          AppState.dragStartPos = { x: e.clientX, y: e.clientY };
+          AppState.imageStartPan = { ...AppState.imageTransform };
+        });
+
+        // Touch para celulares
+        DOM.backgroundCanvas.addEventListener('touchstart', (e) => {
+          if (!AppState.bgImage || e.touches.length !== 1) return;
+          AppState.isDraggingImage = true;
+          AppState.dragStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          AppState.imageStartPan = { ...AppState.imageTransform };
+        }, { passive: true });
+      }
 
       window.addEventListener('mousemove', (e) => {
         if (!AppState.isDraggingImage) return;
         const dx = e.clientX - AppState.dragStartPos.x;
         const dy = e.clientY - AppState.dragStartPos.y;
         
-        const scale = CONFIG.CANVAS_WIDTH / (DOM.storyCanvasContainer.clientWidth || 360);
+        const scale = CONFIG.CANVAS_WIDTH / (DOM.storyCanvasContainer?.clientWidth || 360);
         AppState.imageTransform.panX = AppState.imageStartPan.panX + (dx * scale);
         AppState.imageTransform.panY = AppState.imageStartPan.panY + (dy * scale);
         this.render();
@@ -975,19 +1014,11 @@
         AppState.isDraggingImage = false;
       });
 
-      // Touch para celulares
-      DOM.backgroundCanvas.addEventListener('touchstart', (e) => {
-        if (!AppState.bgImage || e.touches.length !== 1) return;
-        AppState.isDraggingImage = true;
-        AppState.dragStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        AppState.imageStartPan = { ...AppState.imageTransform };
-      }, { passive: true });
-
       window.addEventListener('touchmove', (e) => {
         if (!AppState.isDraggingImage || e.touches.length !== 1) return;
         const dx = e.touches[0].clientX - AppState.dragStartPos.x;
         const dy = e.touches[0].clientY - AppState.dragStartPos.y;
-        const scale = CONFIG.CANVAS_WIDTH / (DOM.storyCanvasContainer.clientWidth || 360);
+        const scale = CONFIG.CANVAS_WIDTH / (DOM.storyCanvasContainer?.clientWidth || 360);
         AppState.imageTransform.panX = AppState.imageStartPan.panX + (dx * scale);
         AppState.imageTransform.panY = AppState.imageStartPan.panY + (dy * scale);
         this.render();
@@ -997,103 +1028,119 @@
         AppState.isDraggingImage = false;
       });
 
-      // Zoom via Scroll do Mouse no Canvas
-      DOM.storyCanvasContainer.addEventListener('wheel', (e) => {
-        if (!AppState.bgImage) return;
-        e.preventDefault();
-        const delta = e.deltaY < 0 ? 0.08 : -0.08;
-        this.setZoom(AppState.imageTransform.zoom + delta);
-      }, { passive: false });
-
       // Botões Funcionais de Zoom (+ e -)
-      DOM.zoomOutPhotoBtn.addEventListener('click', () => {
-        this.setZoom(AppState.imageTransform.zoom - CONFIG.ZOOM_STEP);
-      });
+      if (DOM.zoomOutPhotoBtn) {
+        DOM.zoomOutPhotoBtn.addEventListener('click', () => {
+          this.setZoom(AppState.imageTransform.zoom - CONFIG.ZOOM_STEP);
+        });
+      }
 
-      DOM.zoomInPhotoBtn.addEventListener('click', () => {
-        this.setZoom(AppState.imageTransform.zoom + CONFIG.ZOOM_STEP);
-      });
+      if (DOM.zoomInPhotoBtn) {
+        DOM.zoomInPhotoBtn.addEventListener('click', () => {
+          this.setZoom(AppState.imageTransform.zoom + CONFIG.ZOOM_STEP);
+        });
+      }
 
       // Zoom Slider Sincronizado
-      DOM.imageZoomSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value, 10);
-        this.setZoom(val / 100, false);
-      });
+      if (DOM.imageZoomSlider) {
+        DOM.imageZoomSlider.addEventListener('input', (e) => {
+          const val = parseInt(e.target.value, 10);
+          this.setZoom(val / 100, false);
+        });
+      }
 
       // Botões de Enquadramento
-      DOM.fitCoverBtn.addEventListener('click', () => this.fitImage('cover'));
-      DOM.fitContainBtn.addEventListener('click', () => this.fitImage('contain'));
-      DOM.centerImageBtn.addEventListener('click', () => {
-        AppState.imageTransform.panX = 0;
-        AppState.imageTransform.panY = 0;
-        this.updateFitModeUI('center');
-        this.render();
-      });
+      if (DOM.fitCoverBtn) DOM.fitCoverBtn.addEventListener('click', () => this.fitImage('cover'));
+      if (DOM.fitContainBtn) DOM.fitContainBtn.addEventListener('click', () => this.fitImage('contain'));
+      if (DOM.centerImageBtn) {
+        DOM.centerImageBtn.addEventListener('click', () => {
+          AppState.imageTransform.panX = 0;
+          AppState.imageTransform.panY = 0;
+          this.updateFitModeUI('center');
+          this.render();
+        });
+      }
 
-      DOM.resetImageTransformBtn.addEventListener('click', () => this.resetTransform());
+      if (DOM.resetImageTransformBtn) DOM.resetImageTransformBtn.addEventListener('click', () => this.resetTransform());
 
       // Filtros de Imagem com Debounce
       const debouncedRender = debounce(() => this.render(), CONFIG.FILTER_DEBOUNCE_MS);
 
-      DOM.brightnessSlider.addEventListener('input', (e) => {
-        AppState.imageTransform.brightness = parseInt(e.target.value, 10);
-        DOM.brightnessValue.textContent = `${AppState.imageTransform.brightness}%`;
-        debouncedRender();
-      });
+      if (DOM.brightnessSlider) {
+        DOM.brightnessSlider.addEventListener('input', (e) => {
+          AppState.imageTransform.brightness = parseInt(e.target.value, 10);
+          if (DOM.brightnessValue) DOM.brightnessValue.textContent = `${AppState.imageTransform.brightness}%`;
+          debouncedRender();
+        });
+      }
 
-      DOM.contrastSlider.addEventListener('input', (e) => {
-        AppState.imageTransform.contrast = parseInt(e.target.value, 10);
-        DOM.contrastValue.textContent = `${AppState.imageTransform.contrast}%`;
-        debouncedRender();
-      });
+      if (DOM.contrastSlider) {
+        DOM.contrastSlider.addEventListener('input', (e) => {
+          AppState.imageTransform.contrast = parseInt(e.target.value, 10);
+          if (DOM.contrastValue) DOM.contrastValue.textContent = `${AppState.imageTransform.contrast}%`;
+          debouncedRender();
+        });
+      }
 
-      DOM.saturationSlider.addEventListener('input', (e) => {
-        AppState.imageTransform.saturation = parseInt(e.target.value, 10);
-        DOM.saturationValue.textContent = `${AppState.imageTransform.saturation}%`;
-        debouncedRender();
-      });
+      if (DOM.saturationSlider) {
+        DOM.saturationSlider.addEventListener('input', (e) => {
+          AppState.imageTransform.saturation = parseInt(e.target.value, 10);
+          if (DOM.saturationValue) DOM.saturationValue.textContent = `${AppState.imageTransform.saturation}%`;
+          debouncedRender();
+        });
+      }
 
       // Chips de Exemplo de Produtos
-      DOM.sampleChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          const sample = chip.getAttribute('data-sample');
-          this.loadSampleProduct(sample);
+      if (DOM.sampleChips) {
+        DOM.sampleChips.forEach(chip => {
+          chip.addEventListener('click', () => {
+            const sample = chip.getAttribute('data-sample');
+            this.loadSampleProduct(sample);
+          });
         });
-      });
+      }
 
       // Paleta de Cores e Gradientes
-      DOM.colorSwatches.forEach(swatch => {
-        swatch.addEventListener('click', () => {
-          DOM.colorSwatches.forEach(s => s.classList.remove('active'));
-          swatch.classList.add('active');
-          const color = swatch.getAttribute('data-color');
-          AppState.backgroundColor = color;
+      if (DOM.colorSwatches) {
+        DOM.colorSwatches.forEach(swatch => {
+          swatch.addEventListener('click', () => {
+            DOM.colorSwatches.forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+            const color = swatch.getAttribute('data-color');
+            AppState.backgroundColor = color;
+            AppState.backgroundGradient = null;
+            if (DOM.customBgColorInput) DOM.customBgColorInput.value = color;
+            if (DOM.customBgColorText) DOM.customBgColorText.value = color;
+            this.render();
+          });
+        });
+      }
+
+      if (DOM.customBgColorInput) {
+        DOM.customBgColorInput.addEventListener('input', (e) => {
+          AppState.backgroundColor = e.target.value;
           AppState.backgroundGradient = null;
-          DOM.customBgColorInput.value = color;
-          DOM.customBgColorText.value = color;
+          if (DOM.customBgColorText) DOM.customBgColorText.value = e.target.value;
           this.render();
         });
-      });
+      }
 
-      DOM.customBgColorInput.addEventListener('input', (e) => {
-        AppState.backgroundColor = e.target.value;
-        AppState.backgroundGradient = null;
-        DOM.customBgColorText.value = e.target.value;
-        this.render();
-      });
+      if (DOM.gradientSwatches) {
+        DOM.gradientSwatches.forEach(swatch => {
+          swatch.addEventListener('click', () => {
+            AppState.backgroundGradient = swatch.getAttribute('data-gradient');
+            this.render();
+          });
+        });
+      }
 
-      DOM.gradientSwatches.forEach(swatch => {
-        swatch.addEventListener('click', () => {
-          AppState.backgroundGradient = swatch.getAttribute('data-gradient');
+      if (DOM.overlayDarknessSlider) {
+        DOM.overlayDarknessSlider.addEventListener('input', (e) => {
+          AppState.overlayDarkness = parseInt(e.target.value, 10);
+          if (DOM.overlayDarknessValue) DOM.overlayDarknessValue.textContent = `${AppState.overlayDarkness}%`;
           this.render();
         });
-      });
-
-      DOM.overlayDarknessSlider.addEventListener('input', (e) => {
-        AppState.overlayDarkness = parseInt(e.target.value, 10);
-        DOM.overlayDarknessValue.textContent = `${AppState.overlayDarkness}%`;
-        this.render();
-      });
+      }
     },
 
     validateAndLoadImageFile(file) {
@@ -1189,17 +1236,21 @@
         contrast: 100,
         saturation: 100
       };
-      DOM.brightnessSlider.value = 100;
-      DOM.brightnessValue.textContent = '100%';
-      DOM.contrastSlider.value = 100;
-      DOM.contrastValue.textContent = '100%';
-      DOM.saturationSlider.value = 100;
-      DOM.saturationValue.textContent = '100%';
+      if (DOM.brightnessSlider) DOM.brightnessSlider.value = 100;
+      if (DOM.brightnessValue) DOM.brightnessValue.textContent = '100%';
+      if (DOM.contrastSlider) DOM.contrastSlider.value = 100;
+      if (DOM.contrastValue) DOM.contrastValue.textContent = '100%';
+      if (DOM.saturationSlider) DOM.saturationSlider.value = 100;
+      if (DOM.saturationValue) DOM.saturationValue.textContent = '100%';
       this.fitImage('cover');
     },
 
     render() {
+      if (!this.ctx && DOM.backgroundCanvas) {
+        this.ctx = DOM.backgroundCanvas.getContext('2d');
+      }
       const ctx = this.ctx;
+      if (!ctx) return;
       const w = CONFIG.CANVAS_WIDTH;
       const h = CONFIG.CANVAS_HEIGHT;
 
@@ -1380,74 +1431,84 @@
     },
 
     bindEvents() {
-      DOM.addProductNamePreset.addEventListener('click', () => {
-        this.addLayer({
-          text: AppState.projectTitle || 'Smartphone Pro Max 256GB',
-          fontSize: 28,
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: '800',
-          color: '#ffffff',
-          y: 22,
-          hasBg: false
+      if (DOM.addProductNamePreset) {
+        DOM.addProductNamePreset.addEventListener('click', () => {
+          this.addLayer({
+            text: AppState.projectTitle || 'Smartphone Pro Max 256GB',
+            fontSize: 28,
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: '800',
+            color: '#ffffff',
+            y: 22,
+            hasBg: false
+          });
         });
-      });
+      }
 
-      DOM.addPriceCashPreset.addEventListener('click', () => {
-        this.addLayer({
-          text: 'R$ 4.999,00 à vista',
-          fontSize: 34,
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: '900',
-          color: '#ffffff',
-          hasBg: true,
-          bgColor: '#10b981',
-          bgPadding: 10,
-          bgRadius: 8,
-          y: 72
+      if (DOM.addPriceCashPreset) {
+        DOM.addPriceCashPreset.addEventListener('click', () => {
+          this.addLayer({
+            text: 'R$ 4.999,00 à vista',
+            fontSize: 34,
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: '900',
+            color: '#ffffff',
+            hasBg: true,
+            bgColor: '#10b981',
+            bgPadding: 10,
+            bgRadius: 8,
+            y: 72
+          });
         });
-      });
+      }
 
-      DOM.addPriceInstallmentPreset.addEventListener('click', () => {
-        this.addLayer({
-          text: 'ou 12x de R$ 489,90 no cartão',
-          fontSize: 19,
-          fontFamily: "'Inter', sans-serif",
-          fontWeight: '600',
-          color: '#f8fafc',
-          y: 80,
-          hasBg: false
+      if (DOM.addPriceInstallmentPreset) {
+        DOM.addPriceInstallmentPreset.addEventListener('click', () => {
+          this.addLayer({
+            text: 'ou 12x de R$ 489,90 no cartão',
+            fontSize: 19,
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: '600',
+            color: '#f8fafc',
+            y: 80,
+            hasBg: false
+          });
         });
-      });
+      }
 
-      DOM.addConditionPreset.addEventListener('click', () => {
-        this.addLayer({
-          text: '🔥 15% OFF NO PIX',
-          fontSize: 19,
-          fontFamily: "'Bebas Neue', sans-serif",
-          fontWeight: '700',
-          color: '#000000',
-          hasBg: true,
-          bgColor: '#facc15',
-          bgPadding: 8,
-          bgRadius: 6,
-          y: 16
+      if (DOM.addConditionPreset) {
+        DOM.addConditionPreset.addEventListener('click', () => {
+          this.addLayer({
+            text: '🔥 15% OFF NO PIX',
+            fontSize: 19,
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontWeight: '700',
+            color: '#000000',
+            hasBg: true,
+            bgColor: '#facc15',
+            bgPadding: 8,
+            bgRadius: 6,
+            y: 16
+          });
         });
-      });
+      }
 
-      DOM.addCtaPreset.addEventListener('click', () => {
-        this.addLayer({
-          text: '👆 Envie mensagem para comprar',
-          fontSize: 17,
-          fontFamily: "'Poppins', sans-serif",
-          fontWeight: '700',
-          color: '#ffffff',
-          hasBg: true,
-          bgColor: '#6366f1',
-          bgPadding: 10,
-          bgRadius: 20,
-          y: 86
+      if (DOM.addCtaPreset) {
+        DOM.addCtaPreset.addEventListener('click', () => {
+          this.addLayer({
+            text: '👆 Envie mensagem para comprar',
+            fontSize: 17,
+            fontFamily: "'Poppins', sans-serif",
+            fontWeight: '700',
+            color: '#ffffff',
+            hasBg: true,
+            bgColor: '#6366f1',
+            bgPadding: 10,
+            bgRadius: 20,
+            y: 86
+          });
         });
-      });
+      }
 
       // Preset Especial de Varejo: Saldão Seminovos
       if (DOM.addSaldaoPreset) {
@@ -1520,59 +1581,67 @@
         });
       }
 
-      DOM.addFreeTextBtn.addEventListener('click', () => {
-        this.addLayer({
-          text: 'Novo Texto Livre',
-          fontSize: 26,
-          y: 50
-        });
-      });
-
-      DOM.stickerItems.forEach(sticker => {
-        sticker.addEventListener('click', () => {
-          const text = sticker.getAttribute('data-text');
-          const bg = sticker.getAttribute('data-bg');
-          const color = sticker.getAttribute('data-color');
+      if (DOM.addFreeTextBtn) {
+        DOM.addFreeTextBtn.addEventListener('click', () => {
           this.addLayer({
-            text: text,
-            fontSize: 18,
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: '800',
-            color: color,
-            hasBg: true,
-            bgColor: bg,
-            bgPadding: 8,
-            bgRadius: 6,
-            y: 18
+            text: 'Novo Texto Livre',
+            fontSize: 26,
+            y: 50
           });
         });
-      });
+      }
 
-      DOM.addCustomBadgeBtn.addEventListener('click', () => {
-        const val = DOM.customBadgeTextInput.value.trim();
-        if (val) {
-          this.addLayer({
-            text: val.toUpperCase(),
-            fontSize: 20,
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: '800',
-            color: '#ffffff',
-            hasBg: true,
-            bgColor: '#6366f1',
-            bgPadding: 8,
-            bgRadius: 6,
-            y: 18
+      if (DOM.stickerItems) {
+        DOM.stickerItems.forEach(sticker => {
+          sticker.addEventListener('click', () => {
+            const text = sticker.getAttribute('data-text');
+            const bg = sticker.getAttribute('data-bg');
+            const color = sticker.getAttribute('data-color');
+            this.addLayer({
+              text: text,
+              fontSize: 18,
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: '800',
+              color: color,
+              hasBg: true,
+              bgColor: bg,
+              bgPadding: 8,
+              bgRadius: 6,
+              y: 18
+            });
           });
-          DOM.customBadgeTextInput.value = '';
-        }
-      });
-
-      DOM.styleTemplatePills.forEach(pill => {
-        pill.addEventListener('click', () => {
-          const style = pill.getAttribute('data-style');
-          this.applyGlobalTypographyStyle(style);
         });
-      });
+      }
+
+      if (DOM.addCustomBadgeBtn) {
+        DOM.addCustomBadgeBtn.addEventListener('click', () => {
+          const val = DOM.customBadgeTextInput ? DOM.customBadgeTextInput.value.trim() : '';
+          if (val) {
+            this.addLayer({
+              text: val.toUpperCase(),
+              fontSize: 20,
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: '800',
+              color: '#ffffff',
+              hasBg: true,
+              bgColor: '#6366f1',
+              bgPadding: 8,
+              bgRadius: 6,
+              y: 18
+            });
+            if (DOM.customBadgeTextInput) DOM.customBadgeTextInput.value = '';
+          }
+        });
+      }
+
+      if (DOM.styleTemplatePills) {
+        DOM.styleTemplatePills.forEach(pill => {
+          pill.addEventListener('click', () => {
+            const style = pill.getAttribute('data-style');
+            this.applyGlobalTypographyStyle(style);
+          });
+        });
+      }
 
       const handleCanvasDeselect = (e) => {
         if (
@@ -1589,8 +1658,10 @@
         }
       };
 
-      DOM.storyCanvasContainer.addEventListener('mousedown', handleCanvasDeselect);
-      DOM.storyCanvasContainer.addEventListener('touchstart', handleCanvasDeselect, { passive: true });
+      if (DOM.storyCanvasContainer) {
+        DOM.storyCanvasContainer.addEventListener('mousedown', handleCanvasDeselect);
+        DOM.storyCanvasContainer.addEventListener('touchstart', handleCanvasDeselect, { passive: true });
+      }
       if (DOM.canvasWorkspace) {
         DOM.canvasWorkspace.addEventListener('mousedown', handleCanvasDeselect);
         DOM.canvasWorkspace.addEventListener('touchstart', handleCanvasDeselect, { passive: true });
@@ -2158,29 +2229,33 @@
       const getActiveLayer = () => AppState.textLayers.find(l => l.id === AppState.selectedLayerId);
 
       // Texto
-      DOM.inspectorTextInput.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.text = e.target.value;
-        const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
-        if (el) {
-          el.innerText = layer.text;
-          el.setAttribute('aria-label', `Camada de texto: ${layer.text}`);
-        }
-      });
+      if (DOM.inspectorTextInput) {
+        DOM.inspectorTextInput.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.text = e.target.value;
+          const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
+          if (el) {
+            el.innerText = layer.text;
+            el.setAttribute('aria-label', `Camada de texto: ${layer.text}`);
+          }
+        });
+      }
 
       // Fonte Tipográfica (Carregamento Dinâmico Google Fonts)
-      DOM.fontFamilySelect.addEventListener('change', async (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.fontFamily = e.target.value;
+      if (DOM.fontFamilySelect) {
+        DOM.fontFamilySelect.addEventListener('change', async (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.fontFamily = e.target.value;
 
-        const fontMatch = layer.fontFamily.match(/'([^']+)'/);
-        const fontName = fontMatch ? fontMatch[1] : layer.fontFamily.split(',')[0].replace(/'/g, '').trim();
-        await loadGoogleFontDynamically(fontName);
+          const fontMatch = layer.fontFamily.match(/'([^']+)'/);
+          const fontName = fontMatch ? fontMatch[1] : layer.fontFamily.split(',')[0].replace(/'/g, '').trim();
+          await loadGoogleFontDynamically(fontName);
 
-        TextLayerManager.renderLayers();
-      });
+          TextLayerManager.renderLayers();
+        });
+      }
 
       // Upload de Fonte Customizada (.ttf, .otf, .woff)
       if (DOM.customFontFileInput) {
@@ -2193,14 +2268,16 @@
       }
 
       // Tamanho da Fonte
-      DOM.fontSizeSlider.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.fontSize = parseInt(e.target.value, 10);
-        DOM.fontSizeValue.textContent = `${layer.fontSize}px`;
-        const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
-        if (el) el.style.fontSize = `${layer.fontSize}px`;
-      });
+      if (DOM.fontSizeSlider) {
+        DOM.fontSizeSlider.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.fontSize = parseInt(e.target.value, 10);
+          if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = `${layer.fontSize}px`;
+          const el = document.querySelector(`.text-layer-item[data-id="${layer.id}"]`);
+          if (el) el.style.fontSize = `${layer.fontSize}px`;
+        });
+      }
 
       // Espaçamento de Letras (Letter Spacing)
       if (DOM.letterSpacingSlider) {
@@ -2227,32 +2304,39 @@
       }
 
       // Formatações
-      DOM.toggleBoldBtn.addEventListener('click', () => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.fontWeight = (layer.fontWeight === '800' || layer.fontWeight === 'bold') ? 'normal' : '800';
-        DOM.toggleBoldBtn.classList.toggle('active', layer.fontWeight === '800' || layer.fontWeight === 'bold');
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.toggleBoldBtn) {
+        DOM.toggleBoldBtn.addEventListener('click', () => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.fontWeight = (layer.fontWeight === '800' || layer.fontWeight === 'bold') ? 'normal' : '800';
+          DOM.toggleBoldBtn.classList.toggle('active', layer.fontWeight === '800' || layer.fontWeight === 'bold');
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.toggleItalicBtn.addEventListener('click', () => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.fontStyle = layer.fontStyle === 'italic' ? 'normal' : 'italic';
-        DOM.toggleItalicBtn.classList.toggle('active', layer.fontStyle === 'italic');
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.toggleItalicBtn) {
+        DOM.toggleItalicBtn.addEventListener('click', () => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.fontStyle = layer.fontStyle === 'italic' ? 'normal' : 'italic';
+          DOM.toggleItalicBtn.classList.toggle('active', layer.fontStyle === 'italic');
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.toggleUppercaseBtn.addEventListener('click', () => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.textTransform = layer.textTransform === 'uppercase' ? 'none' : 'uppercase';
-        DOM.toggleUppercaseBtn.classList.toggle('active', layer.textTransform === 'uppercase');
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.toggleUppercaseBtn) {
+        DOM.toggleUppercaseBtn.addEventListener('click', () => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.textTransform = layer.textTransform === 'uppercase' ? 'none' : 'uppercase';
+          DOM.toggleUppercaseBtn.classList.toggle('active', layer.textTransform === 'uppercase');
+          TextLayerManager.renderLayers();
+        });
+      }
 
       // Alinhamento
       [DOM.alignLeftBtn, DOM.alignCenterBtn, DOM.alignRightBtn].forEach((btn) => {
+        if (!btn) return;
         btn.addEventListener('click', () => {
           const layer = getActiveLayer();
           if (!layer) return;
@@ -2265,135 +2349,161 @@
       });
 
       // Cor do Texto
-      DOM.textColorPicker.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.color = e.target.value;
-        DOM.textColorHex.value = e.target.value;
-        TextLayerManager.renderLayers();
-      });
-
-      DOM.quickColorDots.forEach(dot => {
-        dot.addEventListener('click', () => {
+      if (DOM.textColorPicker) {
+        DOM.textColorPicker.addEventListener('input', (e) => {
           const layer = getActiveLayer();
           if (!layer) return;
-          const color = dot.getAttribute('data-color');
-          layer.color = color;
-          DOM.textColorPicker.value = color;
-          DOM.textColorHex.value = color;
+          layer.color = e.target.value;
+          if (DOM.textColorHex) DOM.textColorHex.value = e.target.value;
           TextLayerManager.renderLayers();
         });
-      });
+      }
+
+      if (DOM.quickColorDots) {
+        DOM.quickColorDots.forEach(dot => {
+          dot.addEventListener('click', () => {
+            const layer = getActiveLayer();
+            if (!layer) return;
+            const color = dot.getAttribute('data-color');
+            layer.color = color;
+            if (DOM.textColorPicker) DOM.textColorPicker.value = color;
+            if (DOM.textColorHex) DOM.textColorHex.value = color;
+            TextLayerManager.renderLayers();
+          });
+        });
+      }
 
       // Badge / Fundo
-      DOM.enableBadgeCheck.addEventListener('change', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.hasBg = e.target.checked;
-        DOM.badgeOptionsContainer.style.display = layer.hasBg ? 'block' : 'none';
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.enableBadgeCheck) {
+        DOM.enableBadgeCheck.addEventListener('change', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.hasBg = e.target.checked;
+          if (DOM.badgeOptionsContainer) DOM.badgeOptionsContainer.style.display = layer.hasBg ? 'block' : 'none';
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.badgeColorPicker.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.bgColor = e.target.value;
-        DOM.badgeColorHex.value = e.target.value;
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.badgeColorPicker) {
+        DOM.badgeColorPicker.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.bgColor = e.target.value;
+          if (DOM.badgeColorHex) DOM.badgeColorHex.value = e.target.value;
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.badgeRadiusSlider.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.bgRadius = parseInt(e.target.value, 10);
-        DOM.badgeRadiusValue.textContent = `${layer.bgRadius}px`;
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.badgeRadiusSlider) {
+        DOM.badgeRadiusSlider.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.bgRadius = parseInt(e.target.value, 10);
+          if (DOM.badgeRadiusValue) DOM.badgeRadiusValue.textContent = `${layer.bgRadius}px`;
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.badgePaddingSlider.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.bgPadding = parseInt(e.target.value, 10);
-        DOM.badgePaddingValue.textContent = `${layer.bgPadding}px`;
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.badgePaddingSlider) {
+        DOM.badgePaddingSlider.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.bgPadding = parseInt(e.target.value, 10);
+          if (DOM.badgePaddingValue) DOM.badgePaddingValue.textContent = `${layer.bgPadding}px`;
+          TextLayerManager.renderLayers();
+        });
+      }
 
       // Sombra e Contorno
-      DOM.enableShadowCheck.addEventListener('change', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.hasShadow = e.target.checked;
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.enableShadowCheck) {
+        DOM.enableShadowCheck.addEventListener('change', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.hasShadow = e.target.checked;
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.enableStrokeCheck.addEventListener('change', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.hasStroke = e.target.checked;
-        DOM.strokeOptionsContainer.style.display = layer.hasStroke ? 'block' : 'none';
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.enableStrokeCheck) {
+        DOM.enableStrokeCheck.addEventListener('change', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.hasStroke = e.target.checked;
+          if (DOM.strokeOptionsContainer) DOM.strokeOptionsContainer.style.display = layer.hasStroke ? 'block' : 'none';
+          TextLayerManager.renderLayers();
+        });
+      }
 
-      DOM.strokeColorPicker.addEventListener('input', (e) => {
-        const layer = getActiveLayer();
-        if (!layer) return;
-        layer.strokeColor = e.target.value;
-        DOM.strokeColorHex.value = e.target.value;
-        TextLayerManager.renderLayers();
-      });
+      if (DOM.strokeColorPicker) {
+        DOM.strokeColorPicker.addEventListener('input', (e) => {
+          const layer = getActiveLayer();
+          if (!layer) return;
+          layer.strokeColor = e.target.value;
+          if (DOM.strokeColorHex) DOM.strokeColorHex.value = e.target.value;
+          TextLayerManager.renderLayers();
+        });
+      }
 
       // Alinhamento na Tela
-      DOM.alignCanvasLeftBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 20; TextLayerManager.renderLayers(); } });
-      DOM.alignCanvasCenterHBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 50; TextLayerManager.renderLayers(); } });
-      DOM.alignCanvasRightBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 80; TextLayerManager.renderLayers(); } });
-      DOM.alignCanvasTopBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 20; TextLayerManager.renderLayers(); } });
-      DOM.alignCanvasCenterVBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 50; TextLayerManager.renderLayers(); } });
-      DOM.alignCanvasBottomBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 80; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasLeftBtn) DOM.alignCanvasLeftBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 20; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasCenterHBtn) DOM.alignCanvasCenterHBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 50; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasRightBtn) DOM.alignCanvasRightBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.x = 80; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasTopBtn) DOM.alignCanvasTopBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 20; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasCenterVBtn) DOM.alignCanvasCenterVBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 50; TextLayerManager.renderLayers(); } });
+      if (DOM.alignCanvasBottomBtn) DOM.alignCanvasBottomBtn.addEventListener('click', () => { const l = getActiveLayer(); if (l) { l.y = 80; TextLayerManager.renderLayers(); } });
 
       // Ordem de Camada
-      DOM.bringForwardBtn.addEventListener('click', () => {
-        const layer = getActiveLayer();
-        if (layer) { layer.zIndex += 1; TextLayerManager.renderLayers(); }
-      });
+      if (DOM.bringForwardBtn) {
+        DOM.bringForwardBtn.addEventListener('click', () => {
+          const layer = getActiveLayer();
+          if (layer) { layer.zIndex += 1; TextLayerManager.renderLayers(); }
+        });
+      }
 
-      DOM.sendBackwardBtn.addEventListener('click', () => {
-        const layer = getActiveLayer();
-        if (layer && layer.zIndex > 1) { layer.zIndex -= 1; TextLayerManager.renderLayers(); }
-      });
+      if (DOM.sendBackwardBtn) {
+        DOM.sendBackwardBtn.addEventListener('click', () => {
+          const layer = getActiveLayer();
+          if (layer && layer.zIndex > 1) { layer.zIndex -= 1; TextLayerManager.renderLayers(); }
+        });
+      }
 
       // Duplicar e Excluir
-      DOM.duplicateLayerBtn.addEventListener('click', () => {
-        if (AppState.selectedLayerId) TextLayerManager.duplicateLayer(AppState.selectedLayerId);
-      });
+      if (DOM.duplicateLayerBtn) {
+        DOM.duplicateLayerBtn.addEventListener('click', () => {
+          if (AppState.selectedLayerId) TextLayerManager.duplicateLayer(AppState.selectedLayerId);
+        });
+      }
 
-      DOM.deleteLayerBtn.addEventListener('click', () => {
-        if (AppState.selectedLayerId) TextLayerManager.deleteLayer(AppState.selectedLayerId);
-      });
+      if (DOM.deleteLayerBtn) {
+        DOM.deleteLayerBtn.addEventListener('click', () => {
+          if (AppState.selectedLayerId) TextLayerManager.deleteLayer(AppState.selectedLayerId);
+        });
+      }
     },
 
     updateAlignmentButtons(align) {
-      DOM.alignLeftBtn.classList.toggle('active', align === 'left');
-      DOM.alignCenterBtn.classList.toggle('active', align === 'center');
-      DOM.alignRightBtn.classList.toggle('active', align === 'right');
+      if (DOM.alignLeftBtn) DOM.alignLeftBtn.classList.toggle('active', align === 'left');
+      if (DOM.alignCenterBtn) DOM.alignCenterBtn.classList.toggle('active', align === 'center');
+      if (DOM.alignRightBtn) DOM.alignRightBtn.classList.toggle('active', align === 'right');
     },
 
     update() {
       const layer = AppState.textLayers.find(l => l.id === AppState.selectedLayerId);
 
       if (!layer) {
-        DOM.noSelectionState.style.display = 'flex';
-        DOM.textInspectorState.style.display = 'none';
+        if (DOM.noSelectionState) DOM.noSelectionState.style.display = 'flex';
+        if (DOM.textInspectorState) DOM.textInspectorState.style.display = 'none';
         return;
       }
 
-      DOM.noSelectionState.style.display = 'none';
-      DOM.textInspectorState.style.display = 'block';
+      if (DOM.noSelectionState) DOM.noSelectionState.style.display = 'none';
+      if (DOM.textInspectorState) DOM.textInspectorState.style.display = 'block';
 
-      DOM.selectedLayerTypeName.textContent = layer.text.substring(0, 16) || 'Texto';
-      DOM.inspectorTextInput.value = layer.text;
-      DOM.fontFamilySelect.value = layer.fontFamily;
-      DOM.fontSizeSlider.value = layer.fontSize;
-      DOM.fontSizeValue.textContent = `${layer.fontSize}px`;
+      if (DOM.selectedLayerTypeName) DOM.selectedLayerTypeName.textContent = layer.text.substring(0, 16) || 'Texto';
+      if (DOM.inspectorTextInput) DOM.inspectorTextInput.value = layer.text;
+      if (DOM.fontFamilySelect) DOM.fontFamilySelect.value = layer.fontFamily;
+      if (DOM.fontSizeSlider) DOM.fontSizeSlider.value = layer.fontSize;
+      if (DOM.fontSizeValue) DOM.fontSizeValue.textContent = `${layer.fontSize}px`;
 
       if (DOM.letterSpacingSlider) {
         DOM.letterSpacingSlider.value = layer.letterSpacing !== undefined ? layer.letterSpacing : 0;
@@ -2405,29 +2515,29 @@
         if (DOM.lineHeightValue) DOM.lineHeightValue.textContent = `${DOM.lineHeightSlider.value}x`;
       }
 
-      DOM.toggleBoldBtn.classList.toggle('active', layer.fontWeight === '800' || layer.fontWeight === 'bold');
-      DOM.toggleItalicBtn.classList.toggle('active', layer.fontStyle === 'italic');
-      DOM.toggleUppercaseBtn.classList.toggle('active', layer.textTransform === 'uppercase');
+      if (DOM.toggleBoldBtn) DOM.toggleBoldBtn.classList.toggle('active', layer.fontWeight === '800' || layer.fontWeight === 'bold');
+      if (DOM.toggleItalicBtn) DOM.toggleItalicBtn.classList.toggle('active', layer.fontStyle === 'italic');
+      if (DOM.toggleUppercaseBtn) DOM.toggleUppercaseBtn.classList.toggle('active', layer.textTransform === 'uppercase');
 
       this.updateAlignmentButtons(layer.textAlign);
 
-      DOM.textColorPicker.value = layer.color.startsWith('#') ? layer.color : '#ffffff';
-      DOM.textColorHex.value = layer.color;
+      if (DOM.textColorPicker) DOM.textColorPicker.value = layer.color.startsWith('#') ? layer.color : '#ffffff';
+      if (DOM.textColorHex) DOM.textColorHex.value = layer.color;
 
-      DOM.enableBadgeCheck.checked = layer.hasBg;
-      DOM.badgeOptionsContainer.style.display = layer.hasBg ? 'block' : 'none';
-      DOM.badgeColorPicker.value = layer.bgColor.startsWith('#') ? layer.bgColor : '#10b981';
-      DOM.badgeColorHex.value = layer.bgColor;
-      DOM.badgeRadiusSlider.value = layer.bgRadius;
-      DOM.badgeRadiusValue.textContent = `${layer.bgRadius}px`;
-      DOM.badgePaddingSlider.value = layer.bgPadding;
-      DOM.badgePaddingValue.textContent = `${layer.bgPadding}px`;
+      if (DOM.enableBadgeCheck) DOM.enableBadgeCheck.checked = layer.hasBg;
+      if (DOM.badgeOptionsContainer) DOM.badgeOptionsContainer.style.display = layer.hasBg ? 'block' : 'none';
+      if (DOM.badgeColorPicker) DOM.badgeColorPicker.value = layer.bgColor.startsWith('#') ? layer.bgColor : '#10b981';
+      if (DOM.badgeColorHex) DOM.badgeColorHex.value = layer.bgColor;
+      if (DOM.badgeRadiusSlider) DOM.badgeRadiusSlider.value = layer.bgRadius;
+      if (DOM.badgeRadiusValue) DOM.badgeRadiusValue.textContent = `${layer.bgRadius}px`;
+      if (DOM.badgePaddingSlider) DOM.badgePaddingSlider.value = layer.bgPadding;
+      if (DOM.badgePaddingValue) DOM.badgePaddingValue.textContent = `${layer.bgPadding}px`;
 
-      DOM.enableShadowCheck.checked = layer.hasShadow;
-      DOM.enableStrokeCheck.checked = layer.hasStroke;
-      DOM.strokeOptionsContainer.style.display = layer.hasStroke ? 'block' : 'none';
-      DOM.strokeColorPicker.value = layer.strokeColor.startsWith('#') ? layer.strokeColor : '#000000';
-      DOM.strokeColorHex.value = layer.strokeColor;
+      if (DOM.enableShadowCheck) DOM.enableShadowCheck.checked = layer.hasShadow;
+      if (DOM.enableStrokeCheck) DOM.enableStrokeCheck.checked = layer.hasStroke;
+      if (DOM.strokeOptionsContainer) DOM.strokeOptionsContainer.style.display = layer.hasStroke ? 'block' : 'none';
+      if (DOM.strokeColorPicker) DOM.strokeColorPicker.value = layer.strokeColor.startsWith('#') ? layer.strokeColor : '#000000';
+      if (DOM.strokeColorHex) DOM.strokeColorHex.value = layer.strokeColor;
     }
   };
 
@@ -2924,18 +3034,22 @@
     },
 
     bindEvents() {
-      DOM.openPreviewModalBtn.addEventListener('click', () => this.open());
-      DOM.closePreviewModalBtn.addEventListener('click', () => this.close());
-      DOM.closePreviewBtn2.addEventListener('click', () => this.close());
-      DOM.closePreviewBackdrop.addEventListener('click', () => this.close());
+      if (DOM.openPreviewModalBtn) DOM.openPreviewModalBtn.addEventListener('click', () => this.open());
+      if (DOM.closePreviewModalBtn) DOM.closePreviewModalBtn.addEventListener('click', () => this.close());
+      if (DOM.closePreviewBtn2) DOM.closePreviewBtn2.addEventListener('click', () => this.close());
+      if (DOM.closePreviewBackdrop) DOM.closePreviewBackdrop.addEventListener('click', () => this.close());
 
-      DOM.toggleIgUiCheck.addEventListener('change', (e) => {
-        DOM.instagramUiOverlay.style.display = e.target.checked ? 'flex' : 'none';
-      });
+      if (DOM.toggleIgUiCheck) {
+        DOM.toggleIgUiCheck.addEventListener('change', (e) => {
+          if (DOM.instagramUiOverlay) DOM.instagramUiOverlay.style.display = e.target.checked ? 'flex' : 'none';
+        });
+      }
 
-      DOM.downloadFromPreviewBtn.addEventListener('click', () => {
-        CanvasExporter.exportAsPNG();
-      });
+      if (DOM.downloadFromPreviewBtn) {
+        DOM.downloadFromPreviewBtn.addEventListener('click', () => {
+          CanvasExporter.exportAsPNG();
+        });
+      }
     },
 
     open() {
@@ -2946,14 +3060,18 @@
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const currentTimeStr = `${hours}:${minutes}`;
 
-        const igTimeEl = DOM.previewModal.querySelector('.ig-time');
-        if (igTimeEl) {
-          igTimeEl.textContent = currentTimeStr;
+        if (DOM.previewModal) {
+          const igTimeEl = DOM.previewModal.querySelector('.ig-time');
+          if (igTimeEl) {
+            igTimeEl.textContent = currentTimeStr;
+          }
         }
 
         const canvas = CanvasExporter.renderFullResolution();
-        DOM.previewRenderedImage.src = canvas.toDataURL('image/png');
-        DOM.previewModal.style.display = 'flex';
+        if (DOM.previewRenderedImage && canvas) {
+          DOM.previewRenderedImage.src = canvas.toDataURL('image/png');
+        }
+        if (DOM.previewModal) DOM.previewModal.style.display = 'flex';
       } catch (err) {
         console.error('Erro ao abrir preview:', err);
         showToast('Não foi possível abrir a pré-visualização.', 'error');
@@ -2961,7 +3079,7 @@
     },
 
     close() {
-      DOM.previewModal.style.display = 'none';
+      if (DOM.previewModal) DOM.previewModal.style.display = 'none';
     }
   };
 
@@ -3497,37 +3615,60 @@
   // --- BOOTSTRAP RESILIENTE ---
   window.addEventListener('DOMContentLoaded', async () => {
     try {
-      // 1. Inicializa subsistemas essenciais com isolamento individual
+      // 1. Inicializa cada subsistema com isolamento estrito de falhas
       try {
         await DB.init();
       } catch (dbErr) {
-        console.warn('[Bootstrap] DB.init falhou, continuando em fallback:', dbErr);
+        console.warn('[Bootstrap] DB.init:', dbErr);
       }
 
       try {
         await ProfileManager.init();
       } catch (profErr) {
-        console.warn('[Bootstrap] ProfileManager.init falhou:', profErr);
+        console.warn('[Bootstrap] ProfileManager.init:', profErr);
       }
 
-      BackgroundController.init();
-      TextLayerManager.init();
-      InspectorController.init();
-      PreviewController.init();
+      try {
+        BackgroundController.init();
+      } catch (bgErr) {
+        console.error('[Bootstrap] BackgroundController.init:', bgErr);
+      }
+
+      try {
+        TextLayerManager.init();
+      } catch (tlErr) {
+        console.error('[Bootstrap] TextLayerManager.init:', tlErr);
+      }
+
+      try {
+        InspectorController.init();
+      } catch (inspErr) {
+        console.error('[Bootstrap] InspectorController.init:', inspErr);
+      }
+
+      try {
+        PreviewController.init();
+      } catch (prevErr) {
+        console.error('[Bootstrap] PreviewController.init:', prevErr);
+      }
 
       try {
         await HistoryController.init();
       } catch (histErr) {
-        console.warn('[Bootstrap] HistoryController.init falhou:', histErr);
+        console.warn('[Bootstrap] HistoryController.init:', histErr);
       }
 
-      setupGeneralUI();
+      try {
+        setupGeneralUI();
+      } catch (uiErr) {
+        console.error('[Bootstrap] setupGeneralUI:', uiErr);
+      }
 
       // Carrega o produto de amostra padrão inicial
       try {
         BackgroundController.loadSampleProduct('smartphone');
       } catch (sampleErr) {
-        console.warn('[Bootstrap] loadSampleProduct falhou:', sampleErr);
+        console.warn('[Bootstrap] loadSampleProduct:', sampleErr);
       }
 
       console.log('StoryCraft inicializado com sucesso (Modo Resiliente & Mobile-Ready).');
