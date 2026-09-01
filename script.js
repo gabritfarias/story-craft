@@ -1761,10 +1761,10 @@
         if (AppState.projectTitle === 'Oferta Smartphone Pro' && name !== 'Produto') {
           const cleanName = name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
           AppState.projectTitle = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-          DOM.projectTitleInput.value = AppState.projectTitle;
+          if (DOM.projectTitleInput) DOM.projectTitleInput.value = AppState.projectTitle;
         }
 
-        DOM.canvasEmptyState.classList.add('hidden');
+        if (DOM.canvasEmptyState) DOM.canvasEmptyState.classList.add('hidden');
         this.fitImage('cover');
         showToast('Foto carregada com sucesso!');
       };
@@ -2522,7 +2522,17 @@
 
     renderLayers() {
       if (DOM.textLayersOverlay) DOM.textLayersOverlay.innerHTML = '';
-      if (DOM.activeLayersCount) DOM.activeLayersCount.textContent = `${AppState.textLayers.length} camadas`;
+      if (DOM.activeLayersCount) {
+        const count = (AppState.textLayers || []).length;
+        DOM.activeLayersCount.textContent = `${count} camadas`;
+        if (count >= 2) {
+          DOM.activeLayersCount.style.display = 'inline-flex';
+          DOM.activeLayersCount.classList.remove('hidden');
+        } else {
+          DOM.activeLayersCount.style.display = 'none';
+          DOM.activeLayersCount.classList.add('hidden');
+        }
+      }
 
       AppState.textLayers.forEach(layer => {
         const el = document.createElement('div');

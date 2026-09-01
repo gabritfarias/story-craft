@@ -107,8 +107,8 @@
         </div>
       </div>
 
-      <!-- Indicador de Camadas Ativas -->
-      <span id="activeLayersCount" class="topbar-layers-counter" title="Camadas de texto ativas">0 camadas</span>
+      <!-- Indicador de Camadas Ativas (Exibido apenas quando houver 2 ou mais camadas) -->
+      <span id="activeLayersCount" class="topbar-layers-counter hidden" style="display: none;" title="Camadas de texto ativas">0 camadas</span>
     </div>
 
     <!-- 2. GRUPO CENTRO: Ferramentas (Grade Safe-Zone, Desfazer, Limpar, Preview) - Botões 44px Confortáveis -->
@@ -180,18 +180,6 @@
             </div>
             <div class="safe-zone-bottom">
               <div class="safe-zone-tag">Área Inferior (Mensagem / Resposta)</div>
-            </div>
-          </div>
-
-          <!-- Estado Vazio Ultra-Clean -->
-          <div id="canvasEmptyState" class="canvas-empty-state" aria-hidden="true">
-            <div class="empty-state-clean-card">
-              <div class="empty-glow-icon">📸</div>
-              <h4>Adicione uma foto</h4>
-              <p>Clique em <strong>Foto</strong> no menu abaixo ou arraste uma imagem aqui.</p>
-              <button class="btn-empty-upload" type="button" onclick="document.getElementById('imageFileInput').click()">
-                Escolher Arquivo
-              </button>
             </div>
           </div>
 
